@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Small CherryPy server to run a REST API. TP3 - INF3995"""
 
 import os
