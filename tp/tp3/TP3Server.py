@@ -41,7 +41,9 @@ class TP3Server(object):
 if __name__ == '__main__':
     CONF = {
         'global': {
-            'server.socket_port': 5000
+            'server.socket_port': 80,
+            'log.access_file': 'requests.log',
+            'log.error_file': 'errors.log'
         },
         '/': {
             'tools.sessions.on': True,
