@@ -22,7 +22,7 @@ class TP3Server(object):
     @cherrypy.expose
     def test2(self):
         """test2 endpoint, returns an HTML link"""
-        template =  """
+        template = """
         <html>
         <head><meta charset="UTF-8"></head>
         <body>
@@ -31,7 +31,6 @@ class TP3Server(object):
         </html>
         """
         return template
-   
 
     @cherrypy.expose
     def test3(self):
@@ -69,7 +68,7 @@ if __name__ == '__main__':
             'tools.sessions.on': True,
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': ''   
+            'tools.staticdir.dir': ''
         }
     }
 
