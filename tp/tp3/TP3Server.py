@@ -22,14 +22,16 @@ class TP3Server(object):
     @cherrypy.expose
     def test2(self):
         """test2 endpoint, returns an HTML link"""
-        return """
-    <html>
-    <head></head>
-    <body>
-        <a href="http://polymtl.ca">Poly Mtl</a>
-    </body>
-    </html>
-    """
+        template =  """
+        <html>
+        <head><meta charset="UTF-8"></head>
+        <body>
+            <a href="http://polymtl.ca">Poly Mtl</a>
+        </body>
+        </html>
+        """
+        return template
+   
 
     @cherrypy.expose
     def test3(self):
@@ -37,18 +39,37 @@ class TP3Server(object):
         path = os.path.join(os.getcwd(), os.path.dirname(__file__), 'python-art.png')
         return static.serve_file(path, 'image/png', 'inline', os.path.basename(path))
 
+def error_404(status, message, traceback, version):
+    """404 error handler function"""
+    template = """
+    <html>
+    <head><meta charset="UTF-8"></head>
+    <body>
+        <h1>404 Page Non Trouvée</h1>
+        <img src="/python-404.png" alt="Sad Python 404">
+        <h2>Détails</h2>
+        <p>{0}</p>
+        <p>{1}</p>
+        <p>{2}</p>
+        <p>CherryPy version : {3}</p>
+    </body>
+    </html>
+    """
+    return template.format(status, message, traceback, version)
 
 if __name__ == '__main__':
     CONF = {
         'global': {
             'server.socket_port': 80,
             'log.access_file': 'requests.log',
-            'log.error_file': 'errors.log'
+            'log.error_file': 'errors.log',
+            'error_page.404': error_404
         },
         '/': {
             'tools.sessions.on': True,
             'tools.staticdir.root': os.path.abspath(os.getcwd()),
-            
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': ''   
         }
     }
 
