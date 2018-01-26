@@ -57,19 +57,4 @@ def error_404(status, message, traceback, version):
     return template.format(status, message, traceback, version)
 
 if __name__ == '__main__':
-    CONF = {
-        'global': {
-            'server.socket_port': 80,
-            'log.access_file': 'requests.log',
-            'log.error_file': 'errors.log',
-            'error_page.404': error_404
-        },
-        '/': {
-            'tools.sessions.on': True,
-            'tools.staticdir.root': os.path.abspath(os.getcwd()),
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': ''
-        }
-    }
-
-cherrypy.quickstart(TP3Server(), '/', CONF)
+    cherrypy.quickstart(TP3Server(), '/', "tp3_server.conf")
