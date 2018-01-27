@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,8 +40,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private ImageView mImageView;
     private TextView mTextView;
-    private TextView mTextHTMLView;
-
+    private WebView mWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,32 +56,26 @@ public class ResultActivity extends AppCompatActivity {
         requestSomething(value);
 
 
-
-
     }
 
-
-    private void requestSomething(final String request){
+    private void requestSomething(final String request) {
         if (request.equals("test1")) {
-            mTextView = (TextView) findViewById(R.id.text);
+            mTextView = new TextView(this);
+            setContentView(mTextView);
             requestText(request);
-
-        }
-        else if (request.equals("test2")){
-            mTextHTMLView = (TextView) findViewById(R.id.text2);
+        } else if (request.equals("test2")) {
+            mWebView = new WebView(this);
+            setContentView(mWebView);
             requestHTML(request);
-
-        }
-        else //if (request == "test3") {
-        {
-            mImageView = (ImageView) findViewById(R.id.img);
+        } else if (request.equals("test3")) {
+            mImageView = new ImageView(this);
+            setContentView(mImageView);
             requestImage(request);
-
         }
-        String str = "ret";
     }
 
     private void requestHTML(String subfix) {
+
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
                 //SERVER_URL + subfix,
@@ -89,7 +83,7 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        mTextHTMLView.setText("response: " + response);
+                        mWebView.loadData(response, "text/html", null);
                     }
                 },
                 new Response.ErrorListener() { // Error listener
@@ -115,7 +109,6 @@ public class ResultActivity extends AppCompatActivity {
 
         volleyQueue.add(stringRequest);
     }
-
 
     private void requestImage(String subfix) {
 
@@ -192,7 +185,6 @@ public class ResultActivity extends AppCompatActivity {
         volleyQueue.add(stringRequest);
 
     }
-
 
 
 }
