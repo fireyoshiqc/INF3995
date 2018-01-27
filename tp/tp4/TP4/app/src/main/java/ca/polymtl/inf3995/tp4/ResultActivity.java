@@ -89,7 +89,7 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        mTextView.setText("response: " + response);
+                        mTextHTMLView.setText("response: " + response);
                     }
                 },
                 new Response.ErrorListener() { // Error listener

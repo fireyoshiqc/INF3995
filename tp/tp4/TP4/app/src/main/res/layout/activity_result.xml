@@ -6,6 +6,7 @@
     tools:context="ca.polymtl.inf3995.tp4.ResultActivity">
 
 
+
     <ImageView
         android:id="@+id/img"
         android:layout_width="match_parent"
@@ -21,6 +22,12 @@
         android:id="@+id/text2"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+
+
+
+
+
 
 
 </android.support.constraint.ConstraintLayout>
