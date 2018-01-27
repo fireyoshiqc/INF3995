@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -89,20 +88,7 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.ErrorListener() { // Error listener
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                            //This indicates that the request has either time out or there is no connection
-                        } else if (error instanceof AuthFailureError) {
-                            // Error indicating that there was an Authentication Failure while performing the request
-                        } else if (error instanceof ServerError) {
-                            //Indicates that the server responded with a error response
-                            String statusCode = String.valueOf(error.networkResponse.statusCode);
-                            Log.d(TAG, statusCode);
-                            Toast.makeText(getApplicationContext(), statusCode, Toast.LENGTH_SHORT).show();
-                        } else if (error instanceof NetworkError) {
-                            //Indicates that there was network error while performing the request
-                        } else if (error instanceof ParseError) {
-                            // Indicates that the server response could not be parsed
-                        }
+                        volleyOnErrorResponse(error);
                     }
                 }
         );
@@ -128,20 +114,7 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.ErrorListener() { // Error listener
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                            //This indicates that the request has either time out or there is no connection
-                        } else if (error instanceof AuthFailureError) {
-                            // Error indicating that there was an Authentication Failure while performing the request
-                        } else if (error instanceof ServerError) {
-                            //Indicates that the server responded with a error response
-                            String statusCode = String.valueOf(error.networkResponse.statusCode);
-                            Log.d(TAG, statusCode);
-                            Toast.makeText(getApplicationContext(), statusCode, Toast.LENGTH_SHORT).show();
-                        } else if (error instanceof NetworkError) {
-                            //Indicates that there was network error while performing the request
-                        } else if (error instanceof ParseError) {
-                            // Indicates that the server response could not be parsed
-                        }
+                        volleyOnErrorResponse(error);
                     }
                 }
         );
@@ -164,20 +137,7 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.ErrorListener() { // Error listener
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                            //This indicates that the request has either time out or there is no connection
-                        } else if (error instanceof AuthFailureError) {
-                            // Error indicating that there was an Authentication Failure while performing the request
-                        } else if (error instanceof ServerError) {
-                            //Indicates that the server responded with a error response
-                            String statusCode = String.valueOf(error.networkResponse.statusCode);
-                            Log.d(TAG, statusCode);
-                            Toast.makeText(getApplicationContext(), statusCode, Toast.LENGTH_SHORT).show();
-                        } else if (error instanceof NetworkError) {
-                            //Indicates that there was network error while performing the request
-                        } else if (error instanceof ParseError) {
-                            // Indicates that the server response could not be parsed
-                        }
+                        volleyOnErrorResponse(error);
                     }
                 }
         );
@@ -186,5 +146,24 @@ public class ResultActivity extends AppCompatActivity {
 
     }
 
+    private void volleyOnErrorResponse(VolleyError error) {
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+            //This indicates that the request has either time out or there is no connection
+            Toast.makeText(getApplicationContext(), "TimeoutError or NoConnectionError", Toast.LENGTH_SHORT).show();
+        } else if (error instanceof AuthFailureError) {
+            // Error indicating that there was an Authentication Failure while performing the request
+            Toast.makeText(getApplicationContext(), "AuthFailureError", Toast.LENGTH_SHORT).show();
+        } else if (error instanceof ServerError) {
+            //Indicates that the server responded with a error response
+            String statusCode = String.valueOf(error.networkResponse.statusCode);
+            Toast.makeText(getApplicationContext(), statusCode, Toast.LENGTH_SHORT).show();
+        } else if (error instanceof NetworkError) {
+            //Indicates that there was network error while performing the request
+            Toast.makeText(getApplicationContext(), "NetworkError", Toast.LENGTH_SHORT).show();
+        } else if (error instanceof ParseError) {
+            // Indicates that the server response could not be parsed
+            Toast.makeText(getApplicationContext(), "ParseError", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 }
