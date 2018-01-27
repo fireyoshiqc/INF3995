@@ -62,12 +62,12 @@ public class ResultActivity extends AppCompatActivity {
 
 
     private void requestSomething(final String request){
-        if (request == "test1") {
+        if (request.equals("test1")) {
             mTextView = (TextView) findViewById(R.id.text);
             requestText(request);
 
         }
-        else if (request == "test2"){
+        else if (request.equals("test2")){
             mTextHTMLView = (TextView) findViewById(R.id.text2);
             requestHTML(request);
 
