@@ -71,7 +71,7 @@ public class RequestFragment extends Fragment {
     }
 
 
-    public void updateButtonView(String url) {
+    public void updateButtonView(final String url) {
         Button button2 = (Button) getActivity().findViewById(R.id.button2);
         button2.setText(url);
         button2.setOnClickListener(new View.OnClickListener() {
@@ -80,7 +80,7 @@ public class RequestFragment extends Fragment {
                 Log.d(TAG, "button");
 
                 Intent myIntent = new Intent(getActivity(), ResultActivity.class);
-                myIntent.putExtra("key", "test"); //Optional parameters
+                myIntent.putExtra("key", url); //Optional parameters
                 getActivity().startActivity(myIntent);
 
             }

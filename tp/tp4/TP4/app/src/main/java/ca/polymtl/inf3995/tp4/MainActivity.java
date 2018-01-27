@@ -57,15 +57,15 @@ public class MainActivity extends FragmentActivity implements GestureDetector.On
 
 
             Bundle args = new Bundle();
-            args.putString(RequestFragment.ARG_URL, "blabla1");
+            args.putString(RequestFragment.ARG_URL, "test1");
             frag1.setArguments(args);
 
             Bundle args2 = new Bundle();
-            args2.putString(RequestFragment.ARG_URL, "blabla2");
+            args2.putString(RequestFragment.ARG_URL, "test2");
             frag2.setArguments(args2);
 
             Bundle args3 = new Bundle();
-            args3.putString(RequestFragment.ARG_URL, "blabla3");
+            args3.putString(RequestFragment.ARG_URL, "test3");
             frag3.setArguments(args3);
 
             currentFrag = frag1;
