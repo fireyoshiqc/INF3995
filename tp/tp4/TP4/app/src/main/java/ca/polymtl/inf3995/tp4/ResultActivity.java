@@ -54,18 +54,13 @@ public class ResultActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_result);
-
         volleyQueue = VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
 
         Intent intent = getIntent();
-        String value = intent.getStringExtra("key"); //if it's a string you stored.
+        String value = intent.getStringExtra("key");
 
         arrangeGlobalDisplay();
-
-        //requestSomething(value);
-
-
+        requestSomething(value);
     }
 
     private void arrangeGlobalDisplay() {
@@ -82,7 +77,6 @@ public class ResultActivity extends AppCompatActivity {
                 RelativeLayout.LayoutParams.WRAP_CONTENT);
         footerLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         footerLayout.setLayoutParams(footerLP);
-
 
         backButton = new Button(this);
         backButton.setText(BUTTON_TEXT);
@@ -113,20 +107,17 @@ public class ResultActivity extends AppCompatActivity {
     private void requestSomething(final String request) {
         if (request.equals("test1")) {
             mTextView = new TextView(this);
-            setContentView(mTextView);
             requestText(request);
         } else if (request.equals("test2")) {
             mWebView = new WebView(this);
-            setContentView(mWebView);
             requestHTML(request);
         } else if (request.equals("test3")) {
             mImageView = new ImageView(this);
-            setContentView(mImageView);
             requestImage(request);
         }
     }
 
-    private void requestHTML(String subfix) {
+    private void requestText(String subfix) {
 
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
@@ -152,6 +143,35 @@ public class ResultActivity extends AppCompatActivity {
         );
 
         volleyQueue.add(stringRequest);
+    }
+
+    private void requestHTML(String subfix) {
+
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                //SERVER_URL + subfix,
+                TEXT_URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        mWebView.setLayoutParams(
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                        mWebView.loadData(response, "text/html", null);
+                        upperLayout.addView(mWebView);
+                    }
+                },
+                new Response.ErrorListener() { // Error listener
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        volleyOnErrorResponse(error);
+                    }
+                }
+        );
+
+        volleyQueue.add(stringRequest);
+
     }
 
     private void requestImage(String subfix) {
@@ -183,35 +203,6 @@ public class ResultActivity extends AppCompatActivity {
         );
 
         volleyQueue.add(imageRequest);
-    }
-
-    private void requestText(String subfix) {
-
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.GET,
-                //SERVER_URL + subfix,
-                TEXT_URL,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        mWebView.setLayoutParams(
-                                new RelativeLayout.LayoutParams(
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
-                        mWebView.loadData(response, "text/html", null);
-                        upperLayout.addView(mWebView);
-                    }
-                },
-                new Response.ErrorListener() { // Error listener
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        volleyOnErrorResponse(error);
-                    }
-                }
-        );
-
-        volleyQueue.add(stringRequest);
-
     }
 
     private void volleyOnErrorResponse(VolleyError error) {
