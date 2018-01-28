@@ -5,7 +5,10 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +35,7 @@ public class ResultActivity extends AppCompatActivity {
     static final String SERVER_URL = "https://leanpub.com/site_images/jelinux/tux.png";
     static final String TEXT_URL = "http://www.perdu.com/";
     static final String HTML_URL = "http://www.perdu.com/";
+    static final String BUTTON_TEXT = "Retour";
 
     //static final String SERVER_URL = "https://httpstat.us/";
 
@@ -40,45 +44,91 @@ public class ResultActivity extends AppCompatActivity {
     private ImageView mImageView;
     private TextView mTextView;
     private TextView mTextHTMLView;
+    private Button backButton;
+    private RelativeLayout mainLayout;
+    private RelativeLayout footerLayout;
+    private RelativeLayout upperLayout;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_result);
+        //setContentView(R.layout.activity_result);
 
         volleyQueue = VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
 
         Intent intent = getIntent();
         String value = intent.getStringExtra("key"); //if it's a string you stored.
 
+        arrangeGlobalDisplay();
 
-        requestSomething(value);
+        //requestSomething(value);
 
 
 
 
     }
 
+    private void arrangeGlobalDisplay() {
+        mainLayout = new RelativeLayout(this);
+        mainLayout.setLayoutParams(
+                new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.MATCH_PARENT));
+
+        footerLayout = new RelativeLayout(this);
+        footerLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
+        RelativeLayout.LayoutParams footerLP = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        footerLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        footerLayout.setLayoutParams(footerLP);
+
+
+        backButton = new Button(this);
+        backButton.setText(BUTTON_TEXT);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Do something in response to button click
+                Log.d(TAG, "button");
+                Intent myIntent = new Intent(v.getContext(), MainActivity.class);
+                ResultActivity.this.startActivity(myIntent);
+
+            }
+        });
+        footerLayout.addView(backButton);
+
+        upperLayout = new RelativeLayout(this);
+        upperLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
+        RelativeLayout.LayoutParams upperLP = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.MATCH_PARENT);
+        upperLP.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        upperLayout.setLayoutParams(upperLP);
+
+        mainLayout.addView(footerLayout);
+        mainLayout.addView(upperLayout);
+        setContentView(mainLayout);
+    }
+
 
     private void requestSomething(final String request){
         if (request.equals("test1")) {
-            mTextView = (TextView) findViewById(R.id.text);
+            mTextView = new TextView(this);
             requestText(request);
 
         }
         else if (request.equals("test2")){
-            mTextHTMLView = (TextView) findViewById(R.id.text2);
+            mTextHTMLView = new TextView(this);
             requestHTML(request);
 
         }
         else //if (request == "test3") {
         {
-            mImageView = (ImageView) findViewById(R.id.img);
+            mImageView = new ImageView(this);
             requestImage(request);
 
         }
-        String str = "ret";
     }
 
     private void requestHTML(String subfix) {
@@ -89,7 +139,12 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        mTextView.setText("response: " + response);
+                        mTextView.setLayoutParams(
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                        mTextView.setText(response);
+                        upperLayout.addView(mTextView);
                     }
                 },
                 new Response.ErrorListener() { // Error listener
@@ -125,7 +180,12 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
+                        mImageView.setLayoutParams(
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
                         mImageView.setImageBitmap(response);
+                        upperLayout.addView(mImageView);
                     }
                 },
                 0,
@@ -165,7 +225,12 @@ public class ResultActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        mTextView.setText("response: " + response);
+                        mTextHTMLView.setLayoutParams(
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                        mTextHTMLView.setText(response);
+                        upperLayout.addView(mTextHTMLView);
                     }
                 },
                 new Response.ErrorListener() { // Error listener
