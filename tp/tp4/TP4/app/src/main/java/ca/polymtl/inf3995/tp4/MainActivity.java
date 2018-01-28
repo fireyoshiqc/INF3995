@@ -115,11 +115,10 @@ public class MainActivity extends FragmentActivity implements GestureDetector.On
             }
 
             FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             transaction.replace(R.id.activity_main, currentFrag);
             transaction.addToBackStack(null);
             transaction.commit();
-
-
         }
 
         return true;

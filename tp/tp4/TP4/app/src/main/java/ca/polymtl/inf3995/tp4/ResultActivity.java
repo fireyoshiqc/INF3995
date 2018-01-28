@@ -28,8 +28,6 @@ import com.android.volley.toolbox.StringRequest;
 
 
 public class ResultActivity extends AppCompatActivity {
-    private static final String TAG = "ResultActivity";
-
     static final String SERVER_IP = "127.0.0.1"; //132.207.89.30
     static final int SERVER_PORT = 5000;
     //static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
@@ -37,71 +35,48 @@ public class ResultActivity extends AppCompatActivity {
     static final String TEXT_URL = "http://www.perdu.com/";
     static final String HTML_URL = "http://www.perdu.com/";
     static final String BUTTON_TEXT = "Retour";
+    private static final String TAG = "ResultActivity";
 
     //static final String SERVER_URL = "https://httpstat.us/";
-
     RequestQueue volleyQueue;
 
     private ImageView mImageView;
     private TextView mTextView;
     private WebView mWebView;
     private Button backButton;
-    private RelativeLayout mainLayout;
-    private RelativeLayout footerLayout;
-    private RelativeLayout upperLayout;
+    //private RelativeLayout mainLayout;
+    //private RelativeLayout footerLayout;
+    //private RelativeLayout upperLayout;
+    private RelativeLayout reqView;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_result);
+
         volleyQueue = VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
 
         Intent intent = getIntent();
         String value = intent.getStringExtra("key");
 
-        arrangeGlobalDisplay();
+        setupView();
         requestSomething(value);
     }
 
-    private void arrangeGlobalDisplay() {
-        mainLayout = new RelativeLayout(this);
-        mainLayout.setLayoutParams(
-                new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT,
-                        RelativeLayout.LayoutParams.MATCH_PARENT));
+    private void setupView() {
 
-        footerLayout = new RelativeLayout(this);
-        footerLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
-        RelativeLayout.LayoutParams footerLP = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT);
-        footerLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        footerLayout.setLayoutParams(footerLP);
-
-        backButton = new Button(this);
-        backButton.setText(BUTTON_TEXT);
+        backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Do something in response to button click
                 Log.d(TAG, "button");
-                Intent myIntent = new Intent(v.getContext(), MainActivity.class);
-                ResultActivity.this.startActivity(myIntent);
-
+                finish();
             }
         });
-        footerLayout.addView(backButton);
 
-        upperLayout = new RelativeLayout(this);
-        upperLayout.setGravity(RelativeLayout.CENTER_IN_PARENT);
-        RelativeLayout.LayoutParams upperLP = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT,
-                        RelativeLayout.LayoutParams.MATCH_PARENT);
-        upperLP.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        upperLayout.setLayoutParams(upperLP);
-
-        mainLayout.addView(footerLayout);
-        mainLayout.addView(upperLayout);
-        setContentView(mainLayout);
+        reqView = findViewById(R.id.reqView);
     }
 
     private void requestSomething(final String request) {
@@ -128,10 +103,10 @@ public class ResultActivity extends AppCompatActivity {
                     public void onResponse(String response) {
                         mTextView.setLayoutParams(
                                 new RelativeLayout.LayoutParams(
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                                        RelativeLayout.LayoutParams.MATCH_PARENT));
                         mTextView.setText(response);
-                        upperLayout.addView(mTextView);
+                        reqView.addView(mTextView);
                     }
                 },
                 new Response.ErrorListener() { // Error listener
@@ -156,10 +131,10 @@ public class ResultActivity extends AppCompatActivity {
                     public void onResponse(String response) {
                         mWebView.setLayoutParams(
                                 new RelativeLayout.LayoutParams(
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                                        RelativeLayout.LayoutParams.MATCH_PARENT));
                         mWebView.loadData(response, "text/html", null);
-                        upperLayout.addView(mWebView);
+                        reqView.addView(mWebView);
                     }
                 },
                 new Response.ErrorListener() { // Error listener
@@ -184,10 +159,10 @@ public class ResultActivity extends AppCompatActivity {
                     public void onResponse(Bitmap response) {
                         mImageView.setLayoutParams(
                                 new RelativeLayout.LayoutParams(
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                                        RelativeLayout.LayoutParams.MATCH_PARENT));
                         mImageView.setImageBitmap(response);
-                        upperLayout.addView(mImageView);
+                        reqView.addView(mImageView);
                     }
                 },
                 0,
@@ -224,5 +199,4 @@ public class ResultActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "ParseError", Toast.LENGTH_SHORT).show();
         }
     }
-
 }
