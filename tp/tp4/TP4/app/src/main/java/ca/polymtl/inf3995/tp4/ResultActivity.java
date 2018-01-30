@@ -6,8 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -28,26 +28,17 @@ import com.android.volley.toolbox.StringRequest;
 
 
 public class ResultActivity extends AppCompatActivity {
-    //static final String SERVER_IP = "127.0.0.1";
     static final String SERVER_IP = "132.207.89.30";
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
-    //static final String SERVER_URL = "https://leanpub.com/site_images/jelinux/tux.png";
-    static final String TEXT_URL = "http://www.perdu.com/";
-    static final String HTML_URL = "http://www.perdu.com/";
-    static final String BUTTON_TEXT = "Retour";
     private static final String TAG = "ResultActivity";
 
-    //static final String SERVER_URL = "https://httpstat.us/";
     RequestQueue volleyQueue;
 
     private ImageView mImageView;
     private TextView mTextView;
     private WebView mWebView;
     private Button backButton;
-    //private RelativeLayout mainLayout;
-    //private RelativeLayout footerLayout;
-    //private RelativeLayout upperLayout;
     private RelativeLayout reqView;
 
 
@@ -81,15 +72,19 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     private void requestSomething(final String request) {
-        if (request.equals("test1")) {
-            mTextView = new TextView(this);
-            requestText(request);
-        } else if (request.equals("test2")) {
-            mWebView = new WebView(this);
-            requestHTML(request);
-        } else if (request.equals("test3")) {
-            mImageView = new ImageView(this);
-            requestImage(request);
+        switch (request) {
+            case "test1":
+                mTextView = new TextView(this);
+                requestText(request);
+                break;
+            case "test2":
+                mWebView = new WebView(this);
+                requestHTML(request);
+                break;
+            case "test3":
+                mImageView = new ImageView(this);
+                requestImage(request);
+                break;
         }
     }
 
@@ -98,7 +93,6 @@ public class ResultActivity extends AppCompatActivity {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
                 SERVER_URL + subfix,
-                //HTML_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -126,7 +120,6 @@ public class ResultActivity extends AppCompatActivity {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
                 SERVER_URL + subfix,
-                //TEXT_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -154,7 +147,6 @@ public class ResultActivity extends AppCompatActivity {
 
         ImageRequest imageRequest = new ImageRequest(
                 SERVER_URL + subfix,
-                //SERVER_URL,
                 new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {

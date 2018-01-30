@@ -82,6 +82,6 @@ public class RequestFragment extends Fragment {
 
             }
         });
-        //mCurrentPosition = position;
     }
+
 }
