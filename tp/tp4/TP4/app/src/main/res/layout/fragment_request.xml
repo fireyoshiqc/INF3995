@@ -7,11 +7,12 @@
     tools:context="ca.polymtl.inf3995.tp4.RequestFragment">
 
     <RelativeLayout
+        android:id="@+id/fragView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/reqButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"

@@ -49,7 +49,6 @@ public class RequestFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_request, container, false);
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
@@ -67,14 +66,12 @@ public class RequestFragment extends Fragment {
         // Set article based on saved instance state defined during onCreateView
         //   updateButtonView(mCurrentPosition);
         // }
-
     }
 
-
     public void updateButtonView(final String url) {
-        Button button2 = (Button) getActivity().findViewById(R.id.button2);
-        button2.setText(url);
-        button2.setOnClickListener(new View.OnClickListener() {
+        Button reqButton = getActivity().findViewById(R.id.reqButton);
+        reqButton.setText(url);
+        reqButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Do something in response to button click
                 Log.d(TAG, "button");
@@ -85,10 +82,6 @@ public class RequestFragment extends Fragment {
 
             }
         });
-
-        //mCurrentPosition = position;
-
     }
-
 
 }
