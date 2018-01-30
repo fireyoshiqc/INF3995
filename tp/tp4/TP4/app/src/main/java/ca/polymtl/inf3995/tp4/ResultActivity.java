@@ -28,10 +28,11 @@ import com.android.volley.toolbox.StringRequest;
 
 
 public class ResultActivity extends AppCompatActivity {
-    static final String SERVER_IP = "127.0.0.1"; //132.207.89.30
-    static final int SERVER_PORT = 5000;
-    //static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
-    static final String SERVER_URL = "https://leanpub.com/site_images/jelinux/tux.png";
+    //static final String SERVER_IP = "127.0.0.1";
+    static final String SERVER_IP = "132.207.89.30";
+    static final int SERVER_PORT = 80;
+    static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
+    //static final String SERVER_URL = "https://leanpub.com/site_images/jelinux/tux.png";
     static final String TEXT_URL = "http://www.perdu.com/";
     static final String HTML_URL = "http://www.perdu.com/";
     static final String BUTTON_TEXT = "Retour";
@@ -96,8 +97,8 @@ public class ResultActivity extends AppCompatActivity {
 
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
-                //SERVER_URL + subfix,
-                HTML_URL,
+                SERVER_URL + subfix,
+                //HTML_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -124,8 +125,8 @@ public class ResultActivity extends AppCompatActivity {
 
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
-                //SERVER_URL + subfix,
-                TEXT_URL,
+                SERVER_URL + subfix,
+                //TEXT_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -152,8 +153,8 @@ public class ResultActivity extends AppCompatActivity {
     private void requestImage(String subfix) {
 
         ImageRequest imageRequest = new ImageRequest(
-                //SERVER_URL + subfix,
-                SERVER_URL,
+                SERVER_URL + subfix,
+                //SERVER_URL,
                 new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
