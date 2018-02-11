@@ -14,7 +14,9 @@ class Worker_Thread(object):
 		self.__is_running = False
 		self.__is_finishing = False
 		self.__is_paused = False
-		period = max(0.0, 1.0 / max_run_frequency)
+		period = 0.0
+		if max_run_frequency != None:
+			period = max(0.0, 1.0 / max_run_frequency)
 		self.__rate_waiter = utils.Rate_Waiter(period)
 	
 	def add_task_node(self, task_node):

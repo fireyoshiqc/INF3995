@@ -6,6 +6,7 @@ import time
 import sys
 import keyboard
 
+import inf3995.rest as rest
 from inf3995.core.Program_Options import *
 from inf3995.core.Worker_Thread import *
 from inf3995.core.Dummy_Task_Node import *
@@ -31,7 +32,7 @@ class Application_Manager(object):
 		Program_Options.configure_and_parse(argv)
 		if len(argv) == 1:
 			# TODO: Show GUI to enter the options visually
-			print("And God said, Let there a GUI: and there was a GUI." "\n")
+			print("And God said, Let there be a GUI: and there was a GUI (someday maybe)." "\n")
 		
 		self.__quit = False
 		self.__exit_code = 0
@@ -70,12 +71,14 @@ class Application_Manager(object):
 	
 	def __setup_task_nodes(self):
 		# TODO: Build the task nodes
-		node = Dummy_Task_Node()
+		dummy_node = Dummy_Task_Node()
+		rest_node = rest.Rest_Handler_Task()
 		
 		# TODO: Connect the nodes
 		
 		# TODO: Build the worker threads
-		self.__build_thread([node], 5.0)
+		# self.__build_thread([dummy_node], 0.5)
+		self.__build_thread([rest_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = Worker_Thread(max_freq)
