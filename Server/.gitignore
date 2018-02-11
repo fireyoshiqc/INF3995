@@ -1,0 +1,3 @@
+# Server logs
+working_dir/*.txt
+working_dir/*.log
