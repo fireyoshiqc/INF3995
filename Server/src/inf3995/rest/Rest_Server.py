@@ -56,7 +56,11 @@ class Rest_Server(object):
 	
 	def get_config_map(self, request, url):
 		if len(url) == 0:
-			return "There is nothing more dangerous than a Lieutenant with a map."
+			result = {
+				"map" : Program_Options.get_value("map"),
+			}
+			cherrypy.response.headers["Content-Type"] = "application/json"
+			return json.dumps(result, indent=2).encode("utf-8")
 		else:
 			Rest_Server.raise_http_error(404)
 	
