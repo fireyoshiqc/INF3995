@@ -77,7 +77,7 @@ class Application_Manager(object):
 		# TODO: Connect the nodes
 		
 		# TODO: Build the worker threads
-		# self.__build_thread([dummy_node], 0.5)
+		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):

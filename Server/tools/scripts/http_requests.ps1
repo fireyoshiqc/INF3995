@@ -21,7 +21,7 @@ function send_post_users_login ( [string] $user )
 	$uri = "http://" + $server_addr + "/users/login"
 	$json_str = ConvertTo-Json $credentials[$user]
 	
-	$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -SessionVariable session
+	$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -SessionVariable session -UseBasicParsing
 	
 	if ( $response.StatusCode -eq 200 ) {
 		$sessions[$user] = $session
@@ -38,10 +38,10 @@ function send_post_users_logout ( [string] $user )
 	
 	$response = $null
 	if ( $sessions.Contains($user) ) {
-		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -WebSession $sessions[$user]
+		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -WebSession $sessions[$user] -UseBasicParsing
 	}
 	else {
-		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str
+		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -UseBasicParsing
 	}
 	
 	return $response
@@ -53,10 +53,10 @@ function send_get_config_basic ( [string] $user )
 	$uri = "http://" + $server_addr + "/config/basic"
 	
 	if ( $sessions.Contains($user) ) {
-		curl -Method GET -Uri $uri -WebSession $sessions[$user]
+		curl -Method GET -Uri $uri -WebSession $sessions[$user] -UseBasicParsing
 	}
 	else {
-		curl -Method GET -Uri $uri
+		curl -Method GET -Uri $uri -UseBasicParsing
 	}
 }
 
@@ -66,10 +66,10 @@ function send_get ( [string] $user, [string] $url )
 	$uri = "http://" + $server_addr + $url
 	
 	if ( $sessions.Contains($user) ) {
-		curl -Method GET -Uri $uri -WebSession $sessions[$user]
+		curl -Method GET -Uri $uri -WebSession $sessions[$user] -UseBasicParsing
 	}
 	else {
-		curl -Method GET -Uri $uri
+		curl -Method GET -Uri $uri -UseBasicParsing
 	}
 }
 
