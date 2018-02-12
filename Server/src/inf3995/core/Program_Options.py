@@ -24,6 +24,7 @@ class Program_Options(object):
 		Program_Options.__add_port_arg()
 		Program_Options.__add_rocket_arg()
 		Program_Options.__add_map_arg()
+		Program_Options.__add_run_tests_arg()
 		
 		args = Program_Options.__parser.parse_args(argv[1:len(argv)])
 		Program_Options.__options = vars(args)
@@ -114,5 +115,15 @@ class Program_Options(object):
 		                    action="store", nargs=1,
 		                    type=str, metavar="MAP",
 		                    default="spaceport_america",
+		                    help=description)
+	
+	@staticmethod
+	def __add_run_tests_arg():
+		parser = Program_Options.__parser
+		description = "Run unit tests instead of server app."
+		parser.add_argument("-t", "--run-tests",
+		                    dest="run-tests",
+		                    action="store_true",
+		                    default=False,
 		                    help=description)
 

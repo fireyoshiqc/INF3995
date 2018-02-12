@@ -5,6 +5,7 @@ import signal
 import time
 import sys
 import keyboard
+import unittest
 
 import inf3995.rest as rest
 from inf3995.core.Program_Options import *
@@ -30,6 +31,10 @@ class Application_Manager(object):
 		self.__register_signal_handlers()
 		
 		Program_Options.configure_and_parse(argv)
+		if Program_Options.get_value("run-tests"):
+			print("This will run the test suite instead of the server." "\n")
+			return
+		
 		if len(argv) == 1:
 			# TODO: Show GUI to enter the options visually
 			print("And God said, Let there be a GUI: and there was a GUI (someday maybe)." "\n")
@@ -44,6 +49,9 @@ class Application_Manager(object):
 		self.__setup_task_nodes()
 	
 	def execute(self):
+		if Program_Options.get_value("run-tests"):
+			return self.__run_tests()
+		
 		self.__start_threads()
 		
 		while not self.__quit:
@@ -109,4 +117,9 @@ class Application_Manager(object):
 		
 		self.__worker_threads.clear()
 		self.__task_nodes.clear()
+	
+	def __run_tests(self):
+		test_program = unittest.main(module="inf3995.tests", argv=sys.argv[0:1],
+		                             verbosity=2).result
+		return not test_program.result.wasSuccessful()
 

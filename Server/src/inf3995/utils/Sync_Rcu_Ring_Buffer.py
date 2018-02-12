@@ -1,4 +1,4 @@
-"""Sync_Rcu_Ring_Buffer class"""
+"""Synchronised ring buffer classes"""
 
 
 import abc

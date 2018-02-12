@@ -22,8 +22,7 @@ class Rcu_Ring_Buffer(object):
 			return self._parent._buffer_index
 		
 		def _get_next_index(self):
-			return (self._get_buffer_index() + 1) \
-			       % self._parent._buffer_size
+			return (self._get_buffer_index() + 1) % self._parent._buffer_size
 		
 		def _get_buffer(self):
 			return self._parent._buffer
