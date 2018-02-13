@@ -9,7 +9,7 @@ import math
 from inf3995.utils.Rcu_Ring_Buffer import *
 
 
-class SyncData:
+class Sync_Data:
 	def __init__(self, publish_count = 0, value = None):
 		self.__publish_count = publish_count
 		self.__value = value
@@ -51,15 +51,15 @@ class Sync_Rcu_Ring_Buffer_Producer(Sync_Rcu_Ring_Buffer_Base):
 	def __init__(self, rcu):
 		super(Sync_Rcu_Ring_Buffer_Producer, self).__init__(rcu)
 	
-	def get(self):
-		return self._rcu.get().value
+	def get(self, index = None):
+		return self._rcu.get(index)
 	
 	def set(self, value):
 		self.set_next_production_elem(value)
 		self.publish()
 	
 	def set_next_production_elem(self, value):
-		data = SyncData(self._current_publish_count, value)
+		data = Sync_Data(self._current_publish_count, value)
 		self._rcu.set_next_production_elem(data)
 	
 	def publish(self):
@@ -73,6 +73,12 @@ class Sync_Rcu_Ring_Buffer_Producer(Sync_Rcu_Ring_Buffer_Base):
 		data.publish_count = self._current_publish_count
 		self._rcu.set_next_production_elem(data)
 		self._rcu.publish()
+	
+	def get_buffer_size(self):
+		return self._rcu.get_buffer_size()
+	
+	def get_production_index(self):
+		return self._rcu.get_production_index()
 	
 	def _set_event(self):
 		self._events[self._get_current_event_index()].set()
@@ -107,11 +113,14 @@ class Sync_Rcu_Ring_Buffer_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
 	
 	def get(self):
 		data = self._rcu.get()
+		if data is None:
+			return None
 		self._current_publish_count = data.publish_count
 		return data.value
 	
 	def has_new_data(self):
-		return self._rcu.get().publish_count != self._current_publish_count
+		return self._rcu.get() is not None and \
+		       self._rcu.get().publish_count != self._current_publish_count
 
 
 class Sync_Rcu_Ring_Buffer_Q_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
@@ -120,7 +129,7 @@ class Sync_Rcu_Ring_Buffer_Q_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
 		self._circular_buffer_index = 1;
 		self._n_overflows = 0;
 		n = math.sqrt(self._rcu.get_buffer_size()) // 2
-		self._n_frames_to_skip_on_overflow = n
+		self._n_frames_to_skip_on_overflow = min(1, n)
 	
 	def get(self):
 		if self._circular_buffer_index != self._rcu.get_production_index():
@@ -128,7 +137,7 @@ class Sync_Rcu_Ring_Buffer_Q_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
 			self._circular_buffer_index = (self._circular_buffer_index + 1) \
 			                              % self._rcu.get_buffer_size()
 			if data.publish_count > self._current_publish_count + 1:
-				self.n_overflows +=1
+				self._n_overflows += 1
 				self._circular_buffer_index += self._n_frames_to_skip_on_overflow
 			self._current_publish_count = data.publish_count
 			return data.value
@@ -138,4 +147,7 @@ class Sync_Rcu_Ring_Buffer_Q_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
 	def has_new_data(self):
 		return self._circular_buffer_index != self._rcu.get_production_index() \
 		       and self._rcu.get().publish_count != self._current_publish_count
+	
+	def get_n_overflows(self):
+		return self._n_overflows
 

@@ -35,8 +35,8 @@ class Rcu_Ring_Buffer(object):
 		def get_buffer_size(self):
 			return self._parent._buffer_size
 		
-		def get(self):
-			return self._parent._buffer[self._get_buffer_index()]
+		def get(self, index = None):
+			return self._parent.reader().get(index)
 		
 		def set(self, value):
 			self.set_next_production_elem(value)
@@ -50,6 +50,9 @@ class Rcu_Ring_Buffer(object):
 			self.__production_index = self._get_next_index()
 			self._parent._buffer[self.__production_index] = value
 		
+		def get_production_index(self):
+			return self._get_next_index()
+		
 		def publish(self):
 			self._parent._buffer_index = self.__production_index
 		
@@ -60,23 +63,25 @@ class Rcu_Ring_Buffer(object):
 			return (self._get_buffer_index() + 1) \
 			       % self._parent._buffer_size
 	
-	def __init__(self, buffer_size):
+	def __init__(self, buffer_size, cls = None):
 		self._buffer_size = buffer_size
 		self._buffer_index = 0
-		self._buffer = [None] * self._buffer_size
+		self._buffer = []
+		for i in range(0, self._buffer_size):
+			self._buffer.append(cls())
 	
-	def get(self):
-		return self.build_reader().get()
+	def get(self, index = None):
+		return self.reader().get(index)
 	
 	def set(self, value):
-		self.build_producer().set(value)
+		self.producer().set(value)
 	
 	def get_buffer_size(self):
 		return self._buffer_size
 	
-	def build_reader(self):
+	def reader(self):
 		return Rcu_Ring_Buffer.Reader(self)
 	
-	def build_producer(self):
+	def producer(self):
 		return Rcu_Ring_Buffer.Producer(self)
 

@@ -12,8 +12,8 @@ class Basic_Task_Node_Producer(object):
 			Buffer_Type = utils.Rcu_Ring_Buffer
 			Producer_Type = utils.Sync_Rcu_Ring_Buffer_Producer
 			
-			self._output_data_buffer = Buffer_Type(buffer_size)
-			self._production_rcu = Producer_Type(self._output_data_buffer)
+			self._output_data_buffer = Buffer_Type(buffer_size, utils.Sync_Data)
+			self._production_rcu = Producer_Type(self._output_data_buffer.producer())
 	
 	def _produce_data(self, value):
 		if self._production_rcu != None:
@@ -28,7 +28,8 @@ class Ab_Task_Node(Basic_Task_Node_Producer):
 		self.__is_queued_input_data = is_queued_input_data
 		self.__output_data_buffer = None
 		if buffer_size > 0:
-			self.__output_data_buffer = utils.Rcu_Ring_Buffer(buffer_size)
+			self.__output_data_buffer = utils.Rcu_Ring_Buffer(buffer_size,
+			                                                  utils.Sync_Data)
 		self.__data_reader = None
 		self.__first_run = True
 		self.__is_finishing = False
