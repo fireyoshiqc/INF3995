@@ -19,7 +19,9 @@ $server_addr = "132.207.232.168:80"
 function send_post_users_login ( [string] $user )
 {
 	$uri = "http://" + $server_addr + "/users/login"
-	$json_str = ConvertTo-Json $credentials[$user]
+	$login_info = $credentials[$user]
+	$login_info["device"] = "pc"
+	$json_str = ConvertTo-Json $login_info
 	
 	$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -SessionVariable session -UseBasicParsing
 	
