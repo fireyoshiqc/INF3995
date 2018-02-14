@@ -1,4 +1,4 @@
-"""Application_Manager class"""
+"""ApplicationManager class"""
 
 
 import signal
@@ -8,30 +8,30 @@ import keyboard
 import unittest
 
 import inf3995.rest as rest
-from inf3995.core.Program_Options import *
-from inf3995.core.Worker_Thread import *
-from inf3995.core.Dummy_Task_Node import *
+from inf3995.core.ProgramOptions import *
+from inf3995.core.WorkerThread import *
+from inf3995.core.DummyTaskNode import *
 
 
-class Application_Manager(object):
+class ApplicationManager(object):
 	__instance = None
 	
 	def __new__(cls):
-		if Application_Manager.__instance == None:
-			Application_Manager.__instance = object.__new__(cls)
-			instance = Application_Manager.__instance
+		if ApplicationManager.__instance == None:
+			ApplicationManager.__instance = object.__new__(cls)
+			instance = ApplicationManager.__instance
 			instance.__quit = False
 			instance.__exit_code = 0
 			instance.__task_nodes = []
-			instance.__worker_threads = []
+			instance.__WorkerThreads = []
 		
-		return Application_Manager.__instance
+		return ApplicationManager.__instance
 	
 	def startup(self, argv):
 		self.__register_signal_handlers()
 		
-		Program_Options.configure_and_parse(argv)
-		if Program_Options.get_value("run-tests"):
+		ProgramOptions.configure_and_parse(argv)
+		if ProgramOptions.get_value("run-tests"):
 			print("This will run the test suite instead of the server." "\n")
 			return
 		
@@ -49,7 +49,7 @@ class Application_Manager(object):
 		self.__setup_task_nodes()
 	
 	def execute(self):
-		if Program_Options.get_value("run-tests"):
+		if ProgramOptions.get_value("run-tests"):
 			return self.__run_tests()
 		
 		self.__start_threads()
@@ -69,17 +69,17 @@ class Application_Manager(object):
 	@staticmethod
 	def __key_handler(event):
 		if event.name == "esc":
-			Application_Manager().exit()
+			ApplicationManager().exit()
 	
 	def __register_signal_handlers(self):
 		pass
 	
 	def __register_key_handlers(self):
-		keyboard.hook(Application_Manager.__key_handler)
+		keyboard.hook(ApplicationManager.__key_handler)
 	
 	def __setup_task_nodes(self):
 		# TODO: Build the task nodes
-		dummy_node = Dummy_Task_Node()
+		dummy_node = DummyTaskNode()
 		rest_node = rest.Rest_Handler_Task()
 		
 		# TODO: Connect the nodes
@@ -89,33 +89,33 @@ class Application_Manager(object):
 		self.__build_thread([rest_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
-		worker = Worker_Thread(max_freq)
+		worker = WorkerThread(max_freq)
 		for node in task_nodes:
 			worker.add_task_node(node)
-		self.__worker_threads.append(worker)
+		self.__WorkerThreads.append(worker)
 	
 	def __start_threads(self):
-		for wt in self.__worker_threads:
+		for wt in self.__WorkerThreads:
 			wt.init_task_nodes()
 		
 		if not self.__quit:
-			for wt in self.__worker_threads:
+			for wt in self.__WorkerThreads:
 				wt.start_paused()
 			
 			time.sleep(0.01)
 			
-			for wt in self.__worker_threads:
+			for wt in self.__WorkerThreads:
 				wt.unpause()
 	
 	def __join_threads(self):
-		for wt in self.__worker_threads:
+		for wt in self.__WorkerThreads:
 			wt.finish(60.0)
 			wt.terminate()
 		
-		for wt in self.__worker_threads:
+		for wt in self.__WorkerThreads:
 			wt.cleanup_task_nodes()
 		
-		self.__worker_threads.clear()
+		self.__WorkerThreads.clear()
 		self.__task_nodes.clear()
 	
 	def __run_tests(self):

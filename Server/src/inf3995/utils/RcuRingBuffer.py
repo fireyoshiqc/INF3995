@@ -1,7 +1,7 @@
-"""Rcu_Ring_Buffer class"""
+"""RcuRingBuffer class"""
 
 
-class Rcu_Ring_Buffer(object):
+class RcuRingBuffer(object):
 	class Reader(object):
 		def __init__(self, parent = None):
 			self._parent = parent
@@ -80,8 +80,8 @@ class Rcu_Ring_Buffer(object):
 		return self._buffer_size
 	
 	def reader(self):
-		return Rcu_Ring_Buffer.Reader(self)
+		return RcuRingBuffer.Reader(self)
 	
 	def producer(self):
-		return Rcu_Ring_Buffer.Producer(self)
+		return RcuRingBuffer.Producer(self)
 

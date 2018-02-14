@@ -1,1 +1,1 @@
-from inf3995.rest.Rest_Handler_Task import *
+from inf3995.rest.RestHandlerTask import *

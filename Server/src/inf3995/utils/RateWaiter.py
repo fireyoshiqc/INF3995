@@ -1,10 +1,10 @@
-"""Rate_Waiter class"""
+"""RateWaiter class"""
 
 
 import time
 
 
-class Rate_Waiter(object):
+class RateWaiter(object):
 	def __init__(self, period = 0.0):
 		self.__next_time = time.monotonic()
 		self.__period = period

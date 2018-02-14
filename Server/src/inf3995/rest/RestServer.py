@@ -1,4 +1,4 @@
-"""Rest_Server class"""
+"""RestServer class"""
 
 
 import datetime
@@ -6,11 +6,11 @@ import json
 
 import cherrypy
 
-from inf3995.core.Program_Options import *
+from inf3995.core.ProgramOptions import *
 
 
 @cherrypy.expose
-class Rest_Server(object):
+class RestServer(object):
 	__POSSIBLE_DEVICES = ["pc", "tablet", "mobile"]
 	__UNKNOWN_DEVICE = "n/a"
 	
@@ -26,7 +26,7 @@ class Rest_Server(object):
 		else:
 			# TODO: Return something when the client asks for "/"? Like a help
 			# page or something?
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 	
 	@cherrypy.tools.accept(media="application/json")
 	@cherrypy.tools.json_in()
@@ -34,7 +34,7 @@ class Rest_Server(object):
 		if len(args) == 2 and args[0] == "users":
 			return self.post_users(cherrypy.request, args[1:len(args)])
 		else:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 	
 	def get_config(self, request, url):
 		switch = {
@@ -44,64 +44,64 @@ class Rest_Server(object):
 			"miscFiles"   : self.get_config_miscfiles,
 			"deviceTypes" : self.get_config_devicetypes
 		}
-		return switch.get(url[0], Rest_Server._raise_error_404)(request, url[1:len(url)])
+		return switch.get(url[0], RestServer._raise_error_404)(request, url[1:len(url)])
 	
 	def get_config_basic(self, request, url):
 		if not self._is_logged_in():
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		if len(url) != 0:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 		
 		result = {
-			"otherPort" : Program_Options.get_value("server"),
-			"layout"    : Program_Options.get_value("rocket"),
-			"map"       : Program_Options.get_value("map")
+			"otherPort" : ProgramOptions.get_value("server"),
+			"layout"    : ProgramOptions.get_value("rocket"),
+			"map"       : ProgramOptions.get_value("map")
 		}
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
 	
 	def get_config_rockets(self, request, url):
 		if not self._is_logged_in():
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		
 		if len(url) == 0:
 			return "All the rockets!"
 		elif len(url) == 1:
 			return "Just this rocket : " + url[0]
 		else:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 	
 	def get_config_map(self, request, url):
 		if not self._is_logged_in():
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		if len(url) != 0:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 		
 		result = {
-			"map" : Program_Options.get_value("map"),
+			"map" : ProgramOptions.get_value("map"),
 		}
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
 	
 	def get_config_miscfiles(self, request, url):
 		if not self._is_logged_in():
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		
 		if len(url) == 0:
 			return "All the files!"
 		elif len(url) == 1:
 			return "Just this file : " + url[0]
 		else:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 	
 	def get_config_devicetypes(self, *args):
 		if len(url) != 0:
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		
 		result = {}
-		for i, dev in enumerate(Rest_Server.__POSSIBLE_DEVICES):
+		for i, dev in enumerate(RestServer.__POSSIBLE_DEVICES):
 			result["deviceType" + str(i + 1)] = dev
-		result["unknown"] = Rest_Server.__UNKNOWN_DEVICE
+		result["unknown"] = RestServer.__UNKNOWN_DEVICE
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
 	
@@ -110,11 +110,11 @@ class Rest_Server(object):
 			"login"  : self.post_users_login,
 			"logout" : self.post_users_logout,
 		}
-		return switch.get(url[0], Rest_Server._raise_error_404)(request, url[1:len(url)])
+		return switch.get(url[0], RestServer._raise_error_404)(request, url[1:len(url)])
 	
 	def post_users_login(self, request, url):
 		if len(url) != 0:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 		
 		data = request.json
 		if self._is_valid_login_info(data):
@@ -127,13 +127,13 @@ class Rest_Server(object):
 			session["datetime"] = datetime.datetime.now()
 			session["device"] = self._get_device_from_request(request)
 		else:
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 	
 	def post_users_logout(self, request, url):
 		if not self._is_logged_in():
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 		if len(url) != 0:
-			Rest_Server._raise_http_error(404)
+			RestServer._raise_http_error(404)
 		
 		data = request.json
 		if len(data) == 1 and "username" in data:
@@ -143,9 +143,9 @@ class Rest_Server(object):
 				cherrypy.session.clear()
 				cherrypy.session.delete()
 			else:
-				Rest_Server._raise_http_error(401)
+				RestServer._raise_http_error(401)
 		else:
-			Rest_Server._raise_http_error(401)
+			RestServer._raise_http_error(401)
 	
 	@staticmethod
 	def _raise_http_error(code):
@@ -153,7 +153,7 @@ class Rest_Server(object):
 	
 	@staticmethod
 	def _raise_error_404(*args):
-		raise Rest_Server._raise_http_error(404)
+		raise RestServer._raise_http_error(404)
 	
 	def _is_logged_in(self):
 		return self._get_session() is not None
@@ -177,11 +177,11 @@ class Rest_Server(object):
 	def _get_device_from_request(self, request):
 		data = request.json
 		if "device" in data:
-			if data["device"].lower() in Rest_Server.__POSSIBLE_DEVICES:
+			if data["device"].lower() in RestServer.__POSSIBLE_DEVICES:
 				return data["device"].lower()
 			else:
-				return Rest_Server.__UNKNOWN_DEVICE
+				return RestServer.__UNKNOWN_DEVICE
 		else:
 			# TODO: Parse the User-Agent string to try and find the device type.
-			return Rest_Server.__UNKNOWN_DEVICE
+			return RestServer.__UNKNOWN_DEVICE
 

@@ -1,4 +1,4 @@
-"""Worker_Thread class"""
+"""WorkerThread class"""
 
 
 import threading
@@ -7,7 +7,7 @@ import time
 import inf3995.utils as utils
 
 
-class Worker_Thread(object):
+class WorkerThread(object):
 	def __init__(self, max_run_frequency):
 		self.__task_nodes = []
 		self.__thread = None
@@ -17,7 +17,7 @@ class Worker_Thread(object):
 		period = 0.0
 		if max_run_frequency != None:
 			period = max(0.0, 1.0 / max_run_frequency)
-		self.__rate_waiter = utils.Rate_Waiter(period)
+		self.__RateWaiter = utils.RateWaiter(period)
 	
 	def add_task_node(self, task_node):
 		if task_node != None:
@@ -102,7 +102,7 @@ class Worker_Thread(object):
 					done &= node.is_finished()
 				self.__is_running = not done
 			else:
-				self.__rate_waiter.wait_next()
+				self.__RateWaiter.wait_next()
 			
 			time.sleep(0)
 

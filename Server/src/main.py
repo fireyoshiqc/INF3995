@@ -11,7 +11,7 @@ import inf3995.utils as utils
 
 # main
 if __name__ == "__main__":
-	app = core.Application_Manager()
+	app = core.ApplicationManager()
 	
 	app.startup(sys.argv)
 	

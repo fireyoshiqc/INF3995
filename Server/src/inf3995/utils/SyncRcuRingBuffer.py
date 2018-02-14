@@ -6,10 +6,10 @@ import time
 import threading
 import math
 
-from inf3995.utils.Rcu_Ring_Buffer import *
+from inf3995.utils.RcuRingBuffer import *
 
 
-class Sync_Data:
+class SyncData:
 	def __init__(self, publish_count = 0, value = None):
 		self.__publish_count = publish_count
 		self.__value = value
@@ -31,7 +31,7 @@ class Sync_Data:
 		self.__value = value
 
 
-class Sync_Rcu_Ring_Buffer_Base(object):
+class SyncRcuRingBufferBase(object):
 	def __init__(self, rcu):
 		self._rcu = rcu
 		self._current_publish_count = 0
@@ -47,9 +47,9 @@ class Sync_Rcu_Ring_Buffer_Base(object):
 		return (self._current_publish_count + 1) & 1
 
 
-class Sync_Rcu_Ring_Buffer_Producer(Sync_Rcu_Ring_Buffer_Base):
+class SyncRcuRingBufferProducer(SyncRcuRingBufferBase):
 	def __init__(self, rcu):
-		super(Sync_Rcu_Ring_Buffer_Producer, self).__init__(rcu)
+		super(SyncRcuRingBufferProducer, self).__init__(rcu)
 	
 	def get(self, index = None):
 		return self._rcu.get(index)
@@ -59,7 +59,7 @@ class Sync_Rcu_Ring_Buffer_Producer(Sync_Rcu_Ring_Buffer_Base):
 		self.publish()
 	
 	def set_next_production_elem(self, value):
-		data = Sync_Data(self._current_publish_count, value)
+		data = SyncData(self._current_publish_count, value)
 		self._rcu.set_next_production_elem(data)
 	
 	def publish(self):
@@ -87,11 +87,11 @@ class Sync_Rcu_Ring_Buffer_Producer(Sync_Rcu_Ring_Buffer_Base):
 		self._events[self._get_current_event_index()].clear()
 
 
-class Ab_Sync_Rcu_Ring_Buffer_Reader(Sync_Rcu_Ring_Buffer_Base):
+class AbstractSyncRcuRingBufferReader(SyncRcuRingBufferBase):
 	__metaclass__ = abc.ABCMeta
 	
 	def __init__(self, rcu):
-		super(Ab_Sync_Rcu_Ring_Buffer_Reader, self).__init__(rcu)
+		super(AbstractSyncRcuRingBufferReader, self).__init__(rcu)
 	
 	@abc.abstractmethod
 	def has_new_data(self):
@@ -107,9 +107,9 @@ class Ab_Sync_Rcu_Ring_Buffer_Reader(Sync_Rcu_Ring_Buffer_Base):
 		return self._events[self._get_next_event_index()].wait(timeout)
 
 
-class Sync_Rcu_Ring_Buffer_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
+class SyncRcuRingBufferReader(AbstractSyncRcuRingBufferReader):
 	def __init__(self, rcu):
-		super(Sync_Rcu_Ring_Buffer_Reader, self).__init__(rcu)
+		super(SyncRcuRingBufferReader, self).__init__(rcu)
 	
 	def get(self):
 		data = self._rcu.get()
@@ -123,9 +123,9 @@ class Sync_Rcu_Ring_Buffer_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
 		       self._rcu.get().publish_count != self._current_publish_count
 
 
-class Sync_Rcu_Ring_Buffer_Q_Reader(Ab_Sync_Rcu_Ring_Buffer_Reader):
+class SyncRcuRingBufferQReader(AbstractSyncRcuRingBufferReader):
 	def __init__(self, rcu):
-		super(Sync_Rcu_Ring_Buffer_Q_Reader, self).__init__(rcu)
+		super(SyncRcuRingBufferQReader, self).__init__(rcu)
 		self._circular_buffer_index = 1;
 		self._n_overflows = 0;
 		n = math.sqrt(self._rcu.get_buffer_size()) // 2

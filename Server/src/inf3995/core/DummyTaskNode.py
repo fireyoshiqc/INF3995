@@ -1,14 +1,14 @@
-"""Dummy_Task_Node class"""
+"""DummyTaskNode class"""
 
 
 import time
 
-from inf3995.core.Ab_Task_Node import *
+from inf3995.core.AbstractTaskNode import *
 
 
-class Dummy_Task_Node(Ab_Task_Node):
+class DummyTaskNode(AbstractTaskNode):
 	def __init__(self):
-		super(Dummy_Task_Node, self).__init__(True, 1024)
+		super(DummyTaskNode, self).__init__(True, 1024)
 	
 	def init(self):
 		print("In the beginning, God created the heavens and the earth...")

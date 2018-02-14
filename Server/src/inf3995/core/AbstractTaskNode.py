@@ -1,4 +1,4 @@
-"""Ab_Task_Node class"""
+"""AbstractTaskNode class"""
 
 
 import abc
@@ -6,13 +6,13 @@ import abc
 import inf3995.utils as utils
 
 
-class Basic_Task_Node_Producer(object):
+class BasicTaskNodeProducer(object):
 	def __init__(self, buffer_size):
 		if buffer_size > 0:
-			Buffer_Type = utils.Rcu_Ring_Buffer
-			Producer_Type = utils.Sync_Rcu_Ring_Buffer_Producer
+			Buffer_Type = utils.RcuRingBuffer
+			Producer_Type = utils.SyncRcuRingBufferProducer
 			
-			self._output_data_buffer = Buffer_Type(buffer_size, utils.Sync_Data)
+			self._output_data_buffer = Buffer_Type(buffer_size, utils.SyncData)
 			self._production_rcu = Producer_Type(self._output_data_buffer.producer())
 	
 	def _produce_data(self, value):
@@ -20,16 +20,16 @@ class Basic_Task_Node_Producer(object):
 			self._production_rcu.set(value)
 
 
-class Ab_Task_Node(Basic_Task_Node_Producer):
+class AbstractTaskNode(BasicTaskNodeProducer):
 	__metaclass__ = abc.ABCMeta
 	
 	def __init__(self, is_queued_input_data = False, buffer_size = 1024):
-		super(Ab_Task_Node, self).__init__(buffer_size)
+		super(AbstractTaskNode, self).__init__(buffer_size)
 		self.__is_queued_input_data = is_queued_input_data
 		self.__output_data_buffer = None
 		if buffer_size > 0:
-			self.__output_data_buffer = utils.Rcu_Ring_Buffer(buffer_size,
-			                                                  utils.Sync_Data)
+			self.__output_data_buffer = utils.RcuRingBuffer(buffer_size,
+			                                                  utils.SyncData)
 		self.__data_reader = None
 		self.__first_run = True
 		self.__is_finishing = False
@@ -57,9 +57,9 @@ class Ab_Task_Node(Basic_Task_Node_Producer):
 		# TODO: Get the buffer from task_node and build a data reader around it.
 		out_buf = task_node.get_output_buffer()
 		if self.__is_queued_input_data:
-			self.__data_reader = utils.Sync_Rcu_Ring_Buffer_Q_Reader(out_buf)
+			self.__data_reader = utils.SyncRcuRingBufferQReader(out_buf)
 		else:
-			self.__data_reader = utils.Sync_Rcu_Ring_Buffer_Reader(out_buf)
+			self.__data_reader = utils.SyncRcuRingBufferReader(out_buf)
 	
 	def is_finished(self):
 		return self.__is_finished

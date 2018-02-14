@@ -5,19 +5,19 @@ import socket
 
 import cherrypy
 
-from inf3995.core.Ab_Task_Node import *
+from inf3995.core.AbstractTaskNode import *
 # import inf3995.core
-from inf3995.rest.Rest_Server import *
+from inf3995.rest.RestServer import *
 
 
-class Rest_Handler_Task(Ab_Task_Node):
+class Rest_Handler_Task(AbstractTaskNode):
 	def __init__(self):
 		super(Rest_Handler_Task, self).__init__(False, 0)
 		
 		self.__server = None
 	
 	def init(self):
-		self.__server = Rest_Server()
+		self.__server = RestServer()
 		this_ip = socket.gethostbyname(socket.gethostname())
 		cherrypy.config.update("config/cherrypy.server.conf")
 		cherrypy.tree.mount(self.__server, "/", "config/cherrypy.app.conf")

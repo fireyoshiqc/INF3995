@@ -1,10 +1,10 @@
-"""Program_Options class"""
+"""ProgramOptions class"""
 
 
 import argparse
 
 
-class Program_Options(object):
+class ProgramOptions(object):
 	__parser = None
 	__options = None
 	
@@ -15,23 +15,23 @@ class Program_Options(object):
 		
 		epi = "Copyright team INF3995-03. All rights reserved."
 		
-		Program_Options.__parser = argparse.ArgumentParser(description=desc,
+		ProgramOptions.__parser = argparse.ArgumentParser(description=desc,
 		                                                   epilog=epi)
 		
-		Program_Options.__add_baudrate_arg()
-		Program_Options.__add_connector_type_arg()
-		Program_Options.__add_connector_file_arg()
-		Program_Options.__add_port_arg()
-		Program_Options.__add_rocket_arg()
-		Program_Options.__add_map_arg()
-		Program_Options.__add_run_tests_arg()
+		ProgramOptions.__add_baudrate_arg()
+		ProgramOptions.__add_connector_type_arg()
+		ProgramOptions.__add_connector_file_arg()
+		ProgramOptions.__add_port_arg()
+		ProgramOptions.__add_rocket_arg()
+		ProgramOptions.__add_map_arg()
+		ProgramOptions.__add_run_tests_arg()
 		
-		args = Program_Options.__parser.parse_args(argv[1:len(argv)])
-		Program_Options.__options = vars(args)
+		args = ProgramOptions.__parser.parse_args(argv[1:len(argv)])
+		ProgramOptions.__options = vars(args)
 	
 	@staticmethod
 	def get_value(key):
-		value = Program_Options.__options.get(key, None)
+		value = ProgramOptions.__options.get(key, None)
 		if value != None and isinstance(value, list) and len(value) == 1:
 			return value[0]
 		else:
@@ -39,11 +39,11 @@ class Program_Options(object):
 	
 	@staticmethod
 	def set_value(key, value):
-		Program_Options.__options[key] = value
+		ProgramOptions.__options[key] = value
 	
 	@staticmethod
 	def __add_baudrate_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "Serial port baudrate (serial connector only)."
 		parser.add_argument("-b", "--baudrate",
 		                    dest="baudrate",
@@ -54,7 +54,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_connector_type_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "Source of data and type of execution. " \
 		              "(default : simulation)"
 		parser.add_argument("-c", "--connector-type",
@@ -67,7 +67,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_connector_file_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "Argument for the type of connector, i.e. an input COM " \
 		              "port in serial mode, a CSV file in simulation, or an " \
 		              "output COM port and a CSV file in emulation."
@@ -80,7 +80,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_port_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "UDP server port on which flight data will be sent to " \
 		              "possibly multiple ground station. " \
 		              "(default : 3000)"
@@ -93,7 +93,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_rocket_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "The XML file containing the rocket configuration. " \
 		              "E.g.: 10_polaris.xml " \
 		              "(default : 11_valkyrieM2.xml)"
@@ -106,7 +106,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_map_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "The name of the map in /Configs/Other/Maps.xml. " \
 		              "E.g.: motel_6. " \
 		              "(default : spaceport_america)"
@@ -119,7 +119,7 @@ class Program_Options(object):
 	
 	@staticmethod
 	def __add_run_tests_arg():
-		parser = Program_Options.__parser
+		parser = ProgramOptions.__parser
 		description = "Run unit tests instead of server app."
 		parser.add_argument("-t", "--run-tests",
 		                    dest="run-tests",

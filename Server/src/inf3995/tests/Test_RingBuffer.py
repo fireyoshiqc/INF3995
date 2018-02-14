@@ -1,4 +1,4 @@
-"""Test_Ring_Buffer class"""
+"""Test_RingBuffer class"""
 
 
 import unittest
@@ -15,14 +15,14 @@ The states in the transition tree are as follow :
 
 Pretty self-explanatory I suppose.
 """
-class Test_Ring_Buffer(unittest.TestCase):
+class Test_RingBuffer(unittest.TestCase):
 	_BUFFER_SIZE = 16
 	
 	def setUp(self):
-		self._rcu = utils.Rcu_Ring_Buffer(self._BUFFER_SIZE, utils.Sync_Data)
-		self._producer = utils.Sync_Rcu_Ring_Buffer_Producer(self._rcu.producer())
-		self._reader = utils.Sync_Rcu_Ring_Buffer_Reader(self._producer)
-		self._q_reader = utils.Sync_Rcu_Ring_Buffer_Q_Reader(self._producer)
+		self._rcu = utils.RcuRingBuffer(self._BUFFER_SIZE, utils.SyncData)
+		self._producer = utils.SyncRcuRingBufferProducer(self._rcu.producer())
+		self._reader = utils.SyncRcuRingBufferReader(self._producer)
+		self._q_reader = utils.SyncRcuRingBufferQReader(self._producer)
 	
 	def tearDown(self):
 		pass
