@@ -32,7 +32,7 @@ class ProgramOptions(object):
 	@staticmethod
 	def get_value(key):
 		value = ProgramOptions.__options.get(key, None)
-		if value != None and isinstance(value, list) and len(value) == 1:
+		if value is not None and isinstance(value, list) and len(value) == 1:
 			return value[0]
 		else:
 			return value

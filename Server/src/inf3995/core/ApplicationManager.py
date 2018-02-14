@@ -17,7 +17,7 @@ class ApplicationManager(object):
 	__instance = None
 	
 	def __new__(cls):
-		if ApplicationManager.__instance == None:
+		if ApplicationManager.__instance is None:
 			ApplicationManager.__instance = object.__new__(cls)
 			instance = ApplicationManager.__instance
 			instance.__quit = False

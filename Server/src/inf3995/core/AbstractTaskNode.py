@@ -16,7 +16,7 @@ class BasicTaskNodeProducer(object):
 			self._production_rcu = Producer_Type(self._output_data_buffer.producer())
 	
 	def _produce_data(self, value):
-		if self._production_rcu != None:
+		if self._production_rcu is not None:
 			self._production_rcu.set(value)
 
 
@@ -42,7 +42,7 @@ class AbstractTaskNode(BasicTaskNodeProducer):
 		
 		if not self.__is_finished:
 			if self._has_new_data():
-				if self.__is_queued_input_data and self.__data_reader != None:
+				if self.__is_queued_input_data and self.__data_reader is not None:
 					while self._has_new_data():
 						self.handle_data()
 				else:
@@ -84,13 +84,13 @@ class AbstractTaskNode(BasicTaskNodeProducer):
 		pass
 	
 	def _get_source_data(self):
-		if self.__data_reader != None:
+		if self.__data_reader is not None:
 			return self.__data_reader.get()
 		else:
 			return None
 	
 	def _has_new_data(self):
-		if self.__data_reader != None:
+		if self.__data_reader is not None:
 			return self.__data_reader.has_new_data()
 		else:
 			return not self.__is_finishing

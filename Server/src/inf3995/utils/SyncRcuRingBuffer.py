@@ -98,7 +98,7 @@ class AbstractSyncRcuRingBufferReader(SyncRcuRingBufferBase):
 		pass
 	
 	def wait_for_new_data(self, timeout = None):
-		if timeout != None and timeout > 0.0:
+		if timeout is not None and timeout > 0.0:
 			return self.has_new_data() and self._wait_for_new_event(timeout)
 		else:
 			return self.has_new_data() and self._wait_for_new_event(None)

@@ -10,7 +10,7 @@ class RcuRingBuffer(object):
 			return self._parent._buffer_size
 		
 		def get(self, index = None):
-			if index == None:
+			if index is None:
 				return self._parent._buffer[self._get_buffer_index()]
 			else:
 				return self._parent._buffer[index] 
