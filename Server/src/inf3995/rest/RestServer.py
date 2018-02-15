@@ -3,6 +3,8 @@
 
 import datetime
 import json
+import os
+import collections
 
 import cherrypy
 
@@ -13,6 +15,7 @@ from inf3995.core.ProgramOptions import *
 class RestServer(object):
 	__POSSIBLE_DEVICES = ["pc", "tablet", "mobile"]
 	__UNKNOWN_DEVICE = "n/a"
+	__MISC_FILES_DIR = "miscFiles"
 	
 	def __init__(self):
 		self.__sessions = {}
@@ -44,7 +47,8 @@ class RestServer(object):
 			"miscFiles"   : self.get_config_miscfiles,
 			"deviceTypes" : self.get_config_devicetypes
 		}
-		return switch.get(url[0], RestServer._raise_error_404)(request, url[1:len(url)])
+		default = RestServer._raise_error_404
+		return switch.get(url[0], default)(request, url[1:len(url)])
 	
 	def get_config_basic(self, request, url):
 		if not self._is_logged_in():
@@ -52,11 +56,11 @@ class RestServer(object):
 		if len(url) != 0:
 			RestServer._raise_http_error(404)
 		
-		result = {
-			"otherPort" : ProgramOptions.get_value("server"),
-			"layout"    : ProgramOptions.get_value("rocket"),
-			"map"       : ProgramOptions.get_value("map")
-		}
+		result = collections.OrderedDict([
+			("otherPort", ProgramOptions.get_value("server")),
+			("layout"   , ProgramOptions.get_value("rocket")),
+			("map"      , ProgramOptions.get_value("map"))
+		])
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
 	
@@ -66,10 +70,8 @@ class RestServer(object):
 		
 		if len(url) == 0:
 			return "All the rockets!"
-		elif len(url) == 1:
-			return "Just this rocket : " + url[0]
 		else:
-			RestServer._raise_http_error(404)
+			return "Just this rocket : " + "/".join(url)
 	
 	def get_config_map(self, request, url):
 		if not self._is_logged_in():
@@ -88,11 +90,17 @@ class RestServer(object):
 			RestServer._raise_http_error(401)
 		
 		if len(url) == 0:
-			return "All the files!"
-		elif len(url) == 1:
-			return "Just this file : " + url[0]
+			misc_files_dir = RestServer.__MISC_FILES_DIR
+			all_files = RestServer._find_all_files_in_dir(misc_files_dir)
+			
+			cherrypy.response.headers["Content-Type"] = "application/json"
+			return json.dumps(all_files, indent=2).encode("utf-8")
 		else:
-			RestServer._raise_http_error(404)
+			file_path = "/".join(["miscFiles"] + list(url))
+			if os.path.isfile(file_path):
+				cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
+			else:
+				RestServer._raise_http_error(404)
 	
 	def get_config_devicetypes(self, *args):
 		if len(url) != 0:
@@ -110,7 +118,8 @@ class RestServer(object):
 			"login"  : self.post_users_login,
 			"logout" : self.post_users_logout,
 		}
-		return switch.get(url[0], RestServer._raise_error_404)(request, url[1:len(url)])
+		default = RestServer._raise_error_404
+		return switch.get(url[0], default)(request, url[1:len(url)])
 	
 	def post_users_login(self, request, url):
 		if len(url) != 0:
@@ -154,6 +163,21 @@ class RestServer(object):
 	@staticmethod
 	def _raise_error_404(*args):
 		raise RestServer._raise_http_error(404)
+	
+	@staticmethod
+	def _find_all_files_in_dir(dir_path):
+		all_files = []
+		foo = os.walk(dir_path)
+		for root, subdirs, files in os.walk(dir_path):
+			for f in files:
+				filename = root + "/" + f
+				filename = filename.replace("\\", "/");
+				filename = filename.replace(dir_path, "")
+				if filename[0] == "/":
+					filename = filename[1:len(filename)]
+				all_files.append(("file" + str(len(all_files) + 1), filename,))
+		
+		return collections.OrderedDict([("nFiles", len(all_files),)] + all_files)
 	
 	def _is_logged_in(self):
 		return self._get_session() is not None
