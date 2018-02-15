@@ -5,6 +5,7 @@ import abc
 import time
 import threading
 import math
+import sys
 
 from inf3995.utils.RcuRingBuffer import *
 
@@ -92,16 +93,28 @@ class AbstractSyncRcuRingBufferReader(SyncRcuRingBufferBase):
 	
 	def __init__(self, rcu):
 		super(AbstractSyncRcuRingBufferReader, self).__init__(rcu)
+		self._events = rcu._events
 	
 	@abc.abstractmethod
 	def has_new_data(self):
 		pass
 	
 	def wait_for_new_data(self, timeout = None):
+		# FIXME: (One day, maybe) Make the event thing work with Python events,
+		# because apparently me no good at Python.
+		return self.busy_wait_for_new_data(timeout)
+	
+	def busy_wait_for_new_data(self, timeout = None):
 		if timeout is not None and timeout > 0.0:
-			return self.has_new_data() and self._wait_for_new_event(timeout)
+			timeout_time = time.monotonic() + timeout
+			while not self.has_new_data():
+				if time.monotonic() > timeout_time:
+					return False
+				time.sleep(0)
 		else:
-			return self.has_new_data() and self._wait_for_new_event(None)
+			while not self.has_new_data():
+				time.sleep(0)
+		return True
 	
 	def _wait_for_new_event(self, timeout):
 		return self._events[self._get_next_event_index()].wait(timeout)

@@ -104,5 +104,5 @@ class WorkerThread(object):
 			else:
 				self.__RateWaiter.wait_next()
 			
-			time.sleep(0)
+			time.sleep(0.001)
 
