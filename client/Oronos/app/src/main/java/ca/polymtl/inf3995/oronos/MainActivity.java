@@ -9,5 +9,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        GlobalParameters parameters = new GlobalParameters();
+        SocketClient socketClient = new SocketClient(parameters.SERVER_ADDRESS, parameters.SERVER_PORT);
     }
 }
