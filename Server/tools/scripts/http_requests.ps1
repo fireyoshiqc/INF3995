@@ -9,12 +9,24 @@ $credentials = @{"foo" = @{"username" = "foo"; "password" = "password1234"}; `
 
 $sessions = @{}
 
-$server_addr = "132.207.232.168:80"
+$server_addr = "127.0.0.1:80"
 
 #}
 
 
 #{ Functions
+
+function get_ipv4_addr ( )
+{
+	$ip = (gwmi Win32_NetworkAdapterConfiguration | ? { $_.IPAddress -ne $null }).ipaddress
+	if ( $ip[0] -match "." ) {
+		return $ip[0]
+	}
+	else {
+		return $ip[1]
+	}
+}
+
 
 function send_post_users_login ( [string] $user )
 {
@@ -63,7 +75,7 @@ function send_get_config_basic ( [string] $user )
 }
 
 
-function send_get ( [string] $user, [string] $url )
+function send_get ( [string] $url, [string] $user )
 {
 	$uri = "http://" + $server_addr + $url
 	
@@ -74,6 +86,13 @@ function send_get ( [string] $user, [string] $url )
 		curl -Method GET -Uri $uri -UseBasicParsing
 	}
 }
+
+#}
+
+
+#{ Auto-exec
+
+$server_addr = (get_ipv4_addr) + ":80"
 
 #}
 

@@ -16,6 +16,7 @@ class RestServer(object):
 	__POSSIBLE_DEVICES = ["pc", "tablet", "mobile"]
 	__UNKNOWN_DEVICE = "n/a"
 	__MISC_FILES_DIR = "miscFiles"
+	__ROCKETS_DIR = "rockets"
 	
 	def __init__(self):
 		self.__sessions = {}
@@ -68,10 +69,18 @@ class RestServer(object):
 		if not self._is_logged_in():
 			RestServer._raise_http_error(401)
 		
+		rockets_dir = RestServer.__ROCKETS_DIR
 		if len(url) == 0:
-			return "All the rockets!"
+			all_files = RestServer._find_all_files_in_dir(rockets_dir, False)
+			
+			cherrypy.response.headers["Content-Type"] = "application/json"
+			return json.dumps(all_files, indent=2).encode("utf-8")
 		else:
-			return "Just this rocket : " + "/".join(url)
+			file_path = "/".join([rockets_dir] + list(url))
+			if os.path.isfile(file_path):
+				cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
+			else:
+				RestServer._raise_http_error(404)
 	
 	def get_config_map(self, request, url):
 		if not self._is_logged_in():
@@ -89,14 +98,14 @@ class RestServer(object):
 		if not self._is_logged_in():
 			RestServer._raise_http_error(401)
 		
+		misc_files_dir = RestServer.__MISC_FILES_DIR
 		if len(url) == 0:
-			misc_files_dir = RestServer.__MISC_FILES_DIR
-			all_files = RestServer._find_all_files_in_dir(misc_files_dir)
+			all_files = RestServer._find_all_files_in_dir(misc_files_dir, True)
 			
 			cherrypy.response.headers["Content-Type"] = "application/json"
 			return json.dumps(all_files, indent=2).encode("utf-8")
 		else:
-			file_path = "/".join(["miscFiles"] + list(url))
+			file_path = "/".join([misc_files_dir] + list(url))
 			if os.path.isfile(file_path):
 				cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
 			else:
@@ -165,7 +174,7 @@ class RestServer(object):
 		raise RestServer._raise_http_error(404)
 	
 	@staticmethod
-	def _find_all_files_in_dir(dir_path):
+	def _find_all_files_in_dir(dir_path, add_n_files):
 		all_files = []
 		foo = os.walk(dir_path)
 		for root, subdirs, files in os.walk(dir_path):
@@ -177,7 +186,9 @@ class RestServer(object):
 					filename = filename[1:len(filename)]
 				all_files.append(("file" + str(len(all_files) + 1), filename,))
 		
-		return collections.OrderedDict([("nFiles", len(all_files),)] + all_files)
+		if add_n_files:
+			all_files = [("nFiles", len(all_files),)] + all_files
+		return collections.OrderedDict(all_files)
 	
 	def _is_logged_in(self):
 		return self._get_session() is not None
