@@ -190,7 +190,7 @@ class RestServer(object):
 		return collections.OrderedDict(all_files)
 	
 	def _check_if_logged_in(self):
-		if not self.__skip_auth and self._get_session() is not None:
+		if not self.__skip_auth and self._get_session() is None:
 			RestServer._raise_http_error(401)
 	
 	def _get_session(self):

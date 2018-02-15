@@ -36,6 +36,7 @@ function send_post_users_login ( [string] $user, [string] $pass = "" )
 		$login_info = $credentials[$user]
 	}
 	else {
+		Write-Warning "Credentials not found"
 		$login_info = @{"username" = $user; "password" = $pass}
 	}
 	$login_info["device"] = "pc"
