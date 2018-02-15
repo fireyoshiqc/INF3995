@@ -10,9 +10,9 @@ from inf3995.core.AbstractTaskNode import *
 from inf3995.rest.RestServer import *
 
 
-class Rest_Handler_Task(AbstractTaskNode):
+class RestHandlerTask(AbstractTaskNode):
 	def __init__(self):
-		super(Rest_Handler_Task, self).__init__(False, 0)
+		super(RestHandlerTask, self).__init__(False, 0)
 		
 		self.__server = None
 	

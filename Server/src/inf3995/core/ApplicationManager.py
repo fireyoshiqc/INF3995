@@ -80,7 +80,7 @@ class ApplicationManager(object):
 	def __setup_task_nodes(self):
 		# TODO: Build the task nodes
 		dummy_node = DummyTaskNode()
-		rest_node = rest.Rest_Handler_Task()
+		rest_node = rest.RestHandlerTask()
 		
 		# TODO: Connect the nodes
 		
