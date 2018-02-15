@@ -9,6 +9,19 @@ import timber.log.Timber;
  * Created by prst on 2018-02-13.
  */
 
+/* USAGE
+// à appeller seulement une fois pour l'application?
+Timber.plant(new LogTree());
+
+// pour logger
+Timber.v("hello");
+Timber.d("hello");
+Timber.i("hello");
+Timber.w("hello");
+Timber.e("hello");
+
+*/
+
 public class LogTree extends Timber.DebugTree {
 
     @Override
