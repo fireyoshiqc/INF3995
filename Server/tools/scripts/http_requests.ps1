@@ -28,10 +28,16 @@ function get_ipv4_addr ( )
 }
 
 
-function send_post_users_login ( [string] $user )
+function send_post_users_login ( [string] $user, [string] $pass = "" )
 {
 	$uri = "http://" + $server_addr + "/users/login"
-	$login_info = $credentials[$user]
+	$login_info = @{}
+	if ( $($credentials.Keys).IndexOf($user) -ne -1 ) {
+		$login_info = $credentials[$user]
+	}
+	else {
+		$login_info = @{"username" = $user; "password" = $pass}
+	}
 	$login_info["device"] = "pc"
 	$json_str = ConvertTo-Json $login_info
 	
@@ -48,7 +54,7 @@ function send_post_users_login ( [string] $user )
 function send_post_users_logout ( [string] $user )
 {
 	$uri = "http://" + $server_addr + "/users/logout"
-	$json_str = ConvertTo-Json @{"username"=$credentials[$user]["username"]}
+	$json_str = ConvertTo-Json @{"username" = $user}
 	
 	$response = $null
 	if ( $sessions.Contains($user) ) {

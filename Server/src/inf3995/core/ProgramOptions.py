@@ -25,6 +25,7 @@ class ProgramOptions(object):
 		ProgramOptions.__add_rocket_arg()
 		ProgramOptions.__add_map_arg()
 		ProgramOptions.__add_run_tests_arg()
+		ProgramOptions.__add_skip_auth_arg()
 		
 		args = ProgramOptions.__parser.parse_args(argv[1:len(argv)])
 		ProgramOptions.__options = vars(args)
@@ -123,6 +124,16 @@ class ProgramOptions(object):
 		description = "Run unit tests instead of server app."
 		parser.add_argument("-t", "--run-tests",
 		                    dest="run-tests",
+		                    action="store_true",
+		                    default=False,
+		                    help=description)
+	
+	@staticmethod
+	def __add_skip_auth_arg():
+		parser = ProgramOptions.__parser
+		description = "Skip client authentication and accept all requests."
+		parser.add_argument("--skip-auth",
+		                    dest="skip-auth",
 		                    action="store_true",
 		                    default=False,
 		                    help=description)

@@ -20,6 +20,7 @@ class RestServer(object):
 	
 	def __init__(self):
 		self.__sessions = {}
+		self.__skip_auth = ProgramOptions.get_value("skip-auth")
 	
 	def get_all_sessions(self):
 		return self.__sessions
@@ -52,8 +53,8 @@ class RestServer(object):
 		return switch.get(url[0], default)(request, url[1:len(url)])
 	
 	def get_config_basic(self, request, url):
-		if not self._is_logged_in():
-			RestServer._raise_http_error(401)
+		self._check_if_logged_in()
+		
 		if len(url) != 0:
 			RestServer._raise_http_error(404)
 		
@@ -66,8 +67,7 @@ class RestServer(object):
 		return json.dumps(result, indent=2).encode("utf-8")
 	
 	def get_config_rockets(self, request, url):
-		if not self._is_logged_in():
-			RestServer._raise_http_error(401)
+		self._check_if_logged_in()
 		
 		rockets_dir = RestServer.__ROCKETS_DIR
 		if len(url) == 0:
@@ -83,8 +83,8 @@ class RestServer(object):
 				RestServer._raise_http_error(404)
 	
 	def get_config_map(self, request, url):
-		if not self._is_logged_in():
-			RestServer._raise_http_error(401)
+		self._check_if_logged_in()
+		
 		if len(url) != 0:
 			RestServer._raise_http_error(404)
 		
@@ -95,8 +95,7 @@ class RestServer(object):
 		return json.dumps(result, indent=2).encode("utf-8")
 	
 	def get_config_miscfiles(self, request, url):
-		if not self._is_logged_in():
-			RestServer._raise_http_error(401)
+		self._check_if_logged_in()
 		
 		misc_files_dir = RestServer.__MISC_FILES_DIR
 		if len(url) == 0:
@@ -113,7 +112,7 @@ class RestServer(object):
 	
 	def get_config_devicetypes(self, *args):
 		if len(url) != 0:
-			RestServer._raise_http_error(401)
+			RestServer._raise_http_error(404)
 		
 		result = {}
 		for i, dev in enumerate(RestServer.__POSSIBLE_DEVICES):
@@ -190,8 +189,9 @@ class RestServer(object):
 			all_files = [("nFiles", len(all_files),)] + all_files
 		return collections.OrderedDict(all_files)
 	
-	def _is_logged_in(self):
-		return self._get_session() is not None
+	def _check_if_logged_in(self):
+		if not self.__skip_auth and self._get_session() is not None:
+			RestServer._raise_http_error(401)
 	
 	def _get_session(self):
 		return self.__sessions.get(cherrypy.session.id, None)
@@ -200,6 +200,9 @@ class RestServer(object):
 		expected = [{"username" : "foo", "password" : "password1234"},
 		            {"username" : "bar", "password" : "password4321"},
 		            {"username" : "qux", "password" : "1234password"}]
+		
+		if self.__skip_auth:
+			return True
 		
 		is_valid = False
 		for x in expected:
