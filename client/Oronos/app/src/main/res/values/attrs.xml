@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FixedContainerWidget">
+        <attr name="disposition" format="string">
+            <enum name="column" value="column"/>
+            <enum name="row" value="row"/>
+        </attr>
+    </declare-styleable>
+</resources>
