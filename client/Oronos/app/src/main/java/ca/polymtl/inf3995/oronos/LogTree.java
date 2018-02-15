@@ -3,6 +3,8 @@ package ca.polymtl.inf3995.oronos;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.util.Calendar;
+
 import timber.log.Timber;
 
 /**
@@ -27,21 +29,23 @@ public class LogTree extends Timber.DebugTree {
     @Override
     protected void log(int priority, String tag, @NonNull String message, Throwable t) {
 
+        String currentTime = Calendar.getInstance().getTime().toString();
+
         switch (priority) {
             case Log.VERBOSE:
-                Log.v(tag, "VERBOSE - " + message);
+                Log.println(priority, tag, currentTime + " - VERBOSE - " + message);
                 break;
             case Log.DEBUG:
-                Log.d(tag, "DEBUG   - " + message);
+                Log.println(priority, tag, currentTime + " - DEBUG   - " + message);
                 break;
             case Log.INFO:
-                Log.i(tag, "INFO    - " + message);
+                Log.println(priority, tag, currentTime + " - INFO    - " + message);
                 break;
             case Log.WARN:
-                Log.w(tag, "WARNING - " + message);
+                Log.println(priority, tag, currentTime + " - WARNING - " + message);
                 break;
             case Log.ERROR:
-                Log.e(tag, "ERROR   - " + message);
+                Log.println(priority, tag, currentTime + " - ERROR   - " + message);
                 break;
         }
 
