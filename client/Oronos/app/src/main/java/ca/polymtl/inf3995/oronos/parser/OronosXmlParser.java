@@ -17,7 +17,7 @@ import java.util.List;
 public class OronosXmlParser {
     private static final String ns = null;
 
-    public Rocket parse(InputStream in) throws XmlPullParserException, IOException {
+    public Rocket parse(InputStream in) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -29,7 +29,7 @@ public class OronosXmlParser {
         }
     }
 
-    private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         List<GridContainer> entries = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, ns, "Rocket");
         String name = parser.getAttributeValue(null, "name");
@@ -49,7 +49,7 @@ public class OronosXmlParser {
         return new Rocket(name, id, entries);
     }
 
-    private GridContainer readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private GridContainer readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "GridContainer");
         List<Grid> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -66,7 +66,7 @@ public class OronosXmlParser {
         return new GridContainer(list);
     }
 
-    private Grid readGrid(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private Grid readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Grid");
         TabContainer tabContainer = null;
         int row = Integer.parseInt(parser.getAttributeValue(null, "row"));
@@ -85,7 +85,7 @@ public class OronosXmlParser {
         return new Grid(row, col, tabContainer);
     }
 
-    private TabContainer readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private TabContainer readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "TabContainer");
         List<Tab> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -102,7 +102,7 @@ public class OronosXmlParser {
         return new TabContainer(list);
     }
 
-    private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Tab");
         TabbableWidget contents = null;
         String tabName = parser.getAttributeValue(null, "name");
@@ -180,8 +180,9 @@ public class OronosXmlParser {
         return new DisplayLogWidget(list);
     }
 
-    private DualVWidget readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private DualVWidget readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualVWidget");
+        int startLine = parser.getLineNumber();
         List<TabbableWidget> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -210,17 +211,16 @@ public class OronosXmlParser {
                 default:
                     skip(parser);
             }
-
-            if (list.size() != 2) {
-                //TODO: throw exceptions
-            }
-
+        }
+        if (list.size() != 2) {
+            throw new UnsupportedContainerWidgetException("DualVWidget, à la ligne " + startLine);
         }
         return new DualVWidget(list);
     }
 
-    private DualHWidget readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private DualHWidget readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualHWidget");
+        int startLine = parser.getLineNumber();
         List<TabbableWidget> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -249,11 +249,9 @@ public class OronosXmlParser {
                 default:
                     skip(parser);
             }
-
-            if (list.size() != 2) {
-                //TODO: throw exceptions
-            }
-
+        }
+        if (list.size() != 2) {
+            throw new UnsupportedContainerWidgetException("DualHWidget, à la ligne " + startLine);
         }
         return new DualHWidget(list);
     }
