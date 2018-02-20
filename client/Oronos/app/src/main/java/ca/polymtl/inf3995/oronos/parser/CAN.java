@@ -9,20 +9,24 @@ import android.support.annotation.Nullable;
 public class CAN {
     public final String id;
     public final String name;
-    public final int minAcceptable;
-    public final int maxAcceptable;
-    public final int chiffresSign;
+    public final String display;
+    public final String minAcceptable;
+    public final String maxAcceptable;
+    public final String chiffresSign;
     public final String specificSource;
-    public final int serialNb;
+    public final String serialNb;
     public final String customUpdate;
-    public final int updateEach;
+    public final String updateEach;
 
-    public CAN(String id, @Nullable String name, @Nullable int minAcceptable, @Nullable int maxAcceptable,
-               @Nullable int chiffresSign, @Nullable String specificSource, @Nullable int serialNb,
-               @Nullable String customUpdate, @Nullable int updateEach) {
+    public CAN(String id, @Nullable String name, @Nullable String display,
+               @Nullable String minAcceptable, @Nullable String maxAcceptable,
+               @Nullable String chiffresSign, @Nullable String specificSource,
+               @Nullable String serialNb, @Nullable String customUpdate,
+               @Nullable String updateEach) {
 
         this.id = id;
         this.name = name;
+        this.display = display;
         this.minAcceptable = minAcceptable;
         this.maxAcceptable = maxAcceptable;
         this.chiffresSign = chiffresSign;

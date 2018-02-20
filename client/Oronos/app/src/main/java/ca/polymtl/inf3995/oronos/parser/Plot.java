@@ -6,7 +6,7 @@ import java.util.List;
  * Created by Felix on 15/févr./2018.
  */
 
-public class Plot extends AbstractCANContainer {
+public class Plot extends AbstractCANContainer implements TabbableWidget {
     public final String name;
     public final String unit;
     public final String axis;
