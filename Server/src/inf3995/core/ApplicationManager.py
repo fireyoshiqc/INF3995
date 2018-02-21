@@ -82,7 +82,7 @@ class ApplicationManager(object):
 		# TODO: Build the task nodes
 		dummy_node = DummyTaskNode()
 		rest_node = rest.RestHandlerTask()
-		csv_reader_node = data_rx.CSVParserTask()
+		csv_reader_node = data_rx.CSVReaderTask()
 		
 		# TODO: Connect the nodes
 		
