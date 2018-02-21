@@ -1,5 +1,11 @@
 package ca.polymtl.inf3995.oronos;
 
+import java.net.*;
+import java.io.IOException;
+
+import android.util.Log;
+
+import com.illposed.osc.utility.OSCByteArrayToJavaConverter;
 import com.koushikdutta.async.AsyncDatagramSocket;
 import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.callback.CompletedCallback;
@@ -7,24 +13,26 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.ByteBufferList;
 import com.koushikdutta.async.DataEmitter;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-
-import android.util.Log;
+import com.illposed.osc.*;
 
 public class SocketClient {
 
     private final InetSocketAddress host;
     private AsyncDatagramSocket asyncDatagramSocket;
 
+    private OSCByteArrayToJavaConverter byteToJavaConverter = new OSCByteArrayToJavaConverter();
+    private OSCMessage message;
+
     /**
      * Datagram Sockets for asynchronous reception of UDP packets. Heavily inspired by the
      * example found on github : https://github.com/reneweb/AndroidAsyncSocketExamples/tree/master/
      * app/src/main/java/com/github/reneweb/androidasyncsocketexamples/udp
      *
-     * @param host      String representing IP address of server
-     * @param port      int that is the server port for communication.
+     * Packets are handled by JavaOSC to create OSCMessage and parse automatically binary data.
+     * Extracted data is forwarded to DataDispatcher in List format.
+     *
+     * @param host      String representing IP address of Client
+     * @param port      int that is the Client port for communication.
      */
     public SocketClient(String host, int port) {
         try {
@@ -39,9 +47,15 @@ public class SocketClient {
         setup();
     }
 
+    // Trying something for test purpose.
+    private int numOfMessageReceived = 0;
+    public int numMessagesReceived(int num) {
+        return numOfMessageReceived += num;
+    }
+
     private void setup() {
         try {
-            asyncDatagramSocket = AsyncServer.getDefault().connectDatagram(host);
+            asyncDatagramSocket = AsyncServer.getDefault().openDatagram(host, true);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,8 +79,21 @@ public class SocketClient {
         asyncDatagramSocket.setDataCallback(new DataCallback() {
             @Override
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                Log.v("SocketClient", "[UDP] : " + new String(bb.getAllByteArray()));
+                byte[] bytesReceived = bb.getAllByteArray();
+                Log.v("SocketClient", "[UDP] : " + new String(bytesReceived));
+                // todo : Continue developing the following functions when server is ready for udp
+                //getOSCMessage(bytesReceived);
+                //forwardToDispatcher();
+                numMessagesReceived(1);
             }
         });
+    }
+
+    private void getOSCMessage(byte[] bytesReceived) {
+        this.message = (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);
+    }
+
+    private void forwardToDispatcher() {
+        // DataDispatcher.dataToDispatch(this.message.getArguments());
     }
 }
