@@ -34,7 +34,7 @@ import java.io.File;
 
 public class RestHttpWrapper {
     private RequestQueue volleyQueue;
-    static final String SERVER_IP = "132.207.89.30";
+    static final String SERVER_IP = "132.207.89.30"; //addr a modifier avec ce que le user entre
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
 
