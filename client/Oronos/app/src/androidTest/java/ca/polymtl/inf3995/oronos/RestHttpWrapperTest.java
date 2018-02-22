@@ -28,21 +28,26 @@ public class RestHttpWrapperTest {
     @Test
     public void getJSON() {
 
-        appContext = InstrumentationRegistry.getContext();
+        appContext = InstrumentationRegistry.getTargetContext();
         RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
         wrapper.getJSON(
                 "config/basic",
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+
+                        //Retour en JSON pour le champ "map":
                         //"map": "spaceport_america"
+
                         String resString = "";
                         try {
                             resString = response.getString("map");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        assertEquals("this should make tests fail", resString);
                         assertEquals("spaceport_america", resString);
+
                         System.out.println("ResponseFromServer" + resString);
                     }
                 },

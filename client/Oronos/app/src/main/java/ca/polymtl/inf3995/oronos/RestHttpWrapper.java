@@ -68,9 +68,9 @@ public class RestHttpWrapper {
     }
 
 
-    //https://stackoverflow.com/questions/24740228/android-download-pdf-from-url-then-open-it-with-a-pdf-reader
 
-/*
+
+    //Pourrait être utilisé dans errListener
     private void volleyOnErrorResponse(VolleyError error) {
 
         //TODO: ajouter les logs
@@ -93,5 +93,5 @@ public class RestHttpWrapper {
             //Toast.makeText(getApplicationContext(), "ParseError", Toast.LENGTH_SHORT).show();
         }
     }
-*/
+
 }
