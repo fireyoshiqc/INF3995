@@ -47,9 +47,12 @@ public class SocketClient {
         setup();
     }
 
-    // Trying something for test purpose.
+    // This is for test purpose.
     private int numOfMessageReceived = 0;
     public int numMessagesReceived(int num) {
+        if (numOfMessageReceived == Integer.MAX_VALUE) {
+            numOfMessageReceived = 0;
+        }
         return numOfMessageReceived += num;
     }
 
@@ -79,12 +82,14 @@ public class SocketClient {
         asyncDatagramSocket.setDataCallback(new DataCallback() {
             @Override
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                byte[] bytesReceived = bb.getAllByteArray();
-                Log.v("SocketClient", "[UDP] : " + new String(bytesReceived));
-                // todo : Continue developing the following functions when server is ready for udp
-                //getOSCMessage(bytesReceived);
-                //forwardToDispatcher();
-                numMessagesReceived(1);
+                if (bb != null) {
+                    byte[] bytesReceived = bb.getAllByteArray();
+                    Log.v("SocketClient", "[UDP] : " + new String(bytesReceived));
+                    // todo : Continue developing the following functions when server is ready for udp
+                    //getOSCMessage(bytesReceived);
+                    //forwardToDispatcher();
+                    numMessagesReceived(1);
+                }
             }
         });
     }

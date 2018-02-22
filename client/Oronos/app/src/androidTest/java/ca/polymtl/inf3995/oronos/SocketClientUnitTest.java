@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 /**
- * Local unit test to assert that the SocketClient receive UDP packets when connected to server.
+ * Instrumented unit test to assert that the SocketClient receive UDP packets when connected to server.
  */
 public class SocketClientUnitTest {
     private Context appContext = null;
@@ -20,11 +20,18 @@ public class SocketClientUnitTest {
     FakeServer fakeServerObj;
 
     /**
+     * SetUp Socket Client before each test
+     */
+    @Before
+    public void SetUpSocketClient() {
+        clientObj = new SocketClient(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
+    }
+
+    /**
      * Assert the SocketClient is not null
      */
     @Test
     public void testConstructedObject() {
-        clientObj = new SocketClient(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
         assertNotNull(clientObj);
     }
 
@@ -34,7 +41,6 @@ public class SocketClientUnitTest {
     @Test
     public void receiveMsgFromServer() throws Exception {
         appContext = InstrumentationRegistry.getTargetContext();
-        clientObj = new SocketClient(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
         fakeServerObj = new FakeServer(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
         fakeServerObj.send("Testing if client can be reached form server through udp");
         Thread.sleep(1000);
