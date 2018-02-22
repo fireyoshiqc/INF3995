@@ -4,7 +4,7 @@ package ca.polymtl.inf3995.oronos.parser;
  * Created by Felix on 15/févr./2018.
  */
 
-public class ModuleStatus implements TabbableWidget {
+public class ModuleStatus implements ContainableWidget {
     public final int nGrid;
     public final int nColumns;
 

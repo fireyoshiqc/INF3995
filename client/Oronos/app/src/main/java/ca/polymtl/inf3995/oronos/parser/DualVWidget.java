@@ -6,10 +6,9 @@ import java.util.List;
  * Created by Felix on 15/févr./2018.
  */
 
-public class DualVWidget implements TabbableWidget {
-    List<TabbableWidget> list;
+public class DualVWidget extends AbstractWidgetContainer<ContainableWidget> implements ContainableWidget {
 
-    public DualVWidget(List<TabbableWidget> list) {
-        this.list = list;
+    public DualVWidget(List<ContainableWidget> list) {
+        super(list);
     }
 }

@@ -6,9 +6,9 @@ package ca.polymtl.inf3995.oronos.parser;
 
 public class Tab {
     public final String name;
-    public final TabbableWidget contents;
+    public final ContainableWidget contents;
 
-    protected Tab(String name, TabbableWidget contents) {
+    protected Tab(String name, ContainableWidget contents) {
         this.name = name;
         this.contents = contents;
     }
