@@ -78,7 +78,7 @@ class CSVReaderTask(AbstractTaskNode):
 				sid_name = self.next_line[6]
 				sid = CANSid[sid_name]
 			except KeyError as e:
-				print('KeyError: ' + str(e) + ' in ' + __name__)
+				print(__name__ + ': KeyError: ' + str(e))
 				continue
 
 			data = RxData(sid=sid,
