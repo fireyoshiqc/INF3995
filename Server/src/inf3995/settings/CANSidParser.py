@@ -1,8 +1,10 @@
 """CAN Sid Parser class"""
 
 
-from inf3995.settings.CANSid import CANSid
 import csv
+from pathlib import Path
+
+from inf3995.settings.CANSid import CANSid
 
 
 CAN_SID_FILE = 'config/CANSid.csv'
