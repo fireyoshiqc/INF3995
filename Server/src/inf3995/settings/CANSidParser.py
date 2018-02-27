@@ -1,7 +1,7 @@
-"""CAN Sid class"""
+"""CAN Sid Parser class"""
 
 
-from inf3995.settings.CANSidEnum import CANSid
+from inf3995.settings.CANSid import CANSid
 import csv
 
 
