@@ -4,6 +4,7 @@ import csv
 import time
 from enum import Enum
 
+from inf3995.settings.CANSid import CANSid
 from inf3995.core.AbstractTaskNode import *
 from inf3995.core.ApplicationManager import *
 from inf3995.data_rx.RxData import RxData
@@ -74,7 +75,15 @@ class CSVReaderTask(AbstractTaskNode):
 					or _Direction[direction] == _Direction.OUT:
 				continue
 
-			data = RxData(sid=self.next_line[6],
+			# Skip log messages with invalid CAN SIDs
+			try:
+				sid_name = self.next_line[6]
+				sid = CANSid[sid_name]
+			except KeyError as e:
+				print('KeyError: ' + str(e) + ' in ' + __name__)
+				continue
+
+			data = RxData(sid=sid,
 						  dest_serial=self.next_line[2],
 						  dest_type=self.next_line[3],
 						  src_serial=self.next_line[4],
