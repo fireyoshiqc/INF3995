@@ -1,4 +1,4 @@
-"""CSV Parser class"""
+"""CSV Reader class"""
 
 import csv
 import time
