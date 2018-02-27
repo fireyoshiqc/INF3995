@@ -30,13 +30,78 @@ public class RestHttpWrapperTest {
     }
 
     @Test
-    public void PostCredsTest() {
+    public void postUserLoginTest() {
         RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
         wrapper.postUserLogin(new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                System.out.println("Response from server TESTTEST");
-                System.out.println(response);
+
+            }
+        });
+    }
+
+    @Test
+    public void postUserLogoutTest() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.postUserLogout(new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        });
+    }
+
+    @Test
+    public void getConfigRocketsTest() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.getConfigRockets(new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        });
+    }
+
+    @Test
+    public void getRocketTest() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.getRocket("rocketName", new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        });
+    }
+
+    @Test
+    public void getConfigMapTest() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.getConfigMap(new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        });
+    }
+
+    @Test
+    public void getConfigMiscFilesTest() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.getConfigMiscFiles(new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        });
+    }
+
+    @Test
+    public void getMiscFile() {
+        RestHttpWrapper wrapper = new RestHttpWrapper(appContext);
+        wrapper.getMiscFile("fileName", new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
             }
         });
     }

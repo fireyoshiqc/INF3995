@@ -14,6 +14,7 @@ import ca.polymtl.inf3995.oronos.VolleySingleton;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.NoConnectionError;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
@@ -22,7 +23,7 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 
@@ -31,18 +32,24 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class RestHttpWrapper {
 
 
     private RequestQueue volleyQueue;
-    static final String SERVER_IP = "10.0.2.2"; //addr a modifier avec ce que le user entre
+    static final String SERVER_IP = "10.0.2.2"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
     Context appContext;
+
+    private String username = "foo"; //has to change according to user input
+    private String password = "password1234"; //has to change according to user input
 
     public RestHttpWrapper(Context appContext) {
         this.appContext = appContext;
@@ -50,19 +57,111 @@ public class RestHttpWrapper {
 
     }
 
+
+
     public void postUserLogin(Response.Listener<JSONObject> resListener) {
-        String username = "foo";
-        String password = "password1234";
+        String URLSubfix = "users/login";
 
         JSONObject json = new JSONObject();
         try {
             json.put("username", username);
             json.put("password", password);
         }
-        catch(Exception e) {
+        catch(JSONException e) {
             e.printStackTrace();
         }
-        postJSON("users/login", json, resListener, new Response.ErrorListener() {
+
+       JsonObjectRequest POSTRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                SERVER_URL + URLSubfix,
+                json,
+                resListener,
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        volleyOnErrorResponse(error);
+                    }
+                }
+        ){
+           @Override
+           protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+               return null;
+           }
+       };
+
+        volleyQueue.add(POSTRequest);
+    }
+
+    public void postUserLogout(Response.Listener<JSONObject> resListener) {
+
+        String URLSubfix = "users/logout";
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("username", username);
+        }
+        catch(JSONException e) {
+            e.printStackTrace();
+        }
+        JsonObjectRequest POSTRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                SERVER_URL + URLSubfix,
+                json,
+                resListener,
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        volleyOnErrorResponse(error);
+                    }
+                }
+        ){
+            @Override
+            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+                return null;
+            }
+        };
+
+        volleyQueue.add(POSTRequest);
+    }
+
+    public void getConfigRockets(Response.Listener<JSONObject> resListener) {
+        getJSON("config/rockets", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getRocket(String rocketName, Response.Listener<JSONObject> resListener) {
+        getJSON("config/rockets/" + rocketName, resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getConfigMap(Response.Listener<JSONObject> resListener) {
+        getJSON("config/map", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getConfigMiscFiles(Response.Listener<JSONObject> resListener) {
+        getJSON("config/miscFiles", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getMiscFile(String fileName, Response.Listener<JSONObject> resListener) {
+        getJSON("config/miscFiles/" + fileName, resListener, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 volleyOnErrorResponse(error);
@@ -81,56 +180,6 @@ public class RestHttpWrapper {
         );
         volleyQueue.add(JSONRequest);
     }
-
-    private void postJSON(String URLSubfix, JSONObject JSONbody, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
-
-        JsonObjectRequest POSTRequest = new JsonObjectRequest(
-                Request.Method.POST,
-                SERVER_URL + URLSubfix,
-                JSONbody,
-                resListener,
-                errListener
-        );
-
-        volleyQueue.add(POSTRequest);
-    }
-
-
-
-
-    public void randomJSONForTest( Response.Listener<JSONObject> resListener) {
-
-        String username = "foo";
-
-        JSONObject json = new JSONObject();
-        try {
-            json.put("username", username);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-
-        getRandomJSONForTest(json, resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
-    }
-
-    private void getRandomJSONForTest(JSONObject JSONbody, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener){
-
-        JsonObjectRequest JSONRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                SERVER_URL + "config/basic",
-                JSONbody,
-                resListener,
-                errListener
-        );
-        volleyQueue.add(JSONRequest);
-
-    }
-
 
 
 
