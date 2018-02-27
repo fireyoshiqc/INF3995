@@ -39,6 +39,8 @@ public class XmlParserTest {
     public void canParseGoodFile() throws UnsupportedContainerWidgetException, XmlPullParserException, IOException {
         InputStream fis = this.getClass().getClassLoader().getResourceAsStream("10_polaris.xml");
         assertThat(oxp.parse(fis), instanceOf(Rocket.class));
+        fis = this.getClass().getClassLoader().getResourceAsStream("11_valkyrieM2.xml");
+        assertThat(oxp.parse(fis), instanceOf(Rocket.class));
     }
 
     @Test(expected = UnsupportedContainerWidgetException.class)

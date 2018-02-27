@@ -1,6 +1,5 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -258,7 +257,7 @@ public class OronosXmlParser {
                 case "ButtonArray":
                 case "RadioStatus":
                 case "CustomCANSender":
-                    list.add(new UnsupportedWidget());
+                    list.add(readUnsupportedWidget(parser));
                     break;
                 default:
                     skip(parser);
@@ -346,6 +345,16 @@ public class OronosXmlParser {
             skip(parser);
         }
         return new CAN(id, canName, display, minAcceptable, maxAcceptable, chiffresSign, specificSource, serialNb, customUpdate, updateEach);
+    }
+
+    private UnsupportedWidget readUnsupportedWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            skip(parser);
+        }
+        return new UnsupportedWidget();
     }
 
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
