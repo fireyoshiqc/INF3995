@@ -123,7 +123,7 @@ LLCList = [ 0 << MSGID_LEN, 1 << MSGID_LEN, 2 << MSGID_LEN, 3 << MSGID_LEN, 4 <<
 
 def main():
 
-	pyFile = open("CANSid.py", "w", encoding="utf-8")
+	pyFile = open("../../src/inf3995/settings/CANSid.py", "w", encoding="utf-8")
 	cSIDFile = open("CANSid.h", "w", encoding="utf-8")
 	cSIDCFile = open("CANSid.c", "w", encoding="utf-8")
 	pyFile.write(pyHeader)
@@ -136,7 +136,7 @@ def main():
 	pyTypeString = ""
 	magicWriteString = ""
 
-	with open("CANSid.csv", "r", encoding="utf-8") as f:
+	with open("../../working_dir/config/CANSid.csv", "r", encoding="utf-8") as f:
 		#La première ligne ne contient que l'en-tête des colonnes pour être le fun dans excel
 		f.readline()
 		for line in f:
