@@ -18,10 +18,12 @@ class RestHandlerTask(AbstractTaskNode):
 	
 	def init(self):
 		self.__server = RestServer()
-		this_ip = socket.gethostbyname(socket.gethostname())
 		cherrypy.config.update("config/cherrypy.server.conf")
 		cherrypy.tree.mount(self.__server, "/", "config/cherrypy.app.conf")
-		cherrypy.config.update({"server.socket_host" : this_ip})
+		
+		if cherrypy.config.get("server.socket_host", "") == "":
+			this_ip = socket.gethostbyname(socket.gethostname())
+			cherrypy.config.update({"server.socket_host" : this_ip})
 	
 	def on_first_run(self):
 		cherrypy.engine.start()

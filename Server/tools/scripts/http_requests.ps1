@@ -96,10 +96,3 @@ function send_get ( [string] $url, [string] $user )
 
 #}
 
-
-#{ Auto-exec
-
-$server_addr = (get_ipv4_addr) + ":80"
-
-#}
-

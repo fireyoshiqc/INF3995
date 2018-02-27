@@ -147,8 +147,8 @@ class RestServer(object):
 			RestServer._raise_http_error(401)
 	
 	def post_users_logout(self, request, url):
-		if not self._is_logged_in():
-			RestServer._raise_http_error(401)
+		self._check_if_logged_in()
+		
 		if len(url) != 0:
 			RestServer._raise_http_error(404)
 		
