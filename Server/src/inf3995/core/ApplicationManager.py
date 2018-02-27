@@ -13,6 +13,7 @@ from inf3995.core.ProgramOptions import *
 from inf3995.core.WorkerThread import *
 from inf3995.core.DummyTaskNode import *
 from inf3995.settings.CANSidParser import CANSidParser
+from inf3995.settings.SettingsManager import *
 
 
 class ApplicationManager(object):
@@ -25,7 +26,8 @@ class ApplicationManager(object):
 			instance.__quit = False
 			instance.__exit_code = 0
 			instance.__task_nodes = []
-			instance.__WorkerThreads = []
+			instance.__worker_threads = []
+			instance.__settings_manager = SettingsManager()
 		
 		return ApplicationManager.__instance
 	
@@ -44,7 +46,7 @@ class ApplicationManager(object):
 		self.__quit = False
 		self.__exit_code = 0
 		
-		# TODO: Load settings
+		self.__settings_manager.load_settings_from_file("config/settings.ini")
 		
 		self.__register_key_handlers()
 		
@@ -67,6 +69,9 @@ class ApplicationManager(object):
 	def exit(self, exit_code = 0):
 		self.__exit_code = exit_code
 		self.__quit = True
+	
+	def get_settings_manager(self):
+		return self.__settings_manager
 	
 	@staticmethod
 	def __key_handler(event):
@@ -94,36 +99,36 @@ class ApplicationManager(object):
 		# TODO: Build the worker threads
 		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
-		self.__build_thread([csv_reader_node])
+		# self.__build_thread([csv_reader_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)
 		for node in task_nodes:
 			worker.add_task_node(node)
-		self.__WorkerThreads.append(worker)
+		self.__worker_threads.append(worker)
 	
 	def __start_threads(self):
-		for wt in self.__WorkerThreads:
+		for wt in self.__worker_threads:
 			wt.init_task_nodes()
 		
 		if not self.__quit:
-			for wt in self.__WorkerThreads:
+			for wt in self.__worker_threads:
 				wt.start_paused()
 			
 			time.sleep(0.01)
 			
-			for wt in self.__WorkerThreads:
+			for wt in self.__worker_threads:
 				wt.unpause()
 	
 	def __join_threads(self):
-		for wt in self.__WorkerThreads:
+		for wt in self.__worker_threads:
 			wt.finish(60.0)
 			wt.terminate()
 		
-		for wt in self.__WorkerThreads:
+		for wt in self.__worker_threads:
 			wt.cleanup_task_nodes()
 		
-		self.__WorkerThreads.clear()
+		self.__worker_threads.clear()
 		self.__task_nodes.clear()
 	
 	def __run_tests(self):
