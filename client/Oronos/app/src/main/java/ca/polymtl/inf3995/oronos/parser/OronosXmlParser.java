@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -23,7 +24,8 @@ public class OronosXmlParser {
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
-            return readRocket(parser);
+            Rocket rocket = readRocket(parser);
+            return rocket;
         } finally {
             in.close();
         }
@@ -68,7 +70,7 @@ public class OronosXmlParser {
 
     private Grid readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Grid");
-        TabContainer tabContainer = null;
+        ContainableWidget tabContainer = null;
         int row = Integer.parseInt(parser.getAttributeValue(null, "row"));
         int col = Integer.parseInt(parser.getAttributeValue(null, "col"));
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -85,7 +87,7 @@ public class OronosXmlParser {
         return new Grid(row, col, tabContainer);
     }
 
-    private TabContainer readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private ContainableWidget readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "TabContainer");
         List<Tab> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -99,7 +101,8 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new TabContainer(list);
+        TabContainer tabContainer = new TabContainer(list);
+        return tabContainer.cleanup();
     }
 
     private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
@@ -154,7 +157,7 @@ public class OronosXmlParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("Tab")) {
+            if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
                 skip(parser);
@@ -171,7 +174,7 @@ public class OronosXmlParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("Tab")) {
+            if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
                 skip(parser);
@@ -180,7 +183,7 @@ public class OronosXmlParser {
         return new DisplayLogWidget(list);
     }
 
-    private DualVWidget readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private ContainableWidget readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualVWidget");
         int startLine = parser.getLineNumber();
         List<ContainableWidget> list = new ArrayList<>();
@@ -208,6 +211,11 @@ public class OronosXmlParser {
                 case "Plot":
                     list.add(readPlot(parser));
                     break;
+                case "ButtonArray":
+                case "RadioStatus":
+                case "CustomCANSender":
+                    list.add(new UnsupportedWidget());
+                    break;
                 default:
                     skip(parser);
             }
@@ -215,10 +223,11 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualVWidget, à la ligne " + startLine);
         }
-        return new DualVWidget(list);
+        DualVWidget dualV = new DualVWidget(list);
+        return dualV.cleanup();
     }
 
-    private DualHWidget readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private ContainableWidget readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualHWidget");
         int startLine = parser.getLineNumber();
         List<ContainableWidget> list = new ArrayList<>();
@@ -246,6 +255,11 @@ public class OronosXmlParser {
                 case "Plot":
                     list.add(readPlot(parser));
                     break;
+                case "ButtonArray":
+                case "RadioStatus":
+                case "CustomCANSender":
+                    list.add(new UnsupportedWidget());
+                    break;
                 default:
                     skip(parser);
             }
@@ -253,7 +267,8 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualHWidget, à la ligne " + startLine);
         }
-        return new DualHWidget(list);
+        DualHWidget dualH = new DualHWidget(list);
+        return dualH.cleanup();
     }
 
     private FindMe readFindMe(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -302,7 +317,7 @@ public class OronosXmlParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("Tab")) {
+            if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
                 skip(parser);

@@ -47,6 +47,7 @@ public class XmlParserTest {
         oxp.parse(fis);
     }
 
+    /*
     @Test
     public void canDigDownToCAN() throws UnsupportedContainerWidgetException, XmlPullParserException, IOException {
         InputStream fis = this.getClass().getClassLoader().getResourceAsStream("11_valkyrieM2.xml");
@@ -54,4 +55,5 @@ public class XmlParserTest {
         ContainableWidget contents = rocket.list.get(0).list.get(0).tabContainer.list.get(0).contents;
         assertThat(((AbstractWidgetContainer<AbstractCANContainer>) contents).list.get(0).list.get(0), instanceOf(CAN.class));
     }
+    */
 }

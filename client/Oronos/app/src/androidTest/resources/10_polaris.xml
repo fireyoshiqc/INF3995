@@ -87,7 +87,6 @@
 				</Tab>
 			</TabContainer>
 		</Grid>
-
 		<Grid col="0" row="1">
 			<TabContainer>
 				<Tab name="Map"><Map/></Tab>
@@ -95,7 +94,6 @@
 				<Tab name="Send CAN Msg"><CustomCANSender/></Tab>
 			</TabContainer>
 		</Grid>
-
 		<Grid col="1" row="1">
 			<TabContainer>
 				<Tab name="Main stats - Logs">
