@@ -82,7 +82,9 @@ class ApplicationManager(object):
 		# TODO: Build the task nodes
 		dummy_node = DummyTaskNode()
 		rest_node = rest.RestHandlerTask()
-		csv_reader_node = data_rx.CSVReaderTask()
+		# TODO: Change so that server starts based on connector-type
+		connector_file = ProgramOptions.get_value('connector-file')
+		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
 		
 		# TODO: Connect the nodes
 		

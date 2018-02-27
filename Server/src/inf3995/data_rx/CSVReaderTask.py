@@ -9,8 +9,6 @@ from inf3995.core.AbstractTaskNode import *
 from inf3995.core.ApplicationManager import *
 from inf3995.data_rx.RxData import RxData
 
-# TODO: Use connector file argument
-CSV_LOG_FILE = 'flight_logs/test_flight_logs/test_baddirection.csv'
 CSV_LOG_FORMAT = 'Temps (s);Direction;Mod. source;Ser. source;Mod. dest;Ser. dest;ID message;Donnée 1;Donnée 2'
 CSV_LOG_N_COLUMNS = 9
 
@@ -19,9 +17,9 @@ class _Direction(Enum):
 	OUT = 2
 
 class CSVReaderTask(AbstractTaskNode):
-	def __init__(self):
+	def __init__(self, log_file):
 		super(CSVReaderTask, self).__init__(is_queued_input_data = False, buffer_size = 1024)
-		self.csv_file = open(CSV_LOG_FILE, 'r', encoding='utf-8')
+		self.csv_file = open(log_file, 'r', encoding='utf-8')
 		self.csv_reader = csv.reader(self.csv_file, delimiter=';')
 		self.next_line = ''
 		self.start_time = time.clock()
