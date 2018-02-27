@@ -16,7 +16,12 @@ class CANSidParser:
 		#comment associated with an SID numerical value
 		self.can_sid_info = {}
 
-		# TODO: Add error checking so don't start server if cannot parse SIDs
+		# Check that specified CAN Sid file exists
+		can_sid_file = Path(CAN_SID_FILE)
+		if not can_sid_file.is_file():
+			print(__name__ + ': Cannot find file ' + CAN_SID_FILE)
+			# TODO: Call ApplicationManager exit
+			return
 
 		with open(CAN_SID_FILE, 'r', encoding='utf-8') as can_sid_file:
 			csv_reader = csv.reader(can_sid_file, delimiter=';')
