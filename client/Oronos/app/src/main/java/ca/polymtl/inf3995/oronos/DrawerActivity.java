@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 /**
  * Created by Fabri on 2018-03-01.
@@ -16,7 +17,7 @@ public class DrawerActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     protected void onCreateDrawer() {
         drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -26,8 +27,21 @@ public class DrawerActivity extends AppCompatActivity {
                         // close drawer when item is tapped
                         drawerLayout.closeDrawers();
 
-                        // Add code here to update the UI based on the item selected
-                        // For example, swap UI fragments here
+                        //data
+                        if(menuItem == navigationView.getMenu().getItem(0)){
+                            TextView mainText = findViewById(R.id.myTextView);
+                            mainText.setText("data selected");
+                        } else if(menuItem == navigationView.getMenu().getItem(1)) {
+                            TextView mainText = findViewById(R.id.myTextView);
+                            mainText.setText("Select which theme you want.");
+                        } else if(menuItem == navigationView.getMenu().getItem(2)) {
+                            TextView mainText = findViewById(R.id.myTextView);
+                            mainText.setText("List of PDFs. Select one to download.");
+                        } else {
+                            TextView mainText = findViewById(R.id.myTextView);
+                            mainText.setText("Are you sure you want to disconnect? Yes/No.");
+                        }
+
 
                         return true;
                     }
@@ -38,12 +52,11 @@ public class DrawerActivity extends AppCompatActivity {
         ActionBar actionbar = getSupportActionBar();
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
-
+        navigationView.getMenu().getItem(0).setChecked(true);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         switch (item.getItemId()) {
             case android.R.id.home:
                 drawerLayout.openDrawer(GravityCompat.START);

@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/data"
+            android:icon="@drawable/ic_data"
             android:title="Real-time data" />
-    </group>
-    <group android:checkableBehavior="single">
+
         <item
             android:id="@+id/theme"
+            android:icon="@drawable/ic_theme_select"
             android:title="Theme selection" />
         <item
             android:id="@+id/pdf"
+            android:icon="@drawable/ic_pdf_picture"
             android:title="PDF downloads" />
-
+        <item
+            android:id="@+id/disconnection"
+            android:icon="@drawable/ic_disconnect"
+            android:title="Disconnection" />
     </group>
+
 </menu>
