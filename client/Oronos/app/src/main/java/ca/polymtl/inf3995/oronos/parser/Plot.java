@@ -1,5 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.view.View;
+
 import java.util.List;
 
 /**
@@ -28,5 +30,10 @@ public class Plot extends AbstractCANContainer implements ContainableWidget {
 
     public String getAxis() {
         return axis;
+    }
+
+    @Override
+    public View getView() {
+        return null;
     }
 }

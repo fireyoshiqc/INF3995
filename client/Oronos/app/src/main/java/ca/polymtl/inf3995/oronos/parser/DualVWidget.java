@@ -1,5 +1,9 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.Context;
+import android.view.View;
+import android.widget.LinearLayout;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +13,18 @@ import java.util.List;
 
 public class DualVWidget extends AbstractWidgetContainer<ContainableWidget> implements ContainableWidget, CleanableWidget {
 
-    DualVWidget(List<ContainableWidget> list) {
+    private LinearLayout layout;
+
+    DualVWidget(List<ContainableWidget> list, Context context) {
         super(list);
+        layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+    }
+
+    public void buildContents() {
+        for (ContainableWidget widget : list) {
+            layout.addView(widget.getView());
+        }
     }
 
     @Override
@@ -29,5 +43,10 @@ public class DualVWidget extends AbstractWidgetContainer<ContainableWidget> impl
         } else {
             return this;
         }
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }

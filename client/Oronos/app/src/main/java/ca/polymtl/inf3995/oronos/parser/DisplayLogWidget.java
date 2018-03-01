@@ -1,5 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.view.View;
+
 import java.util.List;
 
 /**
@@ -9,5 +11,10 @@ import java.util.List;
 public class DisplayLogWidget extends AbstractCANContainer implements ContainableWidget {
     DisplayLogWidget(List<CAN> list) {
         super(list);
+    }
+
+    @Override
+    public View getView() {
+        return null;
     }
 }

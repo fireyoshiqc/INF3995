@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.Context;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -16,6 +17,11 @@ import java.util.List;
 
 public class OronosXmlParser {
     private static final String ns = null;
+    private Context context;
+
+    public OronosXmlParser(Context context) {
+        this.context = context;
+    }
 
     public Rocket parse(InputStream in) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         try {
@@ -23,7 +29,8 @@ public class OronosXmlParser {
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
-            return readRocket(parser);
+            Rocket rocket = readRocket(parser);
+            return rocket;
         } finally {
             in.close();
         }
@@ -97,8 +104,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        TabContainer tabContainer = new TabContainer(list);
-        return tabContainer.cleanup();
+        return new TabContainer(list, this.context).cleanup();
     }
 
     private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
@@ -159,7 +165,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new DataDisplayer(list);
+        return new DataDisplayer(list, this.context);
     }
 
     private DisplayLogWidget readDisplayLogWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -219,7 +225,7 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualVWidget, à la ligne " + startLine);
         }
-        DualVWidget dualV = new DualVWidget(list);
+        DualVWidget dualV = new DualVWidget(list, this.context);
         return dualV.cleanup();
     }
 
@@ -263,7 +269,7 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualHWidget, à la ligne " + startLine);
         }
-        DualHWidget dualH = new DualHWidget(list);
+        DualHWidget dualH = new DualHWidget(list, this.context);
         return dualH.cleanup();
     }
 
@@ -286,7 +292,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new Map();
+        return new Map(this.context);
     }
 
     private ModuleStatus readModuleStatus(XmlPullParser parser) throws XmlPullParserException, IOException {
