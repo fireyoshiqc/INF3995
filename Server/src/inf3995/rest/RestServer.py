@@ -8,7 +8,9 @@ import collections
 
 import cherrypy
 
+import inf3995.core
 from inf3995.core.ProgramOptions import *
+from inf3995.rest.AuthenticationManager import *
 
 
 @cherrypy.expose
@@ -20,7 +22,10 @@ class RestServer(object):
 	
 	def __init__(self):
 		self.__sessions = {}
-		self.__skip_auth = ProgramOptions.get_value("skip-auth")
+		self.__skip_auth = inf3995.core.ProgramOptions.get_value("skip-auth")
+		self.__auth_manager = AuthenticationManager()
+		settings = inf3995.core.ApplicationManager().get_settings_manager().settings
+		self.__auth_manager.load_users(settings["Authentication"]["users_file"])
 	
 	def get_all_sessions(self):
 		return self.__sessions
@@ -110,7 +115,7 @@ class RestServer(object):
 			else:
 				RestServer._raise_http_error(404)
 	
-	def get_config_devicetypes(self, *args):
+	def get_config_devicetypes(self, request, url):
 		if len(url) != 0:
 			RestServer._raise_http_error(404)
 		
@@ -197,20 +202,14 @@ class RestServer(object):
 		return self.__sessions.get(cherrypy.session.id, None)
 	
 	def _is_valid_login_info(self, data):
-		expected = [{"username" : "foo", "password" : "password1234"},
-		            {"username" : "bar", "password" : "password4321"},
-		            {"username" : "qux", "password" : "1234password"}]
-		
 		if self.__skip_auth:
 			return True
 		
-		is_valid = False
-		for x in expected:
-			is_valid = data["username"] == x["username"] and \
-			           data["password"] == x["password"]
-			if is_valid:
-				return True
-		return False
+		if "username" in data and "password" in data:
+			return self.__auth_manager.is_valid_login_info(data["username"],
+			                                               data["password"])
+		else:
+			return False
 	
 	def _get_device_from_request(self, request):
 		data = request.json
