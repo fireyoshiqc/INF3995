@@ -12,6 +12,7 @@ import inf3995.data_rx as data_rx
 from inf3995.core.ProgramOptions import *
 from inf3995.core.WorkerThread import *
 from inf3995.core.DummyTaskNode import *
+from inf3995.settings.CANSidParser import CANSidParser
 
 
 class ApplicationManager(object):
@@ -85,6 +86,8 @@ class ApplicationManager(object):
 		# TODO: Change so that server starts based on connector-type
 		connector_file = ProgramOptions.get_value('connector-file')
 		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
+		# TODO: Move to settings manager
+		CANSidParser()
 		
 		# TODO: Connect the nodes
 		
