@@ -105,7 +105,7 @@ class ApplicationManager(object):
 		# TODO: Build the worker threads
 		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
-		# self.__build_thread([csv_reader_node])
+		self.__build_thread([csv_reader_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)

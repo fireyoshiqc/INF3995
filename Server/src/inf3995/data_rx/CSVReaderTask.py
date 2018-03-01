@@ -6,7 +6,8 @@ from enum import Enum
 
 from inf3995.settings.CANSid import CANSid
 from inf3995.core.AbstractTaskNode import *
-from inf3995.core.ApplicationManager import *
+# from inf3995.core.ApplicationManager import *
+import inf3995.core
 from inf3995.data_rx.RxData import RxData
 
 CSV_LOG_FORMAT = 'Temps (s);Direction;Mod. source;Ser. source;Mod. dest;Ser. dest;ID message;Donnée 1;Donnée 2'
@@ -32,16 +33,17 @@ class CSVReaderTask(AbstractTaskNode):
 			self.next_line = self.csv_reader.__next__()
 		except StopIteration:
 			print(__name__ + ': End of CSV file.')
-			# TODO : Call ApplicationManager exit
-			exit()
-			#ApplicationManager().exit()
+			inf3995.core.ApplicationManager().exit(0)
+			return
 
 		csv_log_format = ';'.join(self.next_line)
 		# TODO : Throw an exception if CSV file is bad
 		if csv_log_format != CSV_LOG_FORMAT:
 			print(__name__ + ': Bad CSV file.')
-			exit()
-			#ApplicationManager().exit()
+			# If we don't do this, we shall slumber for a hundred years
+			self.csv_file.close()
+			inf3995.core.ApplicationManager().exit(1)
+			return
 
 	def handle_data(self):
 		"""
@@ -54,13 +56,17 @@ class CSVReaderTask(AbstractTaskNode):
 		log_time = current_time - self.start_time  # TODO: Find a better variable name
 
 		while True:
+			if self.csv_file.closed:
+				return
+			
 			try:
 				self.next_line = self.csv_reader.__next__()
 			except StopIteration:
 				print(__name__ + ': End of CSV file.')
-				# TODO: Call ApplicationManager exit
-				exit()
-				#ApplicationManager().exit()
+				# If we don't do this, we shall slumber for a hundred years
+				self.csv_file.close()
+				inf3995.core.ApplicationManager().exit(0)
+				return
 
 			# Skip log messages with the wrong number of elements
 			if len(self.next_line) is not CSV_LOG_N_COLUMNS:

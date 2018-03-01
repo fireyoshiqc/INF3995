@@ -43,4 +43,4 @@ class CANSidParser:
 												'comment': values[3]}
 
 				#print(values)  # Uncomment to print parsed SID info
-			print(self.can_sid_info)
+			# print(self.can_sid_info)
