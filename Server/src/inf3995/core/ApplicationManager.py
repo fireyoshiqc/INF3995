@@ -35,9 +35,6 @@ class ApplicationManager(object):
 		self.__register_signal_handlers()
 		
 		ProgramOptions.configure_and_parse(argv)
-		if ProgramOptions.get_value("run-tests"):
-			print("This will run the test suite instead of the server." "\n")
-			return
 		
 		if len(argv) == 1:
 			# TODO: Show GUI to enter the options visually
@@ -50,11 +47,20 @@ class ApplicationManager(object):
 		
 		self.__register_key_handlers()
 		
+		if ProgramOptions.get_value("run-tests"):
+			print("This will run the test suite instead of the server." "\n")
+			return
+		elif ProgramOptions.get_value("edit-passwords"):
+			print("This will run the interactive password editor." "\n")
+			return
+		
 		self.__setup_task_nodes()
 	
 	def execute(self):
 		if ProgramOptions.get_value("run-tests"):
 			return self.__run_tests()
+		elif ProgramOptions.get_value("edit-passwords"):
+			return self.__run_password_editor()
 		
 		self.__start_threads()
 		
@@ -135,4 +141,12 @@ class ApplicationManager(object):
 		test_program = unittest.main(module="inf3995.tests", argv=sys.argv[0:1],
 		                             verbosity=2).result
 		return not test_program.result.wasSuccessful()
+	
+	def __run_password_editor(self):
+		settings = self.get_settings_manager().settings
+		users_file = settings["Authentication"]["users_file"]
+		auth_manager = rest.AuthenticationManager()
+		auth_manager.launch_interactive_editor(users_file)
+		
+		return 0
 
