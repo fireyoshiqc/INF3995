@@ -1,16 +1,24 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+
+import org.parceler.Parcels;
 
 import java.util.List;
 
 /**
  * Created by Felix on 15/févr./2018.
  */
+
 
 public class DataDisplayer extends AbstractWidgetContainer<CAN> implements ContainableWidget {
 
@@ -30,25 +38,25 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         recycler = new RecyclerView(context);
         CANAdapter adapter = null;
         GridLayoutManager gridLayoutManager = null;
-        DisplayMetrics metrics =getContext().getResources().getDisplayMetrics();
+        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
         int width = metrics.widthPixels;
         int height = metrics.heightPixels;
-        double x = Math.pow(width/metrics.xdpi, 2);
-        double y = Math.pow(height/metrics.ydpi, 2);
-        double screenInches = Math.sqrt(x+y);
+        double x = Math.pow(width / metrics.xdpi, 2);
+        double y = Math.pow(height / metrics.ydpi, 2);
+        double screenInches = Math.sqrt(x + y);
 
         switch (layout) {
             case HORIZONTAL:
-                adapter = new CANAdapter(context, list, (int)(MAX_LARGE_DATA/2 * (screenInches/TARGET_SCREEN_SIZE)));
-                gridLayoutManager = new GridLayoutManager(context, (int)(FULL_SPAN * (screenInches/TARGET_SCREEN_SIZE)));
+                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
+                gridLayoutManager = new GridLayoutManager(context, (int) (FULL_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
             case VERTICAL:
-                adapter = new CANAdapter(context, list, (int)(MAX_LARGE_DATA/2 * (screenInches/TARGET_SCREEN_SIZE)));
-                gridLayoutManager = new GridLayoutManager(context, (int)(HALF_SPAN * (screenInches/TARGET_SCREEN_SIZE)));
+                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
+                gridLayoutManager = new GridLayoutManager(context, (int) (HALF_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
             case FULL:
-                adapter = new CANAdapter(context, list, (int)(MAX_LARGE_DATA * (screenInches/TARGET_SCREEN_SIZE)));
-                gridLayoutManager = new GridLayoutManager(context, (int)(FULL_SPAN * (screenInches/TARGET_SCREEN_SIZE)));
+                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA * (screenInches / TARGET_SCREEN_SIZE)));
+                gridLayoutManager = new GridLayoutManager(context, (int) (FULL_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
 
         }
@@ -58,5 +66,20 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         recycler.setAdapter(adapter);
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         addView(recycler);
+
+        IntentFilter filter = new IntentFilter();
+        for (CAN can : list) {
+            filter.addAction(can.getId());
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(dataReceiver, filter);
+
     }
+
+    private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            List data = (List) Parcels.unwrap(intent.getParcelableExtra("data"));
+        }
+    };
+
 }

@@ -101,6 +101,6 @@ public class SocketClient {
     }
 
     private void forwardToDispatcher() {
-        // DataDispatcher.dataToDispatch(this.message.getArguments());
+        DataDispatcher.dataToDispatch(this.message.getArguments());
     }
 }

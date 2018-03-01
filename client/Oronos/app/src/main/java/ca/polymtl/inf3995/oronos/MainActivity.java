@@ -73,6 +73,7 @@ public class MainActivity extends DrawerActivity {
     private void setUpUtilities() {
         CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
+        DataDispatcher.setContext(this.getApplicationContext());
     }
 
 
