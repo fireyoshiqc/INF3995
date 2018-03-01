@@ -1,3 +1,4 @@
 # Server logs
+src/inf3995/settings/CANSid.py
 working_dir/*.txt
 working_dir/*.log
