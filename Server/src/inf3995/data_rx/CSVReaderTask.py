@@ -90,7 +90,7 @@ class CSVReaderTask(AbstractTaskNode):
 						  data1=self.next_line[7],
 						  data2=self.next_line[8])
 			print(self.next_line)
-			self.__produce_data(data)
+			self._produce_data(data)
 
 			timestamp = float(self.next_line[0])
 			if timestamp < 0:
