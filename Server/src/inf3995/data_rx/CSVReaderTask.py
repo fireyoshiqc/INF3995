@@ -81,6 +81,7 @@ class CSVReaderTask(AbstractTaskNode):
 				print(__name__ + ': KeyError: ' + str(e))
 				continue
 
+			# Put data point in outgoing data buffer
 			data = RxData(sid=sid,
 						  dest_serial=self.next_line[2],
 						  dest_type=self.next_line[3],
@@ -88,8 +89,8 @@ class CSVReaderTask(AbstractTaskNode):
 						  src_type=self.next_line[5],
 						  data1=self.next_line[7],
 						  data2=self.next_line[8])
-			# TODO: Publish the data point
 			print(self.next_line)
+			self.__produce_data(data)
 
 			timestamp = float(self.next_line[0])
 			if timestamp < 0:
