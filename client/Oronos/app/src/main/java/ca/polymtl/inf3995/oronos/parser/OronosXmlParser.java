@@ -31,7 +31,7 @@ public class OronosXmlParser {
     }
 
     private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
-        List<GridContainer> entries = new ArrayList<>();
+        List<ContainableWidget> entries = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, ns, "Rocket");
         String name = parser.getAttributeValue(null, "name");
         String id = parser.getAttributeValue(null, "id");
@@ -42,7 +42,7 @@ public class OronosXmlParser {
             String tag = parser.getName();
             // Starts by looking for the entry tag
             if (tag.equals("GridContainer")) {
-                entries.add(readGridContainer(parser));
+                entries.addAll(readGridContainer(parser));
             } else {
                 skip(parser);
             }
@@ -50,9 +50,9 @@ public class OronosXmlParser {
         return new Rocket(name, id, entries);
     }
 
-    private GridContainer readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private List<ContainableWidget> readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "GridContainer");
-        List<Grid> list = new ArrayList<>();
+        List<ContainableWidget> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -64,26 +64,24 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new GridContainer(list);
+        return list;
     }
 
-    private Grid readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private ContainableWidget readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Grid");
-        ContainableWidget tabContainer = null;
-        int row = Integer.parseInt(parser.getAttributeValue(null, "row"));
-        int col = Integer.parseInt(parser.getAttributeValue(null, "col"));
+        ContainableWidget contents = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
             String name = parser.getName();
             if (name.equals("TabContainer")) {
-                tabContainer = readTabContainer(parser);
+                contents = readTabContainer(parser);
             } else {
                 skip(parser);
             }
         }
-        return new Grid(row, col, tabContainer);
+        return contents;
     }
 
     private ContainableWidget readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
