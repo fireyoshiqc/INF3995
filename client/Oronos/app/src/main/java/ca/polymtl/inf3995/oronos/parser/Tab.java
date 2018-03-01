@@ -7,11 +7,19 @@ import android.support.annotation.Nullable;
  */
 
 public class Tab implements ContainableWidget {
-    public final String name;
-    public final ContainableWidget contents;
+    private final String name;
+    private final ContainableWidget contents;
 
-    protected Tab(String name, @Nullable ContainableWidget contents) {
+    Tab(String name, @Nullable ContainableWidget contents) {
         this.name = name;
         this.contents = contents;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ContainableWidget getContents() {
+        return contents;
     }
 }

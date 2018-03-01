@@ -9,7 +9,7 @@ import java.util.List;
 
 public class TabContainer extends AbstractWidgetContainer<Tab> implements ContainableWidget, CleanableWidget {
 
-    protected TabContainer(List<Tab> list) {
+    TabContainer(List<Tab> list) {
         super(list);
     }
 
@@ -17,13 +17,13 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Contai
     public ContainableWidget cleanup() {
         List<Tab> toRemove = new ArrayList<>();
         for (Tab tab : list) {
-            if (tab.contents == null) {
+            if (tab.getContents() == null) {
                 toRemove.add(tab);
             }
         }
         list.removeAll(toRemove);
         if (list.size() == 1) {
-            return list.get(0).contents;
+            return list.get(0).getContents();
         } else if (list.size() == 0) {
             return null;
         } else {

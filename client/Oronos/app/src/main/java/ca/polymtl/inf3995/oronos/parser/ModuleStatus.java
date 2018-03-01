@@ -5,11 +5,19 @@ package ca.polymtl.inf3995.oronos.parser;
  */
 
 public class ModuleStatus implements ContainableWidget {
-    public final int nGrid;
-    public final int nColumns;
+    private final int nGrid;
+    private final int nColumns;
 
     protected ModuleStatus(int nGrid, int nColumns) {
         this.nGrid = nGrid;
         this.nColumns = nColumns;
+    }
+
+    public int getnGrid() {
+        return nGrid;
+    }
+
+    public int getnColumns() {
+        return nColumns;
     }
 }

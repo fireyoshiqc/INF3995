@@ -8,12 +8,20 @@ import java.util.List;
 
 public class Rocket extends AbstractWidgetContainer<ContainableWidget> {
 
-    public final String name;
-    public final String id;
+    private final String name;
+    private final String id;
 
-    protected Rocket(String name, String id, List<ContainableWidget> list) {
+    Rocket(String name, String id, List<ContainableWidget> list) {
         super(list);
         this.name = name;
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getId() {
+        return id;
     }
 }

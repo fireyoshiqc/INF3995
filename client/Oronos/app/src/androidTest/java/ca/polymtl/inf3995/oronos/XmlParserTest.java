@@ -14,10 +14,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ca.polymtl.inf3995.oronos.parser.AbstractCANContainer;
-import ca.polymtl.inf3995.oronos.parser.AbstractWidgetContainer;
-import ca.polymtl.inf3995.oronos.parser.CAN;
-import ca.polymtl.inf3995.oronos.parser.ContainableWidget;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.parser.Rocket;
 import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;

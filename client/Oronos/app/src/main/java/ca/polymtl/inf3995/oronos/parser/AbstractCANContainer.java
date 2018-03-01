@@ -9,7 +9,7 @@ import java.util.List;
 public abstract class AbstractCANContainer implements ContainableWidget {
     public final List<CAN> list;
 
-    protected AbstractCANContainer(List<CAN> list) {
+    AbstractCANContainer(List<CAN> list) {
         this.list = list;
     }
 }

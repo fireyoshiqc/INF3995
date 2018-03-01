@@ -5,7 +5,7 @@ package ca.polymtl.inf3995.oronos.parser;
  */
 
 public class UnsupportedContainerWidgetException extends Exception {
-    public UnsupportedContainerWidgetException(String message) {
+    UnsupportedContainerWidgetException(String message) {
         super("Erreur! Le conteneur " + message + " contient trop peu ou trop de sous-tags.");
     }
 }

@@ -7,14 +7,26 @@ import java.util.List;
  */
 
 public class Plot extends AbstractCANContainer implements ContainableWidget {
-    public final String name;
-    public final String unit;
-    public final String axis;
+    private final String name;
+    private final String unit;
+    private final String axis;
 
-    protected Plot(String name, String unit, String axis, List<CAN> list) {
+    Plot(String name, String unit, String axis, List<CAN> list) {
         super(list);
         this.name = name;
         this.unit = unit;
         this.axis = axis;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public String getAxis() {
+        return axis;
     }
 }

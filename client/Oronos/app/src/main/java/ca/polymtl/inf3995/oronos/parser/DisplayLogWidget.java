@@ -7,7 +7,7 @@ import java.util.List;
  */
 
 public class DisplayLogWidget extends AbstractCANContainer implements ContainableWidget {
-    protected DisplayLogWidget(List<CAN> list) {
+    DisplayLogWidget(List<CAN> list) {
         super(list);
     }
 }

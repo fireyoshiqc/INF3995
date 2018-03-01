@@ -9,7 +9,7 @@ import java.util.List;
 
 public class DualHWidget extends AbstractWidgetContainer<ContainableWidget> implements ContainableWidget, CleanableWidget {
 
-    public DualHWidget(List<ContainableWidget> list) {
+    DualHWidget(List<ContainableWidget> list) {
         super(list);
     }
 

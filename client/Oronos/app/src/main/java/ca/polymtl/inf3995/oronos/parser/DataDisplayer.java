@@ -7,7 +7,7 @@ import java.util.List;
  */
 
 public class DataDisplayer extends AbstractCANContainer implements ContainableWidget {
-    protected DataDisplayer(List<CAN> list) {
+    DataDisplayer(List<CAN> list) {
         super(list);
     }
 }

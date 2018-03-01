@@ -1,6 +1,5 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,10 +7,14 @@ import java.util.List;
  */
 
 public abstract class AbstractWidgetContainer<T extends ContainableWidget> {
-    public final List<T> list;
 
-    protected AbstractWidgetContainer(List<T> list) {
+    protected final List<T> list;
+
+    AbstractWidgetContainer(List<T> list) {
         this.list = list;
     }
 
+    public List<T> getList() {
+        return list;
+    }
 }

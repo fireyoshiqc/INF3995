@@ -23,8 +23,7 @@ public class OronosXmlParser {
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
-            Rocket rocket = readRocket(parser);
-            return rocket;
+            return readRocket(parser);
         } finally {
             in.close();
         }
@@ -335,7 +334,6 @@ public class OronosXmlParser {
         String serialNb = parser.getAttributeValue(null, "serialNb");
         String customUpdate = parser.getAttributeValue(null, "customUpdate");
         String updateEach = parser.getAttributeValue(null, "updateEach");
-        List<CAN> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;

@@ -7,16 +7,16 @@ import android.support.annotation.Nullable;
  */
 
 public class CAN {
-    public final String id;
-    public final String name;
-    public final String display;
-    public final String minAcceptable;
-    public final String maxAcceptable;
-    public final String chiffresSign;
-    public final String specificSource;
-    public final String serialNb;
-    public final String customUpdate;
-    public final String updateEach;
+    private final String id;
+    private final String name;
+    private final String display;
+    private final String minAcceptable;
+    private final String maxAcceptable;
+    private final String chiffresSign;
+    private final String specificSource;
+    private final String serialNb;
+    private final String customUpdate;
+    private final String updateEach;
 
     public CAN(String id, @Nullable String name, @Nullable String display,
                @Nullable String minAcceptable, @Nullable String maxAcceptable,
@@ -34,5 +34,45 @@ public class CAN {
         this.serialNb = serialNb;
         this.customUpdate = customUpdate;
         this.updateEach = updateEach;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDisplay() {
+        return display;
+    }
+
+    public String getMinAcceptable() {
+        return minAcceptable;
+    }
+
+    public String getMaxAcceptable() {
+        return maxAcceptable;
+    }
+
+    public String getChiffresSign() {
+        return chiffresSign;
+    }
+
+    public String getSpecificSource() {
+        return specificSource;
+    }
+
+    public String getSerialNb() {
+        return serialNb;
+    }
+
+    public String getCustomUpdate() {
+        return customUpdate;
+    }
+
+    public String getUpdateEach() {
+        return updateEach;
     }
 }
