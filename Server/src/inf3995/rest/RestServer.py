@@ -11,6 +11,7 @@ import cherrypy
 import inf3995.core
 from inf3995.core.ProgramOptions import *
 from inf3995.rest.AuthenticationManager import *
+from inf3995.settings.CANSid import *
 
 
 @cherrypy.expose
@@ -56,11 +57,14 @@ class RestServer(object):
 	
 	def get_config(self, request, url):
 		switch = {
-			"basic"       : self.get_config_basic,
-			"rockets"     : self.get_config_rockets,
-			"map"         : self.get_config_map,
-			"miscFiles"   : self.get_config_miscfiles,
-			"deviceTypes" : self.get_config_devicetypes
+			"basic"           : self.get_config_basic,
+			"rockets"         : self.get_config_rockets,
+			"map"             : self.get_config_map,
+			"miscFiles"       : self.get_config_miscfiles,
+			"deviceTypes"     : self.get_config_devicetypes,
+			"canSid"          : self.get_config_cansid,
+			"canDataTypes"    : self.get_config_candatatypes,
+			"canMsgDataTypes" : self.get_config_canmsgdatatypes
 		}
 		default = RestServer._raise_error_404
 		return switch.get(url[0], default)(request, url[1:len(url)])
@@ -133,6 +137,44 @@ class RestServer(object):
 		result["unknown"] = RestServer.__UNKNOWN_DEVICE
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
+	
+	def get_config_cansid(self, request, url):
+		self._check_if_logged_in()
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		result = collections.OrderedDict([])
+		for name, member in CANSid.__members__.items():
+			result[name] = member.value
+		
+		cherrypy.response.headers["Content-Type"] = "application/json"
+		return json.dumps(result, indent=2).encode("utf-8")
+	
+	def get_config_candatatypes(self, request, url):
+		self._check_if_logged_in()
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		result = collections.OrderedDict([])
+		for name, member in CANDataType.__members__.items():
+			result[name] = member.value
+		
+		cherrypy.response.headers["Content-Type"] = "application/json"
+		return json.dumps(result, indent=2).encode("utf-8")
+	
+	def get_config_canmsgdatatypes(self, request, url):
+		self._check_if_logged_in()
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		result = collections.OrderedDict([])
+		for name, member in CANSid.__members__.items():
+			result[name] = (CANMsgDataTypes[member][0].name,
+			                CANMsgDataTypes[member][1].name)
+		
+		cherrypy.response.headers["Content-Type"] = "application/json"
+		return json.dumps(result, indent=2).encode("utf-8")
+	
 	
 	def post_users(self, request, url):
 		switch = {
