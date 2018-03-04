@@ -26,9 +26,17 @@ class RestServer(object):
 		self.__auth_manager = AuthenticationManager()
 		settings = inf3995.core.ApplicationManager().get_settings_manager().settings
 		self.__auth_manager.load_users(settings["Authentication"]["users_file"])
+		self.__add_ip_callbacks = []
+		self.__remove_ip_callbacks = []
 	
 	def get_all_sessions(self):
 		return self.__sessions
+	
+	def register_ip_callbacks(self, add_ip_fn, remove_ip_fn):
+		if add_ip_fn is not None:
+			self.__add_ip_callbacks.append(add_ip_fn)
+		if remove_ip_fn is not None:
+			self.__remove_ip_callbacks.append(remove_ip_fn)
 	
 	def GET(self, *args):
 		if len(args) > 1 and args[0] == "config":
@@ -148,6 +156,9 @@ class RestServer(object):
 			session["ip"] = request.remote.ip
 			session["datetime"] = datetime.datetime.now()
 			session["device"] = self._get_device_from_request(request)
+			
+			for fn in self.__add_ip_callbacks:
+				fn(session["ip"])
 		else:
 			RestServer._raise_http_error(401)
 	
@@ -161,6 +172,9 @@ class RestServer(object):
 		if len(data) == 1 and "username" in data:
 			session = self._get_session()
 			if "username" in data and data["username"] == session["user"]:
+				for fn in self.__remove_ip_callbacks:
+					fn(session["ip"])
+				
 				self.__sessions.pop(cherrypy.session.id)
 				cherrypy.session.clear()
 				cherrypy.session.delete()

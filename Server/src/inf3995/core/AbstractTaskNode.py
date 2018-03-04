@@ -54,7 +54,6 @@ class AbstractTaskNode(BasicTaskNodeProducer):
 		self.__is_finishing = True
 	
 	def connect_to_source(self, task_node):
-		# TODO: Get the buffer from task_node and build a data reader around it.
 		out_buf = task_node.get_output_buffer()
 		if self.__is_queued_input_data:
 			self.__data_reader = utils.SyncRcuRingBufferQReader(out_buf)

@@ -9,6 +9,7 @@ import unittest
 
 import inf3995.rest as rest
 import inf3995.data_rx as data_rx
+import inf3995.data_tx as data_tx
 from inf3995.core.ProgramOptions import *
 from inf3995.core.WorkerThread import *
 from inf3995.core.DummyTaskNode import *
@@ -97,15 +98,23 @@ class ApplicationManager(object):
 		# TODO: Change so that server starts based on connector-type
 		connector_file = ProgramOptions.get_value('connector-file')
 		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
+		osc_tx_node = data_tx.OscTxTask()
 		# TODO: Move to settings manager
 		CANSidParser()
 		
 		# TODO: Connect the nodes
+		osc_tx_node.connect_to_source(csv_reader_node)
+		
+		osc_sender = osc_tx_node.get_sender()
+		rest_server = rest_node.get_server_app()
+		rest_server.register_ip_callbacks(osc_sender.add_socket,
+		                                  osc_sender.remove_socket)
 		
 		# TODO: Build the worker threads
 		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
 		self.__build_thread([csv_reader_node])
+		self.__build_thread([osc_tx_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)

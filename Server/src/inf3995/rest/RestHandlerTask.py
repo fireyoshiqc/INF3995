@@ -14,10 +14,9 @@ class RestHandlerTask(AbstractTaskNode):
 	def __init__(self):
 		super(RestHandlerTask, self).__init__(False, 0)
 		
-		self.__server = None
+		self.__server = RestServer()
 	
 	def init(self):
-		self.__server = RestServer()
 		settings = inf3995.core.ApplicationManager().get_settings_manager().settings
 		server_config_file = settings["REST"]["server_config_file"]
 		app_config_file = settings["REST"]["app_config_file"]
@@ -37,4 +36,7 @@ class RestHandlerTask(AbstractTaskNode):
 	def cleanup(self):
 		cherrypy.engine.exit()
 		cherrypy.engine.block()
+	
+	def get_server_app(self):
+		return self.__server
 
