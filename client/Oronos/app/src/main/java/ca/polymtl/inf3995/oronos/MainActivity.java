@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -31,14 +33,14 @@ import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
-    private static int MENU_VIEW_ID = -1;
+    private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
 
     private Toolbar toolbar;
     private OronosXmlParser parser;
     private List<View> viewsContainer;
     private GridView gridView;
-    private static ConstraintLayout dataLayout;
+    private RelativeLayout dataLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +78,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setUpToolbar() {
         toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("ORONOS");
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("ORONOS");
 
         gridView = new GridView(this);
         gridView.setColumnWidth(90);
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                MainActivity.this.changeStateOfDataLayout(position);
+                changeStateOfDataLayout(position);
             }
         });
     }
