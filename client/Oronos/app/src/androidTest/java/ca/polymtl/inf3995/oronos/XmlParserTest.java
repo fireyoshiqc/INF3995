@@ -4,6 +4,7 @@ package ca.polymtl.inf3995.oronos;
  * Created by Felix on 22/févr./2018.
  */
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -28,7 +29,7 @@ public class XmlParserTest {
 
     @Before
     public void setup() {
-        oxp = new OronosXmlParser();
+        oxp = new OronosXmlParser(InstrumentationRegistry.getContext());
     }
 
     @Test

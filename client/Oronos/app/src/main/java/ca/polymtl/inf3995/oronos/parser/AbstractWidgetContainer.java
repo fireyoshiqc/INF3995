@@ -17,4 +17,5 @@ public abstract class AbstractWidgetContainer<T extends ContainableWidget> {
     public List<T> getList() {
         return list;
     }
+
 }
