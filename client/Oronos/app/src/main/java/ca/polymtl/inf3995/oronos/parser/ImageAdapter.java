@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.support.v7.widget.CardView;
 import ca.polymtl.inf3995.oronos.R;
 
 
@@ -39,20 +40,28 @@ public class ImageAdapter extends BaseAdapter {
 
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
+        CardView cardView;
         ImageView imageView;
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            imageView.setLayoutParams(new GridView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            ));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
             imageView.setBackgroundColor(Color.TRANSPARENT);
+            imageView.setImageResource(mThumbIds[position]);
+            cardView = new CardView(mContext);
+            cardView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            cardView.addView(imageView);
         } else {
-            imageView = (ImageView) convertView;
+            cardView = (CardView) convertView;
         }
 
-        imageView.setImageResource(mThumbIds[position]);
-        return imageView;
+        ((ImageView)cardView.getChildAt(0)).setImageResource(mThumbIds[position]);
+        return cardView;
     }
 
     // references to our images
