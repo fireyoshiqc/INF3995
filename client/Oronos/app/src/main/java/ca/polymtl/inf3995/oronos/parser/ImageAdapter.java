@@ -1,6 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -9,17 +10,17 @@ import android.widget.ImageView;
 import ca.polymtl.inf3995.oronos.R;
 
 
-/**
- * Adapter that can display small images in the Grid View for the MainActivity menu.
- *
- * Eventually, we will be able to adapt this to take View instead of ImageView, and thus display
- * miniatures of all the data received by the client.
- *
- * @param c      Context of the app.
- */
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
 
+    /**
+     * Adapter that can display small images in the Grid View for the MainActivity menu.
+     *
+     * Eventually, we will be able to adapt this to take View instead of ImageView, and thus display
+     * miniatures of all the data received by the client.
+     *
+     * @param c      Context of the app.
+     */
     public ImageAdapter(Context c) {
         mContext = c;
     }
@@ -45,6 +46,7 @@ public class ImageAdapter extends BaseAdapter {
             imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
+            imageView.setBackgroundColor(Color.TRANSPARENT);
         } else {
             imageView = (ImageView) convertView;
         }

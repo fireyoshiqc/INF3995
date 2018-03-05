@@ -35,6 +35,7 @@ import timber.log.Timber;
 public class MainActivity extends AppCompatActivity {
     private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
+    private boolean isMenuActive;
 
     private Toolbar toolbar;
     private OronosXmlParser parser;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Ready to start
         currentDataViewState = 0;
+        isMenuActive = false;
         Timber.v("Main Activity : Creation Done.");
     }
 
@@ -169,18 +171,24 @@ public class MainActivity extends AppCompatActivity {
      *                      dataLayout.
      */
     public void changeStateOfDataLayout(int nextView) {
-        if(currentDataViewState == MENU_VIEW_ID) {
-            dataLayout.removeView(gridView);
-        }
-        else {
-            dataLayout.removeView(viewsContainer.get(currentDataViewState));
-        }
         if(nextView == MENU_VIEW_ID) {
-            dataLayout.addView(gridView);
+            if(isMenuActive == true) {
+                dataLayout.removeView(gridView);
+                isMenuActive = false;
+            }
+            else {
+                dataLayout.addView(gridView);
+                isMenuActive =true;
+            }
         }
         else {
+            if(isMenuActive) {
+                dataLayout.removeView(gridView);
+                isMenuActive = false;
+            }
+            dataLayout.removeView(viewsContainer.get(currentDataViewState));
             dataLayout.addView(viewsContainer.get(nextView));
+            currentDataViewState = nextView;
         }
-        currentDataViewState = nextView;
     }
 }
