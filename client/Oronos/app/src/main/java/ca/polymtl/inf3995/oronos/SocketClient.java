@@ -15,6 +15,8 @@ import com.koushikdutta.async.DataEmitter;
 
 import com.illposed.osc.*;
 
+import timber.log.Timber;
+
 public class SocketClient {
 
     private final InetSocketAddress host;
@@ -38,7 +40,7 @@ public class SocketClient {
         try {
             this.host = new InetSocketAddress(host, port);
         } catch (IllegalArgumentException e) {
-            Log.e(
+            Timber.e(
                     Log.getStackTraceString(e),
                     "Port is outside the range of valid port values or host is null."
             );
@@ -67,7 +69,7 @@ public class SocketClient {
             @Override
             public void onCompleted(Exception ex) {
                 if(ex != null) throw new RuntimeException(ex);
-                Log.v("SocketClient", "Successfully closed connection");
+                Timber.v("SocketClient Successfully closed connection");
             }
         });
 
@@ -75,7 +77,7 @@ public class SocketClient {
             @Override
             public void onCompleted(Exception ex) {
                 if(ex != null) throw new RuntimeException(ex);
-                Log.v("SocketClient", "Successfully end connection");
+                Timber.v("SocketClient Successfully end connection");
             }
         });
 
@@ -84,7 +86,7 @@ public class SocketClient {
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
                 if (bb != null) {
                     byte[] bytesReceived = bb.getAllByteArray();
-                    Log.v("SocketClient", "[UDP] : " + new String(bytesReceived));
+                    Timber.v("SocketClient [UDP] : " + new String(bytesReceived));
                     // todo : Continue developing the following functions when server is ready for udp
                     //getOSCMessage(bytesReceived);
                     //forwardToDispatcher();
