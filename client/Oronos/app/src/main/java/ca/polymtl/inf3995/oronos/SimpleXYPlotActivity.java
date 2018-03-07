@@ -1,10 +1,11 @@
-package ca.polymtl.inf3995.oronos.parser;
+package ca.polymtl.inf3995.oronos;
 
 /**
  * Created by Fabri on 2018-03-07.
  */
 
 
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,14 +25,19 @@ import java.util.*;
 
 import ca.polymtl.inf3995.oronos.R;
 
-public class SimpleXYPlotActivity extends Fragment {
+public class SimpleXYPlotActivity extends Activity {
+
     private XYPlot plot;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.simple_xy_plot_example, container, false);
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.simple_xy_plot_example);
 
-        plot = (XYPlot) view.findViewById(R.id.plot);
+        // initialize our XYPlot reference:
+        plot = (XYPlot) findViewById(R.id.plot);
+
 
         //fake values:
         final Number[] domainLabels = {1, 2, 3, 6, 7, 8, 9, 10, 13, 14};
@@ -98,7 +104,6 @@ public class SimpleXYPlotActivity extends Fragment {
                 return null;
             }
         });
-        return view;
     }
 
 
