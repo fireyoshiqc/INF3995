@@ -126,7 +126,7 @@ public class MainActivity extends DrawerActivity {
 
             TabContainer tabtest = (TabContainer) rocket.getList().get(0);
             for (Tab tab : tabtest.getList()) {
-                ((DualVWidget) tab.getContents()).buildContents();
+                ((DualVWidget) tab.getContents()).buildContents(getWindow().getContext());
             }
 
             tabtest.buildTabs(getWindow().getContext());

@@ -1,6 +1,9 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -11,18 +14,20 @@ import java.util.List;
 
 public class DataDisplayer extends AbstractCANContainer implements ContainableWidget {
 
-    private TextView view;
+    private RecyclerView view;
 
     DataDisplayer(List<CAN> list, Context context) {
         super(list);
-        view = new TextView(context);
-        for (CAN item : list) {
-            view.append("CAN:"+item.getId()+"\n");
-        }
+        view = new RecyclerView(context);
+        CANAdapter adapter = new CANAdapter(context, list);
+        view.setLayoutManager(new GridLayoutManager(context, 4));
+        view.setItemAnimator(new DefaultItemAnimator());
+        view.setAdapter(adapter);
+        view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
     }
 
     @Override
-    public TextView getView() {
+    public RecyclerView getView() {
         return view;
     }
 }

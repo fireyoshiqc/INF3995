@@ -21,9 +21,12 @@ public class DualHWidget extends AbstractWidgetContainer<ContainableWidget> impl
         layout.setOrientation(LinearLayout.HORIZONTAL);
     }
 
-    public void buildContents() {
+    public void buildContents(Context context) {
         for (ContainableWidget widget : list) {
-            layout.addView(widget.getView());
+            LinearLayout container = new LinearLayout(context);
+            container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+            container.addView(widget.getView());
+            layout.addView(container);
         }
     }
 
