@@ -85,8 +85,16 @@ public class RestHttpWrapper {
         ){
            @Override
            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-               return null;
-           }
+               JSONObject jsonObject = new JSONObject();
+               try {
+                    jsonObject.put("statusCode", response.statusCode);
+               }
+               catch(JSONException e) {
+                    e.printStackTrace();
+               }
+               return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
+       }
+
        };
 
         volleyQueue.add(POSTRequest);
@@ -117,7 +125,14 @@ public class RestHttpWrapper {
         ){
             @Override
             protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-                return null;
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("statusCode", response.statusCode);
+                }
+                catch(JSONException e) {
+                    e.printStackTrace();
+                }
+                return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
             }
         };
 
