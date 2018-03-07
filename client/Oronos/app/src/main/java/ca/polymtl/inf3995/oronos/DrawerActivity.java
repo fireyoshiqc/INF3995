@@ -52,6 +52,8 @@ public class DrawerActivity extends AppCompatActivity {
         ActionBar actionbar = getSupportActionBar();
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+
+        //default selected button
         navigationView.getMenu().getItem(0).setChecked(true);
     }
 
