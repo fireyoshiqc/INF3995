@@ -74,19 +74,19 @@ public class SimpleXYPlotActivity extends Activity {
         );
 
         // add an "dash" effect to the series2 line:
-        series2Format.getLinePaint().setPathEffect(new DashPathEffect(new float[] {
+        //series2Format.getLinePaint().setPathEffect(new DashPathEffect(new float[] {
 
                 // always use DP when specifying pixel sizes, to keep things consistent across devices:
-                PixelUtils.dpToPix(20),
-                PixelUtils.dpToPix(15)}, 0));
+                //PixelUtils.dpToPix(20),
+                //PixelUtils.dpToPix(15)}, 0));
 
         // just for fun, add some smoothing to the lines:
         // see: http://androidplot.com/smooth-curves-and-androidplot/
-        series1Format.setInterpolationParams(
-                new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
+        //series1Format.setInterpolationParams(
+                //new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
 
-        series2Format.setInterpolationParams(
-                new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
+        //series2Format.setInterpolationParams(
+                //new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
 
 
         // add a new series' to the xyplot:
