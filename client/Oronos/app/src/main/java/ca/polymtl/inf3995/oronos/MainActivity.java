@@ -29,7 +29,8 @@ import ca.polymtl.inf3995.oronos.parser.TabContainer;
 import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;
 import timber.log.Timber;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends DrawerActivity {
     private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
     private boolean isMenuActive;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private GridView gridView;
     private RelativeLayout dataLayout;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setUpToolbar();
         fillViewsContainer();
+        super.onCreateDrawer();
 
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
     }
+
 
     /**
      * This method declare the toolbar and its menu elements.
@@ -95,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 changeStateOfDataLayout(position);
             }
         });
+
     }
 
     /**
