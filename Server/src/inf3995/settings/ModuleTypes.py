@@ -11,6 +11,7 @@ class ModuleType(IntEnum):
 	APUM = 6,
 	NUC = 7,
 	GS = 7,
+	IOM = 7,
 	MCD = 15,
 	AGRUM = 16,
 	ADRMSAT = 17,
