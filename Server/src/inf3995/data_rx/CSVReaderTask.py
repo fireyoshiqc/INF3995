@@ -5,6 +5,7 @@ import time
 from enum import Enum
 
 from inf3995.settings.CANSid import CANSid
+from inf3995.settings.ModuleTypes import ModuleType
 from inf3995.core.AbstractTaskNode import *
 # from inf3995.core.ApplicationManager import *
 import inf3995.core
@@ -87,12 +88,22 @@ class CSVReaderTask(AbstractTaskNode):
 				print(__name__ + ': KeyError: ' + str(e))
 				continue
 
+			# Skip log messages with invalid source or destination type
+			try:
+				dest_name = self.next_line[2]
+				dest_type = ModuleType[dest_name]
+				src_name = self.next_line[4]
+				src_type = ModuleType[src_name]
+			except KeyError as e:
+				print(__name__ + ': KeyError: ' + str(e))
+				continue
+
 			# Put data point in outgoing data buffer
 			data = RxData(sid=sid,
-						  dest_serial=self.next_line[2],
-						  dest_type=self.next_line[3],
-						  src_serial=self.next_line[4],
-						  src_type=self.next_line[5],
+						  dest_type=dest_type,
+						  dest_serial=self.next_line[3],
+						  src_type=src_type,
+						  src_serial=self.next_line[5],
 						  data1=self.next_line[7],
 						  data2=self.next_line[8])
 			print(self.next_line)
