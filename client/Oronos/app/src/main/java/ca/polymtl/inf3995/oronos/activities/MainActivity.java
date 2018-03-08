@@ -2,6 +2,7 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
 import android.content.Intent;
+import android.os.Build;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 
@@ -97,6 +99,8 @@ public class MainActivity extends DrawerActivity {
     public void graphs(View view){
         Intent intent = new Intent(this, SimpleXYPlotActivity.class);
         startActivity(intent);
+        System.out.println("ANDROIDDEVICEMODEL " + Build.MODEL);
+        System.out.println("ANDROIDDEVICEPRODUCT " + Build.PRODUCT);
     }
 
     /**
