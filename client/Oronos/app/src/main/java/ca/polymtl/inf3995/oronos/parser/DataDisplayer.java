@@ -20,7 +20,7 @@ public class DataDisplayer extends AbstractCANContainer implements ContainableWi
         super(list);
         view = new RecyclerView(context);
         CANAdapter adapter = new CANAdapter(context, list);
-        view.setLayoutManager(new GridLayoutManager(context, 4));
+        view.setLayoutManager(new GridLayoutManager(context, 3));
         view.setItemAnimator(new DefaultItemAnimator());
         view.setAdapter(adapter);
         view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));

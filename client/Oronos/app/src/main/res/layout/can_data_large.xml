@@ -28,17 +28,16 @@
             android:textAlignment="center"
             android:textSize="12sp" />
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/data"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_weight="3"
                 android:text="DATA"
                 android:textAlignment="center"
                 android:textAppearance="@android:style/TextAppearance.Material.Large"
@@ -46,15 +45,17 @@
 
             <TextView
                 android:id="@+id/unit_and_warning"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="1"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="5dp"
                 android:text="unit"
-                android:textAlignment="center"
+                android:textAlignment="textEnd"
+                android:textAllCaps="false"
                 android:textAppearance="@android:style/TextAppearance.Material.Medium" />
+        </RelativeLayout>
 
-        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
