@@ -1,35 +1,32 @@
 package ca.polymtl.inf3995.oronos;
 
-import android.support.constraint.ConstraintLayout;
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
-import java.net.CookieHandler;
-import java.net.CookieManager;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.List;
 
 import ca.polymtl.inf3995.oronos.parser.DualVWidget;
+import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.parser.Rocket;
 import ca.polymtl.inf3995.oronos.parser.Tab;
 import ca.polymtl.inf3995.oronos.parser.TabContainer;
 import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;
-import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,10 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
-        if(viewsContainer != null) {
+        if (viewsContainer != null) {
             dataLayout.addView(viewsContainer.get(0), -1);
-        }
-        else {
+        } else {
             throw new NullPointerException("No view in viewOfGrid, cannot display any data.");
         }
 
@@ -111,20 +107,16 @@ public class MainActivity extends AppCompatActivity {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
 
-            TabContainer tabtest = (TabContainer)rocket.getList().get(0);
+            TabContainer tabtest = (TabContainer) rocket.getList().get(0);
             for (Tab tab : tabtest.getList()) {
-                ((DualVWidget)tab.getContents()).buildContents();
+                ((DualVWidget) tab.getContents()).buildContents();
             }
 
             tabtest.buildTabs(getWindow().getContext());
             viewsContainer = new ArrayList<>();
             viewsContainer.add(tabtest.getView());
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (UnsupportedContainerWidgetException e) {
+        } catch (IOException | XmlPullParserException | UnsupportedContainerWidgetException e) {
             e.printStackTrace();
         }
 
@@ -134,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
      * Callback for inflating the menu in the toolbar. The menu used by the client can be found
      * in the res/menu/menu_main.xml file.
      *
-     * @param menu      Menu to inflate in the toolbar.
+     * @param menu Menu to inflate in the toolbar.
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -146,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Callback for any triggered MenuItem in the toolbar.
      *
-     * @param item      MenuItem that was triggered in the toolbar.
+     * @param item MenuItem that was triggered in the toolbar.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -167,22 +159,20 @@ public class MainActivity extends AppCompatActivity {
     /**
      * State machine for the dataLayout.
      *
-     * @param nextView      The int representing the nextView the client will display in its
-     *                      dataLayout.
+     * @param nextView The int representing the nextView the client will display in its
+     *                 dataLayout.
      */
     public void changeStateOfDataLayout(int nextView) {
-        if(nextView == MENU_VIEW_ID) {
-            if(isMenuActive == true) {
+        if (nextView == MENU_VIEW_ID) {
+            if (isMenuActive) {
                 dataLayout.removeView(gridView);
                 isMenuActive = false;
-            }
-            else {
+            } else {
                 dataLayout.addView(gridView);
-                isMenuActive =true;
+                isMenuActive = true;
             }
-        }
-        else {
-            if(isMenuActive) {
+        } else {
+            if (isMenuActive) {
                 dataLayout.removeView(gridView);
                 isMenuActive = false;
             }
