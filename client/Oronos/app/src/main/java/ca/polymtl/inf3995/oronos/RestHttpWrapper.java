@@ -5,6 +5,7 @@ package ca.polymtl.inf3995.oronos;
  * Wrapper for Http and Rest requests
  */
 import android.content.Context;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -46,6 +47,7 @@ public class RestHttpWrapper {
     static final String SERVER_IP = "10.0.2.2"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
+    static final String DEVICE_NAME = Build.MODEL;
     Context appContext;
 
     private String username = "foo"; //has to change according to user input
@@ -66,6 +68,7 @@ public class RestHttpWrapper {
         try {
             json.put("username", username);
             json.put("password", password);
+            json.put("device", DEVICE_NAME);
         }
         catch(JSONException e) {
             e.printStackTrace();
