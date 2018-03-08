@@ -16,8 +16,8 @@ from inf3995.settings.CANSid import *
 
 @cherrypy.expose
 class RestServer(object):
-	__POSSIBLE_DEVICES = ["pc", "tablet", "mobile"]
-	__UNKNOWN_DEVICE = "n/a"
+	__POSSIBLE_DEVICES = ["PC", "Tablet", "Mobile"]
+	__UNKNOWN_DEVICE = "N/A"
 	__MISC_FILES_DIR = "miscFiles"
 	__ROCKETS_DIR = "rockets"
 	
@@ -270,10 +270,7 @@ class RestServer(object):
 	def _get_device_from_request(self, request):
 		data = request.json
 		if "device" in data:
-			if data["device"].lower() in RestServer.__POSSIBLE_DEVICES:
-				return data["device"].lower()
-			else:
-				return RestServer.__UNKNOWN_DEVICE
+			return data["device"]
 		else:
 			# TODO: Parse the User-Agent string to try and find the device type.
 			return RestServer.__UNKNOWN_DEVICE
