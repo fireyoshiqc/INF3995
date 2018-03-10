@@ -14,6 +14,8 @@ class CanDataElem(object):
 		self.data1 = can_data.data1
 		self.type2 = get_osc_type_from_can_type(CANMsgDataTypes[can_data.sid][1])
 		self.data2 = can_data.data2
+		self.src_type = can_data.src_type
+		self.src_no = can_data.src_serial
 		self.counter = 0
 
 
@@ -46,17 +48,19 @@ class OscMsgData(object):
 		if is_new:
 			new_elem = CanDataElem(can_data, self.__size)
 			new_type_tag = self.__type_tag + "i" + new_elem.type1 + \
-			               new_elem.type2 + "i"
+			               new_elem.type2 + "iii"
 			offset_diff = len(osc_types.write_string(new_type_tag)) - \
 			              len(osc_types.write_string(self.__type_tag))
 			self.__data[can_data.sid] = new_elem
 			self.__type_tag = new_type_tag
-			self.__size += offset_diff + 4 * 4
+			self.__size += offset_diff + 6 * 4
 			for id in self.__data:
 				self.__data[id].offset += offset_diff
 		else:
 			self.__data[can_data.sid].data1 = can_data.data1
 			self.__data[can_data.sid].data2 = can_data.data2
+			self.__data[can_data.sid].src_type = can_data.src_type
+			self.__data[can_data.sid].src_no = can_data.src_serial
 			self.__data[can_data.sid].counter += 1
 		
 		return is_new
@@ -66,6 +70,8 @@ class OscMsgData(object):
 		elem_bytes = self.__encode_data("i", int(sid)) + \
 		             self.__encode_data(elem.type1, elem.data1) + \
 		             self.__encode_data(elem.type2, elem.data2) + \
+		             self.__encode_data("i", int(elem.src_type)) + \
+		             self.__encode_data("i", int(elem.src_no)) + \
 		             self.__encode_data("i", int(elem.counter))
 		
 		buffer[elem.offset : elem.offset + len(elem_bytes)] = elem_bytes
