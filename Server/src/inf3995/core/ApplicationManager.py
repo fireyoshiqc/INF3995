@@ -15,6 +15,7 @@ from inf3995.core.WorkerThread import *
 from inf3995.core.DummyTaskNode import *
 from inf3995.settings.CANSidParser import CANSidParser
 from inf3995.settings.SettingsManager import *
+from inf3995.logging.DataLoggerTask import *
 
 
 class ApplicationManager(object):
@@ -29,11 +30,15 @@ class ApplicationManager(object):
 			instance.__task_nodes = []
 			instance.__worker_threads = []
 			instance.__settings_manager = SettingsManager()
+			instance.__startup_date_time_str = ""
 		
 		return ApplicationManager.__instance
 	
 	def startup(self, argv):
 		self.__register_signal_handlers()
+		
+		self.__startup_date_time_str = time.strftime("%Y_%m_%d_%H_%M_%S",
+		                                             time.localtime())
 		
 		ProgramOptions.configure_and_parse(argv)
 		
@@ -80,6 +85,9 @@ class ApplicationManager(object):
 	def get_settings_manager(self):
 		return self.__settings_manager
 	
+	def get_startup_date_time_str(self):
+		return self.__startup_date_time_str
+	
 	@staticmethod
 	def __key_handler(event):
 		if event.name == "esc":
@@ -99,11 +107,13 @@ class ApplicationManager(object):
 		connector_file = ProgramOptions.get_value('connector-file')
 		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
 		osc_tx_node = data_tx.OscTxTask()
+		data_logger_node = DataLoggerTask()
 		# TODO: Move to settings manager
 		CANSidParser()
 		
 		# TODO: Connect the nodes
 		osc_tx_node.connect_to_source(csv_reader_node)
+		data_logger_node.connect_to_source(csv_reader_node)
 		
 		osc_sender = osc_tx_node.get_sender()
 		rest_server = rest_node.get_server_app()
@@ -115,6 +125,7 @@ class ApplicationManager(object):
 		self.__build_thread([rest_node])
 		self.__build_thread([csv_reader_node])
 		self.__build_thread([osc_tx_node])
+		self.__build_thread([data_logger_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)
