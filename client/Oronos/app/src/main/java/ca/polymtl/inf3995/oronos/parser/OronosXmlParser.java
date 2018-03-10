@@ -281,7 +281,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new FindMe();
+        return new FindMe(this.context);
     }
 
     private Map readMap(XmlPullParser parser) throws XmlPullParserException, IOException {

@@ -1,6 +1,11 @@
 package ca.polymtl.inf3995.oronos;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
@@ -9,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.polymtl.inf3995.oronos.parser.DualVWidget;
+import ca.polymtl.inf3995.oronos.parser.FindMe;
 import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.parser.Rocket;
@@ -41,6 +48,8 @@ public class MainActivity extends DrawerActivity {
     private GridView gridView;
     private RelativeLayout dataLayout;
 
+    private Rocket rocket;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +60,6 @@ public class MainActivity extends DrawerActivity {
         setUpToolbar();
         fillViewsContainer();
         super.onCreateDrawer();
-
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
         if (viewsContainer != null) {
@@ -107,6 +115,10 @@ public class MainActivity extends DrawerActivity {
      * to be displayed in the dataLayout).
      */
     private void fillViewsContainer() {
+
+        //TODO: Check if the layout contains a FindMe or Map component that requires GPS permissions
+
+
         parser = new OronosXmlParser(getWindow().getContext());
         try {
             InputStream fis = getAssets().open("10_polaris.xml");
@@ -121,10 +133,12 @@ public class MainActivity extends DrawerActivity {
             viewsContainer = new ArrayList<>();
             viewsContainer.add(tabtest.getView());
 
+            FindMe test = new FindMe(this);
+            viewsContainer.add(test.getView());
+
         } catch (IOException | XmlPullParserException | UnsupportedContainerWidgetException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -159,6 +173,34 @@ public class MainActivity extends DrawerActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case FindMe.GPS_PERMISSION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    // TODO: Use some kind of observer pattern to notify FindMe and Map elements
+
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    // TODO: Use some kind of observer pattern to notify FindMe and Map elements
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
     }
 
     /**
