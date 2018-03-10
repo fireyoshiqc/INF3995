@@ -9,9 +9,9 @@ class ModuleType(IntEnum):
 	ADIRM = 3,
 	ADLM = 4,
 	APUM = 6,
+	IOM = 7,
 	NUC = 7,
 	GS = 7,
-	IOM = 7,
 	MCD = 15,
 	AGRUM = 16,
 	ADRMSAT = 17,
@@ -19,3 +19,5 @@ class ModuleType(IntEnum):
 	ATM_SLAVE = 19,
 	UNKNOWN_MODULE = 0x1E,
 	ALL_MODULES = 0x1F
+
+ALL_SERIAL_NBS = 0xF

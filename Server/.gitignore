@@ -4,3 +4,4 @@ tools/scripts/CANSid.h
 tools/scripts/CANSid.c
 working_dir/*.txt
 working_dir/*.log
+working_dir/*.csv

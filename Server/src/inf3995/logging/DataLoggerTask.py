@@ -7,6 +7,8 @@ import time
 import inf3995.core
 from inf3995.core.AbstractTaskNode import *
 import inf3995.data_rx
+from inf3995.settings.ModuleTypes import *
+from inf3995.settings.CANSid import *
 
 
 class DataLoggerTask(AbstractTaskNode):
@@ -21,7 +23,6 @@ class DataLoggerTask(AbstractTaskNode):
 		log_file_name = startup_time + ".csv"
 		
 		self.__log_file = open(log_file_name, "w", encoding="utf-8")
-		print(log_file_name)
 	
 	def on_first_run(self):
 		self.__start_time = time.monotonic()
@@ -31,8 +32,15 @@ class DataLoggerTask(AbstractTaskNode):
 	
 	def handle_data(self):
 		can_data = self._get_source_data()
-		self.__log_file.write(str(time.monotonic() - self.__start_time) + ";")
-		self.__log_file.write(str(can_data.data1) + "\n")
+		self.__log_file.write(str(time.monotonic() - self.__start_time) + ";" + \
+		                      "IN" + ";" + \
+		                      can_data.src_type.name + ";" + \
+		                      str(can_data.src_serial) + ";" + \
+		                      can_data.dest_type.name + ";" + \
+		                      str(can_data.dest_serial) + ";" + \
+		                      can_data.sid.name + ";" + \
+		                      str(can_data.data1) + ";" + \
+		                      str(can_data.data2) + "\n")
 	
 	def cleanup(self):
 		self.__log_file.close()
