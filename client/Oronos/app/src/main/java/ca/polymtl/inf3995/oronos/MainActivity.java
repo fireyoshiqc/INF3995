@@ -134,7 +134,7 @@ public class MainActivity extends DrawerActivity {
             viewsContainer.add(tabtest.getView());
 
             FindMe test = new FindMe(this);
-            viewsContainer.add(test.getView());
+            viewsContainer.add(test);
 
         } catch (IOException | XmlPullParserException | UnsupportedContainerWidgetException e) {
             e.printStackTrace();
@@ -187,6 +187,11 @@ public class MainActivity extends DrawerActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
                     // TODO: Use some kind of observer pattern to notify FindMe and Map elements
+                    for (View view : viewsContainer) {
+                        if (view instanceof FindMe) {
+                            ((FindMe)view).grantPermissions();
+                        }
+                    }
 
 
                 } else {
@@ -194,6 +199,11 @@ public class MainActivity extends DrawerActivity {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     // TODO: Use some kind of observer pattern to notify FindMe and Map elements
+                    for (View view : viewsContainer) {
+                        if (view instanceof FindMe) {
+                            ((FindMe)view).showPermissionWarning();
+                        }
+                    }
                 }
                 return;
             }

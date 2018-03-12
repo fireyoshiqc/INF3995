@@ -24,7 +24,7 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class FindMe implements ContainableWidget {
+public class FindMe extends LinearLayout implements ContainableWidget {
 
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
     private final float LOCATION_REFRESH_DISTANCE = 1.0f; // 1 meter refresh distance
@@ -32,7 +32,8 @@ public class FindMe implements ContainableWidget {
 
     private LocationManager locationManager;
 
-    private LinearLayout view;
+    private TextView status;
+    private Button permsButton;
 
     private final LocationListener locationListener = new LocationListener() {
         @Override
@@ -57,58 +58,66 @@ public class FindMe implements ContainableWidget {
         }
     };
 
+
+
     public FindMe(Context context) {
-        buildView(context);
+        super(context);
+        buildView();
 
     }
 
-    private void buildView(final Context context) {
-        view = new LinearLayout(context);
-        view.setOrientation(LinearLayout.VERTICAL);
-        view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        if (!PermissionsUtil.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GPS_PERMISSION);
-            TextView warning = new TextView(context);
-            warning.setText("GPS Permissions are required for using this tag. Press the button to enable this widget once permissions are granted.\n" +
+    private void buildView() {
+        setOrientation(LinearLayout.VERTICAL);
+        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        status = new TextView(getContext());
+        addView(status);
+        if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+            status.setText("GPS Permissions are required for using this tag. Press the button to enable this widget once permissions are granted.\n" +
                     "Pressing the button when permissions are not granted will open the dialog to allow that.");
-            view.addView(warning);
-            Button btn = new Button(context);
-            btn.setText("ENABLE");
-            btn.setOnClickListener(new View.OnClickListener() {
+            permsButton = new Button(getContext());
+            permsButton.setText("ENABLE");
+            permsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    buildView(context);
+                    ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GPS_PERMISSION);
                 }
             });
-            view.addView(btn);
+            addView(permsButton);
 
         } else {
-            TextView granted = new TextView(context);
-            granted.setText("PERMS GRANTED");
-            view.addView(granted);
-            setupLocationManager(context);
+            grantPermissions();
         }
     }
 
-    private void setupLocationManager(Context context) {
+    public void grantPermissions() {
+        removeViewInLayout(permsButton);
+        status.setText("PERMS GRANTED");
+        setupLocationManager();
+    }
+
+    public void showPermissionWarning() {
+        Snackbar.make(this, "Location permissions are required for this widget to function properly.", Snackbar.LENGTH_LONG).show();
+    }
+
+    private void setupLocationManager() {
         if (locationManager == null) {
-            locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
             if (locationManager != null) {
                 try {
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
                 } catch (SecurityException e) {
                     Timber.e("FindMe: Error accessing location permissions.");
-                    buildView(context);
+                    buildView();
                 }
             } else {
                 Timber.e("FindMe: Error accessing location permissions.");
-                buildView(context);
+                buildView();
             }
         }
     }
 
     @Override
     public View getView() {
-        return view;
+        return null;
     }
 }
