@@ -21,6 +21,7 @@ class _Direction(Enum):
 class CSVReaderTask(AbstractTaskNode):
 	def __init__(self, log_file):
 		super(CSVReaderTask, self).__init__(is_queued_input_data = False, buffer_size = 1024)
+		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.csv_file = open(log_file, 'r', encoding='utf-8')
 		self.csv_reader = csv.reader(self.csv_file, delimiter=';')
 		self.next_line = ''
@@ -33,14 +34,16 @@ class CSVReaderTask(AbstractTaskNode):
 		try:
 			self.next_line = self.csv_reader.__next__()
 		except StopIteration:
-			print(__name__ + ': End of CSV file.')
+			# print(__name__ + ': End of CSV file.')
+			self.__event_logger.log_debug(__name__ + ": End of CSV file.")
 			inf3995.core.ApplicationManager().exit(0)
 			return
 
 		csv_log_format = ';'.join(self.next_line)
 		# TODO : Throw an exception if CSV file is bad
 		if csv_log_format != CSV_LOG_FORMAT:
-			print(__name__ + ': Bad CSV file.')
+			# print(__name__ + ': Bad CSV file.')
+			self.__event_logger.log_error(__name__ + ": Bad of CSV file.")
 			# If we don't do this, we shall slumber for a hundred years
 			self.csv_file.close()
 			inf3995.core.ApplicationManager().exit(1)
@@ -63,7 +66,8 @@ class CSVReaderTask(AbstractTaskNode):
 			try:
 				self.next_line = self.csv_reader.__next__()
 			except StopIteration:
-				print(__name__ + ': End of CSV file.')
+				# print(__name__ + ': End of CSV file.')
+				self.__event_logger.log_debug(__name__ + ": End of CSV file.")
 				# If we don't do this, we shall slumber for a hundred years
 				self.csv_file.close()
 				inf3995.core.ApplicationManager().exit(0)
@@ -85,7 +89,8 @@ class CSVReaderTask(AbstractTaskNode):
 				sid_name = self.next_line[6]
 				sid = CANSid[sid_name]
 			except KeyError as e:
-				print(__name__ + ': KeyError: ' + str(e))
+				# print(__name__ + ': KeyError: ' + str(e))
+				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 				continue
 
 			# Skip log messages with invalid source or destination type
@@ -95,7 +100,8 @@ class CSVReaderTask(AbstractTaskNode):
 				dest_name = self.next_line[4]
 				dest_type = ModuleType[dest_name]
 			except KeyError as e:
-				print(__name__ + ': KeyError: ' + str(e))
+				# print(__name__ + ': KeyError: ' + str(e))
+				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 				continue
 
 			# Put data point in outgoing data buffer
@@ -106,7 +112,7 @@ class CSVReaderTask(AbstractTaskNode):
 						  dest_serial=self.next_line[5],
 						  data1=self.next_line[7],
 						  data2=self.next_line[8])
-			print(self.next_line)
+			# print(self.next_line)
 			self._produce_data(data)
 
 			timestamp = float(self.next_line[0])
@@ -117,4 +123,5 @@ class CSVReaderTask(AbstractTaskNode):
 
 	def cleanup(self):
 		self.csv_file.close()
-		print('CSV Reader cleanup.')
+		# print('CSV Reader cleanup.')
+		self.__event_logger.log_debug("CSV Reader cleanup.")

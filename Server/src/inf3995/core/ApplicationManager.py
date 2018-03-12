@@ -12,10 +12,12 @@ import inf3995.data_rx as data_rx
 import inf3995.data_tx as data_tx
 from inf3995.core.ProgramOptions import *
 from inf3995.core.WorkerThread import *
+from inf3995.logging.EventLog import *
 from inf3995.core.DummyTaskNode import *
 from inf3995.settings.CANSidParser import CANSidParser
 from inf3995.settings.SettingsManager import *
 from inf3995.logging.DataLoggerTask import *
+from inf3995.view.EventLogViewerTask import *
 
 
 class ApplicationManager(object):
@@ -31,6 +33,7 @@ class ApplicationManager(object):
 			instance.__worker_threads = []
 			instance.__settings_manager = SettingsManager()
 			instance.__startup_date_time_str = ""
+			instance.__event_log = EventLog()
 		
 		return ApplicationManager.__instance
 	
@@ -85,6 +88,9 @@ class ApplicationManager(object):
 	def get_settings_manager(self):
 		return self.__settings_manager
 	
+	def get_event_logger(self):
+		return self.__event_log
+	
 	def get_startup_date_time_str(self):
 		return self.__startup_date_time_str
 	
@@ -108,6 +114,7 @@ class ApplicationManager(object):
 		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
 		osc_tx_node = data_tx.OscTxTask()
 		data_logger_node = DataLoggerTask()
+		log_viewer_node = EventLogViewerTask()
 		# TODO: Move to settings manager
 		CANSidParser()
 		
@@ -126,6 +133,7 @@ class ApplicationManager(object):
 		self.__build_thread([csv_reader_node])
 		self.__build_thread([osc_tx_node])
 		self.__build_thread([data_logger_node])
+		self.__build_thread([log_viewer_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)

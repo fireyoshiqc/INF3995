@@ -1,24 +1,39 @@
 """DummyTaskNode class"""
 
 
-import time
+import sys
 
+import inf3995.core
 from inf3995.core.AbstractTaskNode import *
 
 
 class DummyTaskNode(AbstractTaskNode):
 	def __init__(self):
 		super(DummyTaskNode, self).__init__(True, 1024)
+		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 	
 	def init(self):
-		print("In the beginning, God created the heavens and the earth...")
+		msg = "In the beginning, God created the heavens and the earth..."
+		# print(msg)
+		# sys.stdout.flush()
+		self.__event_logger.log_info(msg)
 	
 	def on_first_run(self):
-		print("And Abram went up out of Egypt, he, and his wife...")
+		msg = "And Abram went up out of Egypt, he, and his wife..."
+		# print(msg)
+		# sys.stdout.flush()
+		self.__event_logger.log_info(msg)
 	
 	def handle_data(self):
-		print("But the men of Sodom were wicked and sinners before the Lord exceedingly.")
+		msg = "But the men of Sodom were wicked and sinners before the Lord exceedingly."
+		# print(msg)
+		# sys.stdout.flush()
+		self.__event_logger.log_info(msg)
 	
 	def cleanup(self):
-		print("...Cain rose up against Abel his brother, and slew him.")
+		msg = "...Cain rose up against Abel his brother, and slew him."
+		# print(msg)
+		# sys.stdout.flush()
+		self.__event_logger.log_info(msg)
+
 
