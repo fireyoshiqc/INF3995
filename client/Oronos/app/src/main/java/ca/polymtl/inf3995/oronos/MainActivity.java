@@ -1,12 +1,7 @@
 package ca.polymtl.inf3995.oronos;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.Menu;
@@ -14,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -26,7 +20,6 @@ import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.polymtl.inf3995.oronos.parser.DualVWidget;
 import ca.polymtl.inf3995.oronos.parser.FindMe;
 import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
@@ -125,13 +118,8 @@ public class MainActivity extends DrawerActivity {
             Rocket rocket = parser.parse(fis);
 
             TabContainer tabtest = (TabContainer) rocket.getList().get(0);
-            for (Tab tab : tabtest.getList()) {
-                ((DualVWidget) tab.getContents()).buildContents(getWindow().getContext());
-            }
-
-            tabtest.buildTabs(getWindow().getContext());
             viewsContainer = new ArrayList<>();
-            viewsContainer.add(tabtest.getView());
+            viewsContainer.add(tabtest);
 
             FindMe test = new FindMe(this);
             viewsContainer.add(test);

@@ -12,22 +12,18 @@ import java.util.List;
  * Created by Felix on 15/févr./2018.
  */
 
-public class DataDisplayer extends AbstractCANContainer implements ContainableWidget {
+public class DataDisplayer extends AbstractWidgetContainer<CAN> implements ContainableWidget {
 
-    private RecyclerView view;
+    private RecyclerView recycler;
 
-    DataDisplayer(List<CAN> list, Context context) {
-        super(list);
-        view = new RecyclerView(context);
+    DataDisplayer(Context context, List<CAN> list) {
+        super(context, list);
+        recycler = new RecyclerView(context);
         CANAdapter adapter = new CANAdapter(context, list);
-        view.setLayoutManager(new GridLayoutManager(context, 3));
-        view.setItemAnimator(new DefaultItemAnimator());
-        view.setAdapter(adapter);
-        view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
-    }
-
-    @Override
-    public RecyclerView getView() {
-        return view;
+        recycler.setLayoutManager(new GridLayoutManager(context, 3));
+        recycler.setItemAnimator(new DefaultItemAnimator());
+        recycler.setAdapter(adapter);
+        recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
+        addView(recycler);
     }
 }

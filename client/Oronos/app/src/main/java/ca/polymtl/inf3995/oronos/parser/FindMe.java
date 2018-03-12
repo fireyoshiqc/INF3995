@@ -24,7 +24,7 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class FindMe extends LinearLayout implements ContainableWidget {
+public class FindMe extends OronosView {
 
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
     private final float LOCATION_REFRESH_DISTANCE = 1.0f; // 1 meter refresh distance
@@ -116,8 +116,4 @@ public class FindMe extends LinearLayout implements ContainableWidget {
         }
     }
 
-    @Override
-    public View getView() {
-        return null;
-    }
 }

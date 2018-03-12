@@ -1,5 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.Context;
+
 import java.util.List;
 
 /**
@@ -9,19 +11,19 @@ import java.util.List;
 public class Rocket extends AbstractWidgetContainer<ContainableWidget> {
 
     private final String name;
-    private final String id;
+    private final String rocketId;
 
-    Rocket(String name, String id, List<ContainableWidget> list) {
-        super(list);
+    Rocket(Context context, String name, String id, List<ContainableWidget> list) {
+        super(context, list);
         this.name = name;
-        this.id = id;
+        this.rocketId = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getId() {
-        return id;
+    public String getRocketId() {
+        return rocketId;
     }
 }

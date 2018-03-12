@@ -7,7 +7,7 @@ import android.view.View;
  * Created by Felix on 15/févr./2018.
  */
 
-public class CAN {
+public class CAN implements ContainableWidget {
     private final String id;
     private final String name;
     private final String display;

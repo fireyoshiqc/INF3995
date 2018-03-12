@@ -53,7 +53,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new Rocket(name, id, entries);
+        return new Rocket(context, name, id, entries);
     }
 
     private List<ContainableWidget> readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
@@ -90,7 +90,7 @@ public class OronosXmlParser {
         return contents;
     }
 
-    private ContainableWidget readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private OronosView readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "TabContainer");
         List<Tab> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -104,12 +104,12 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new TabContainer(list, this.context).cleanup();
+        return new TabContainer(context, list).cleanup();
     }
 
     private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Tab");
-        ContainableWidget contents = null;
+        OronosView contents = null;
         String tabName = parser.getAttributeValue(null, "name");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -165,7 +165,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new DataDisplayer(list, this.context);
+        return new DataDisplayer(context, list);
     }
 
     private DisplayLogWidget readDisplayLogWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -182,13 +182,13 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new DisplayLogWidget(list);
+        return new DisplayLogWidget(context, list);
     }
 
-    private ContainableWidget readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private OronosView readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualVWidget");
         int startLine = parser.getLineNumber();
-        List<ContainableWidget> list = new ArrayList<>();
+        List<OronosView> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -216,7 +216,7 @@ public class OronosXmlParser {
                 case "ButtonArray":
                 case "RadioStatus":
                 case "CustomCANSender":
-                    list.add(new UnsupportedWidget());
+                    list.add(new UnsupportedWidget(context));
                     break;
                 default:
                     skip(parser);
@@ -225,14 +225,14 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualVWidget, à la ligne " + startLine);
         }
-        DualVWidget dualV = new DualVWidget(list, this.context);
+        DualWidget dualV = new DualWidget(context, list, DualWidget.DualWidgetOrientation.VERTICAL);
         return dualV.cleanup();
     }
 
-    private ContainableWidget readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private OronosView readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualHWidget");
         int startLine = parser.getLineNumber();
-        List<ContainableWidget> list = new ArrayList<>();
+        List<OronosView> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -269,7 +269,7 @@ public class OronosXmlParser {
         if (list.size() != 2) {
             throw new UnsupportedContainerWidgetException("DualHWidget, à la ligne " + startLine);
         }
-        DualHWidget dualH = new DualHWidget(list, this.context);
+        DualWidget dualH = new DualWidget(context, list, DualWidget.DualWidgetOrientation.HORIZONTAL);
         return dualH.cleanup();
     }
 
@@ -281,7 +281,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new FindMe(this.context);
+        return new FindMe(context);
     }
 
     private Map readMap(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -292,7 +292,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new Map(this.context);
+        return new Map(context);
     }
 
     private ModuleStatus readModuleStatus(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -305,7 +305,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new ModuleStatus(nGrid, nColumns);
+        return new ModuleStatus(context, nGrid, nColumns);
     }
 
     private Plot readPlot(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -325,7 +325,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new Plot(plotName, unit, axis, list);
+        return new Plot(context, plotName, unit, axis, list);
     }
 
     private CAN readCAN(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -356,7 +356,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new UnsupportedWidget();
+        return new UnsupportedWidget(context);
     }
 
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {

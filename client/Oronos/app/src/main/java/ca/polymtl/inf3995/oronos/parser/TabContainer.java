@@ -17,17 +17,15 @@ import java.util.List;
  * Created by Felix on 15/févr./2018.
  */
 
-public class TabContainer extends AbstractWidgetContainer<Tab> implements ContainableWidget, CleanableWidget {
+public class TabContainer extends AbstractWidgetContainer<Tab> implements CleanableWidget {
 
-    private LinearLayout layout;
     private TabLayout tabLayout;
     private LinearLayout containerLayout;
 
-    TabContainer(List<Tab> list, Context context) {
-        super(list);
-        layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+    TabContainer(Context context, List<Tab> list) {
+        super(context, list);
+        setOrientation(LinearLayout.VERTICAL);
+        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
         tabLayout = new TabLayout(context);
         tabLayout.setLayoutParams(new TabLayout.LayoutParams(TabLayout.LayoutParams.MATCH_PARENT, TabLayout.LayoutParams.WRAP_CONTENT));
@@ -38,22 +36,22 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Contai
         containerLayout.setOrientation(LinearLayout.VERTICAL);
         containerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        layout.addView(tabLayout);
-        layout.addView(containerLayout);
+        addView(tabLayout);
+        addView(containerLayout);
     }
 
-    public void buildTabs(Context context) {
+    private void buildTabs() {
         for (Tab tab : list) {
             TabLayout.Tab vTab = tabLayout.newTab();
             vTab.setText(tab.getName());
             tabLayout.addTab(vTab);
         }
-        containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents().getView());
+        containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents());
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 containerLayout.removeAllViewsInLayout();
-                containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents().getView());
+                containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents());
             }
 
             @Override
@@ -68,7 +66,7 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Contai
     }
 
     @Override
-    public ContainableWidget cleanup() {
+    public OronosView cleanup() {
         List<Tab> toRemove = new ArrayList<>();
         for (Tab tab : list) {
             if (tab.getContents() == null || tab.getContents() instanceof UnsupportedWidget) {
@@ -81,12 +79,8 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Contai
         } else if (list.size() == 0) {
             return null;
         } else {
+            buildTabs();
             return this;
         }
-    }
-
-    @Override
-    public View getView() {
-        return layout;
     }
 }

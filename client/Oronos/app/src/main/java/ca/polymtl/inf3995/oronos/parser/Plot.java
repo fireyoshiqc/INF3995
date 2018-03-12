@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.Context;
 import android.view.View;
 
 import java.util.List;
@@ -8,13 +9,13 @@ import java.util.List;
  * Created by Felix on 15/févr./2018.
  */
 
-public class Plot extends AbstractCANContainer implements ContainableWidget {
+public class Plot extends AbstractWidgetContainer<CAN> {
     private final String name;
     private final String unit;
     private final String axis;
 
-    Plot(String name, String unit, String axis, List<CAN> list) {
-        super(list);
+    Plot(Context context, String name, String unit, String axis, List<CAN> list) {
+        super(context, list);
         this.name = name;
         this.unit = unit;
         this.axis = axis;
@@ -32,8 +33,4 @@ public class Plot extends AbstractCANContainer implements ContainableWidget {
         return axis;
     }
 
-    @Override
-    public View getView() {
-        return null;
-    }
 }

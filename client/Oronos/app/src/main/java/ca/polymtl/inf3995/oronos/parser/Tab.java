@@ -9,9 +9,9 @@ import android.view.View;
 
 public class Tab implements ContainableWidget {
     private final String name;
-    private final ContainableWidget contents;
+    private final OronosView contents;
 
-    Tab(String name, @Nullable ContainableWidget contents) {
+    Tab(String name, @Nullable OronosView contents) {
         this.name = name;
         this.contents = contents;
     }
@@ -20,12 +20,7 @@ public class Tab implements ContainableWidget {
         return name;
     }
 
-    public ContainableWidget getContents() {
+    public OronosView getContents() {
         return contents;
-    }
-
-    @Override
-    public View getView() {
-        return null;
     }
 }

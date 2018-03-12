@@ -5,5 +5,5 @@ package ca.polymtl.inf3995.oronos.parser;
  */
 
 public interface CleanableWidget {
-    ContainableWidget cleanup();
+    OronosView cleanup();
 }
