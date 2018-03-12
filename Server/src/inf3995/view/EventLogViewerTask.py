@@ -27,5 +27,7 @@ class EventLogViewerTask(AbstractTaskNode):
 	
 	def __show_new_events(self):
 		while self.__event_queue.has_new_data():
-			print(self.__event_queue.get())
+			event_str = self.__event_queue.get()
+			print(event_str)
+			self._produce_data(event_str)
 		sys.stdout.flush()

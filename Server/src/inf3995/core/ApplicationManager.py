@@ -17,6 +17,7 @@ from inf3995.core.DummyTaskNode import *
 from inf3995.settings.CANSidParser import CANSidParser
 from inf3995.settings.SettingsManager import *
 from inf3995.logging.DataLoggerTask import *
+from inf3995.logging.EventLoggerTask import *
 from inf3995.view.EventLogViewerTask import *
 
 
@@ -115,12 +116,14 @@ class ApplicationManager(object):
 		osc_tx_node = data_tx.OscTxTask()
 		data_logger_node = DataLoggerTask()
 		log_viewer_node = EventLogViewerTask()
+		event_logger_node = EventLoggerTask()
 		# TODO: Move to settings manager
 		CANSidParser()
 		
 		# TODO: Connect the nodes
 		osc_tx_node.connect_to_source(csv_reader_node)
 		data_logger_node.connect_to_source(csv_reader_node)
+		event_logger_node.connect_to_source(log_viewer_node)
 		
 		osc_sender = osc_tx_node.get_sender()
 		rest_server = rest_node.get_server_app()
@@ -134,6 +137,7 @@ class ApplicationManager(object):
 		self.__build_thread([osc_tx_node])
 		self.__build_thread([data_logger_node])
 		self.__build_thread([log_viewer_node])
+		self.__build_thread([event_logger_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):
 		worker = WorkerThread(max_freq)
