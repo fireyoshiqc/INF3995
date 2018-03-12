@@ -7,7 +7,7 @@ from inf3995.core.AbstractTaskNode import *
 
 class EventLoggerTask(AbstractTaskNode):
 	def __init__(self):
-		super(EventLoggerTask, self).__init__(True, 1024)
+		super(EventLoggerTask, self).__init__(True, 0)
 		self.__log_file = None
 	
 	def init(self):

@@ -16,24 +16,24 @@ class DummyTaskNode(AbstractTaskNode):
 		msg = "In the beginning, God created the heavens and the earth..."
 		# print(msg)
 		# sys.stdout.flush()
-		self.__event_logger.log_info(msg)
+		self.__event_logger.log_debug(msg)
 	
 	def on_first_run(self):
 		msg = "And Abram went up out of Egypt, he, and his wife..."
 		# print(msg)
 		# sys.stdout.flush()
-		self.__event_logger.log_info(msg)
+		self.__event_logger.log_debug(msg)
 	
 	def handle_data(self):
 		msg = "But the men of Sodom were wicked and sinners before the Lord exceedingly."
 		# print(msg)
 		# sys.stdout.flush()
-		self.__event_logger.log_info(msg)
+		self.__event_logger.log_debug(msg)
 	
 	def cleanup(self):
 		msg = "...Cain rose up against Abel his brother, and slew him."
 		# print(msg)
 		# sys.stdout.flush()
-		self.__event_logger.log_info(msg)
+		self.__event_logger.log_debug(msg)
 
 
