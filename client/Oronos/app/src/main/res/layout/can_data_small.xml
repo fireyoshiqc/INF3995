@@ -31,7 +31,7 @@
             android:layout_weight="1"
             android:text="ID"
             android:textAlignment="center"
-            android:textSize="10sp" />
+            android:textSize="8sp" />
 
     </LinearLayout>
 

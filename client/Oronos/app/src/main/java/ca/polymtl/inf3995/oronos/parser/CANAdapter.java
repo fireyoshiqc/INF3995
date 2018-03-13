@@ -20,16 +20,18 @@ public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
 
     private Context context;
     private List<CAN> canTags;
+    private final int maxLargeItems;
 
-    public CANAdapter(Context context, List<CAN> canTags) {
+    public CANAdapter(Context context, List<CAN> canTags, int maxLargeItems) {
         this.context = context;
         this.canTags = canTags;
+        this.maxLargeItems = maxLargeItems;
     }
 
     @Override
     public CANContainer onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = null;
-        if (this.getItemCount() > 9) {
+        if (this.getItemCount() > maxLargeItems) {
             itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.can_data_small, parent, false);
         } else {
             itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.can_data_large, parent, false);

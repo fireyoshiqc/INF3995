@@ -118,7 +118,7 @@ public class OronosXmlParser {
             String name = parser.getName();
             switch (name) {
                 case "DataDisplayer":
-                    contents = readDataDisplayer(parser);
+                    contents = readDataDisplayer(parser, DataDisplayer.DataLayout.FULL);
                     break;
                 case "DisplayLogWidget":
                     contents = readDisplayLogWidget(parser);
@@ -151,7 +151,7 @@ public class OronosXmlParser {
         return new Tab(tabName, contents);
     }
 
-    private DataDisplayer readDataDisplayer(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private DataDisplayer readDataDisplayer(XmlPullParser parser, DataDisplayer.DataLayout layout) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "DataDisplayer");
         List<CAN> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -165,7 +165,7 @@ public class OronosXmlParser {
                 skip(parser);
             }
         }
-        return new DataDisplayer(context, list);
+        return new DataDisplayer(context, list, layout);
     }
 
     private DisplayLogWidget readDisplayLogWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -196,7 +196,7 @@ public class OronosXmlParser {
             String name = parser.getName();
             switch (name) {
                 case "DataDisplayer":
-                    list.add(readDataDisplayer(parser));
+                    list.add(readDataDisplayer(parser, DataDisplayer.DataLayout.HORIZONTAL));
                     break;
                 case "DisplayLogWidget":
                     list.add(readDisplayLogWidget(parser));
@@ -240,7 +240,7 @@ public class OronosXmlParser {
             String name = parser.getName();
             switch (name) {
                 case "DataDisplayer":
-                    list.add(readDataDisplayer(parser));
+                    list.add(readDataDisplayer(parser, DataDisplayer.DataLayout.VERTICAL));
                     break;
                 case "DisplayLogWidget":
                     list.add(readDisplayLogWidget(parser));
