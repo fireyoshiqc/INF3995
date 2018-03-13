@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import collections
+import threading
 
 import cherrypy
 
@@ -23,6 +24,7 @@ class RestServer(object):
 	
 	def __init__(self):
 		self.__sessions = {}
+		self.__sessions_mutex = threading.Lock()
 		self.__skip_auth = inf3995.core.ProgramOptions.get_value("skip-auth")
 		self.__auth_manager = AuthenticationManager()
 		settings = inf3995.core.ApplicationManager().get_settings_manager().settings
@@ -31,7 +33,10 @@ class RestServer(object):
 		self.__remove_ip_callbacks = []
 	
 	def get_all_sessions(self):
-		return self.__sessions
+		self.__sessions_mutex.acquire()
+		result = dict(self.__sessions)
+		self.__sessions_mutex.release()
+		return result
 	
 	def register_ip_callbacks(self, add_ip_fn, remove_ip_fn):
 		if add_ip_fn is not None:
@@ -190,6 +195,8 @@ class RestServer(object):
 		
 		data = request.json
 		if self._is_valid_login_info(data):
+			self.__sessions_mutex.acquire()
+			
 			cherrypy.session["logged"] = True
 			self.__sessions[cherrypy.session.id] = {}
 			session = self.__sessions[cherrypy.session.id]
@@ -201,6 +208,8 @@ class RestServer(object):
 			
 			for fn in self.__add_ip_callbacks:
 				fn(session["ip"])
+			
+			self.__sessions_mutex.release()
 		else:
 			RestServer._raise_http_error(401)
 	
