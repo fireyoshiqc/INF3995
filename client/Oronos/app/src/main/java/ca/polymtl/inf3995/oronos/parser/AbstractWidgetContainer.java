@@ -1,7 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
-import android.widget.LinearLayout;
 
 import java.util.List;
 

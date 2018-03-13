@@ -1,13 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-import android.app.Activity;
 import android.content.Context;
-import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -27,12 +21,12 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
         setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        tabLayout = new TabLayout(context);
+        tabLayout = new TabLayout(getContext());
         tabLayout.setLayoutParams(new TabLayout.LayoutParams(TabLayout.LayoutParams.MATCH_PARENT, TabLayout.LayoutParams.WRAP_CONTENT));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
-        containerLayout = new LinearLayout(context);
+        containerLayout = new LinearLayout(getContext());
         containerLayout.setOrientation(LinearLayout.VERTICAL);
         containerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
@@ -62,7 +56,8 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
 
-            }});
+            }
+        });
     }
 
     @Override

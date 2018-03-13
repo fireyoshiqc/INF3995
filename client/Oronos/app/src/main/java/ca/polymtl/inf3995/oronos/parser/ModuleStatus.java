@@ -1,7 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
-import android.view.View;
 
 /**
  * Created by Felix on 15/févr./2018.

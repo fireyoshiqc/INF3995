@@ -12,10 +12,6 @@ import java.util.List;
 
 public class DualWidget extends AbstractWidgetContainer<OronosView> implements CleanableWidget {
 
-    enum DualWidgetOrientation {
-        HORIZONTAL, VERTICAL
-    }
-
     DualWidget(Context context, List<OronosView> list, DualWidgetOrientation orientation) {
         super(context, list);
         switch (orientation) {
@@ -53,5 +49,9 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
             buildContents();
             return this;
         }
+    }
+
+    enum DualWidgetOrientation {
+        HORIZONTAL, VERTICAL
     }
 }

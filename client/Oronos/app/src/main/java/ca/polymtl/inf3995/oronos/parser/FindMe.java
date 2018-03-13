@@ -3,21 +3,18 @@ package ca.polymtl.inf3995.oronos.parser;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import ca.polymtl.inf3995.oronos.PermissionsUtil;
-import ca.polymtl.inf3995.oronos.R;
 import timber.log.Timber;
 
 /**
@@ -26,15 +23,9 @@ import timber.log.Timber;
 
 public class FindMe extends OronosView {
 
+    public static final int GPS_PERMISSION = 1;
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
     private final float LOCATION_REFRESH_DISTANCE = 1.0f; // 1 meter refresh distance
-    public static final int GPS_PERMISSION = 1;
-
-    private LocationManager locationManager;
-
-    private TextView status;
-    private Button permsButton;
-
     private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
@@ -57,7 +48,9 @@ public class FindMe extends OronosView {
 
         }
     };
-
+    private LocationManager locationManager;
+    private TextView status;
+    private Button permsButton;
 
 
     public FindMe(Context context) {

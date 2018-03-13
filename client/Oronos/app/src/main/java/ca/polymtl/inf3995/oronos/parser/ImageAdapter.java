@@ -2,25 +2,40 @@ package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v7.widget.CardView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.support.v7.widget.CardView;
+
 import ca.polymtl.inf3995.oronos.R;
 
 
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
+    // references to our images
+    private Integer[] mThumbIds = {
+            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
+            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
+            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
+            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
+            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
+            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
+            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
+            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
+            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
+            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
+            R.drawable.ic_sample_6, R.drawable.ic_sample_7
+    };
 
     /**
      * Adapter that can display small images in the Grid View for the MainActivity menu.
-     *
+     * <p>
      * Eventually, we will be able to adapt this to take View instead of ImageView, and thus display
      * miniatures of all the data received by the client.
      *
-     * @param c      Context of the app.
+     * @param c Context of the app.
      */
     public ImageAdapter(Context c) {
         mContext = c;
@@ -60,22 +75,7 @@ public class ImageAdapter extends BaseAdapter {
             cardView = (CardView) convertView;
         }
 
-        ((ImageView)cardView.getChildAt(0)).setImageResource(mThumbIds[position]);
+        ((ImageView) cardView.getChildAt(0)).setImageResource(mThumbIds[position]);
         return cardView;
     }
-
-    // references to our images
-    private Integer[] mThumbIds = {
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
-            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
-            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7
-    };
 }

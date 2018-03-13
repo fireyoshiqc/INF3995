@@ -1,7 +1,6 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.content.Context;
-import android.view.View;
 
 import java.util.List;
 
