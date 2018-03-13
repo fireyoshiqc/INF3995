@@ -117,9 +117,8 @@ public class MainActivity extends DrawerActivity {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
 
-            TabContainer tabtest = (TabContainer) rocket.getList().get(0);
             viewsContainer = new ArrayList<>();
-            viewsContainer.add(tabtest);
+            viewsContainer.addAll(rocket.getList());
 
             FindMe test = new FindMe(this);
             viewsContainer.add(test);
