@@ -116,7 +116,7 @@ class ApplicationManager(object):
 		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
 		osc_tx_node = data_tx.OscTxTask()
 		data_logger_node = DataLoggerTask()
-		users_viewer_node = UsersViewerTask()
+		users_viewer_node = UsersViewerTask(rest_node.get_server_app())
 		log_viewer_node = EventLogViewerTask()
 		event_logger_node = EventLoggerTask()
 		# TODO: Move to settings manager
