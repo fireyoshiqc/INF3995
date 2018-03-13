@@ -1,6 +1,5 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +17,6 @@ import java.util.List;
 /**
  * Created by Felix on 15/févr./2018.
  */
-
 
 public class DataDisplayer extends AbstractWidgetContainer<CAN> implements ContainableWidget {
 

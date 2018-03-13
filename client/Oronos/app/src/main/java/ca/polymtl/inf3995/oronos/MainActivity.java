@@ -24,7 +24,6 @@ import ca.polymtl.inf3995.oronos.parser.FindMe;
 import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.parser.Rocket;
-import ca.polymtl.inf3995.oronos.parser.Tab;
 import ca.polymtl.inf3995.oronos.parser.TabContainer;
 import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;
 import timber.log.Timber;
@@ -172,7 +171,7 @@ public class MainActivity extends DrawerActivity {
                     // TODO: Use some kind of observer pattern to notify FindMe and Map elements
                     for (View view : viewsContainer) {
                         if (view instanceof FindMe) {
-                            ((FindMe)view).grantPermissions();
+                            ((FindMe) view).grantPermissions();
                         }
                     }
 
@@ -184,7 +183,7 @@ public class MainActivity extends DrawerActivity {
                     // TODO: Use some kind of observer pattern to notify FindMe and Map elements
                     for (View view : viewsContainer) {
                         if (view instanceof FindMe) {
-                            ((FindMe)view).showPermissionWarning();
+                            ((FindMe) view).showPermissionWarning();
                         }
                     }
                 }
