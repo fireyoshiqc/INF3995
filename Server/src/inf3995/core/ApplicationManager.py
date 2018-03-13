@@ -138,7 +138,7 @@ class ApplicationManager(object):
 		self.__build_thread([csv_reader_node])
 		self.__build_thread([osc_tx_node])
 		self.__build_thread([data_logger_node])
-		self.__build_thread([log_viewer_node, users_viewer_node])
+		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
 		self.__build_thread([event_logger_node])
 	
 	def __build_thread(self, task_nodes, max_freq = None):

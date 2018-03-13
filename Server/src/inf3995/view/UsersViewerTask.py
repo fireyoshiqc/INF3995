@@ -52,15 +52,15 @@ class UsersViewerTask(AbstractTaskNode):
 	def handle_data(self):
 		try:
 			msg_str = " --- Connected Clients --- " + "\n\n"
-			for id, session in self.__rest_server.get_all_sessions().items():
+			sessions = self.__rest_server.get_all_sessions()
+			for id, session in sessions.items():
 				msg_str += session["user"] + "\n"
 				msg_str += "* Session ID  : " + str(id) + "\n" + \
 				           "* IP address  : " + session["ip"] + "\n" + \
-				           "* Device type : " + session["device"] + "\n"
+				           "* Device type : " + session["device"] + "\n\n"
 			self.__pipe.write(bytes(msg_str, "utf-8"))
 		except Exception as e:
 			self.__event_logger.log_error(str(e))
-		time.sleep(0.5)
 	
 	def cleanup(self):
 		self.__pipe.close()
