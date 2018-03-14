@@ -96,13 +96,6 @@ public class MainActivity extends DrawerActivity {
         Timber.v("Main Activity : Creation Done.");
     }
 
-    public void graphs(View view){
-        Intent intent = new Intent(this, SimpleXYPlotActivity.class);
-        startActivity(intent);
-        System.out.println("ANDROIDDEVICEMODEL " + Build.MODEL);
-        System.out.println("ANDROIDDEVICEPRODUCT " + Build.PRODUCT);
-    }
-
     /**
      * Utilities for the client
      */
@@ -174,6 +167,14 @@ public class MainActivity extends DrawerActivity {
 
             viewsContainer = new ArrayList<>();
             viewsContainer.addAll(rocket.getList());
+            //Afficher seulement 1 tab container
+            //TabContainer tabtest = (TabContainer) rocket.getList().get(0);
+            viewsContainer = new ArrayList<>();
+            //viewsContainer.add(tabtest);
+
+            //Afficher tout
+            viewsContainer.addAll(rocket.getList());
+
 
             FindMe test = new FindMe(this);
             viewsContainer.add(test);
