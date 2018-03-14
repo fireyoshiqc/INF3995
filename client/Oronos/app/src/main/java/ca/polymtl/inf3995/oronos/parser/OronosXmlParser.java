@@ -37,7 +37,7 @@ public class OronosXmlParser {
     }
 
     private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
-        List<ContainableWidget> entries = new ArrayList<>();
+        List<OronosView> entries = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, ns, "Rocket");
         String name = parser.getAttributeValue(null, "name");
         String id = parser.getAttributeValue(null, "id");
@@ -56,9 +56,9 @@ public class OronosXmlParser {
         return new Rocket(context, name, id, entries);
     }
 
-    private List<ContainableWidget> readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private List<OronosView> readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "GridContainer");
-        List<ContainableWidget> list = new ArrayList<>();
+        List<OronosView> list = new ArrayList<>();
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -73,9 +73,9 @@ public class OronosXmlParser {
         return list;
     }
 
-    private ContainableWidget readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    private OronosView readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Grid");
-        ContainableWidget contents = null;
+        OronosView contents = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;

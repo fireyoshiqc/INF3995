@@ -73,13 +73,6 @@ public class MainActivity extends DrawerActivity {
         Timber.v("Main Activity : Creation Done.");
     }
 
-    public void graphs(View view){
-        Intent intent = new Intent(this, SimpleXYPlotActivity.class);
-        startActivity(intent);
-        System.out.println("ANDROIDDEVICEMODEL " + Build.MODEL);
-        System.out.println("ANDROIDDEVICEPRODUCT " + Build.PRODUCT);
-    }
-
     /**
      * Utilities for the client
      */
@@ -130,9 +123,15 @@ public class MainActivity extends DrawerActivity {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
 
-            TabContainer tabtest = (TabContainer) rocket.getList().get(0);
+            //Afficher seulement 1 tab container
+            //TabContainer tabtest = (TabContainer) rocket.getList().get(0);
             viewsContainer = new ArrayList<>();
-            viewsContainer.add(tabtest);
+            //viewsContainer.add(tabtest);
+
+            //Afficher tout
+            viewsContainer.addAll(rocket.getList());
+
+
 
             FindMe test = new FindMe(this);
             viewsContainer.add(test);
