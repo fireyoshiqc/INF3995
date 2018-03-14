@@ -3,6 +3,10 @@ package ca.polymtl.inf3995.oronos.parser;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import ca.polymtl.inf3995.oronos.PermissionsUtil;
 import timber.log.Timber;
@@ -21,42 +26,74 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class FindMe extends OronosView {
+public class FindMe extends OronosView implements SensorEventListener {
 
     public static final int GPS_PERMISSION = 1;
+    private final SensorManager sensorManager;
+    private final Sensor accelerometer;
+    private final Sensor magnetometer;
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
-    private final float LOCATION_REFRESH_DISTANCE = 1.0f; // 1 meter refresh distance
-    private final LocationListener locationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-
-
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };
+    private final float LOCATION_REFRESH_DISTANCE = 0.0f; // 0 meter refresh distance
+    private final LocationListener locationListener;
     private LocationManager locationManager;
     private TextView status;
     private Button permsButton;
+    private final float[] accelerometerReading = new float[3];
+    private final float[] magnetometerReading = new float[3];
+    private final float[] rotationMatrix = new float[9];
+    private final float[] orientationAngles = new float[3];
 
 
     public FindMe(Context context) {
         super(context);
-        buildView();
+        sensorManager = (SensorManager)getContext().getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        //TODO: Error checking for sensors
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateOrientationAngles();
+                Location fakeLocation = new Location(location);
+                fakeLocation.setLatitude(45.504422);
+                fakeLocation.setLongitude(-73.612883);
+                fakeLocation.setAltitude(0.0);
+                float[] xDist = new float[1];
+                float[] yDist = new float[1];
+                float zDist;
+                Location.distanceBetween(location.getLatitude(),
+                        location.getLongitude(), fakeLocation.getLatitude(), location.getLongitude(), xDist);
+                Location.distanceBetween(location.getLatitude(),
+                        location.getLongitude(), location.getLatitude(), fakeLocation.getLongitude(), yDist);
+                zDist = (float)(fakeLocation.getAltitude() - location.getAltitude());
+                status.setText("Latitude: " + location.getLatitude() + "\n" +
+                        "Longitude: " + location.getLongitude() + "\n" +
+                        "Altitude: " + location.getAltitude() + "\n" +
+                        "Accuracy: " + location.getAccuracy() + "\n" +
+                        "Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2] + "\n" +
+                        "DistanceFromPoly (test): " + location.distanceTo(fakeLocation)+"\n" +
+                        "XFromPoly (test):" + xDist[0]+"\n" +
+                        "YFromPoly (test):" + yDist[0]+"\n" +
+                        "ZFromPoly (test):" + zDist);
 
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        buildView();
     }
 
     private void buildView() {
@@ -78,35 +115,89 @@ public class FindMe extends OronosView {
             addView(permsButton);
 
         } else {
-            grantPermissions();
+            grantPermissions(true);
         }
     }
 
-    public void grantPermissions() {
+    // Called when the FindMe widget comes on screen, should enable sensors
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+            enableLocationUpdates();
+        }
+        registerSensors();
+        Toast.makeText(getContext(), "FindMe Attached to Window. Location enabled if permission is given.", Toast.LENGTH_LONG).show();
+    }
+
+    // Called when the FindMe widget goes off screen, should disable sensors
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopLocationUpdates();
+        unregisterSensors();
+        Toast.makeText(getContext(), "FindMe Detached from Window. Location disabled.", Toast.LENGTH_LONG).show();
+    }
+
+    public void grantPermissions(boolean calledFromInstance) {
         removeViewInLayout(permsButton);
         status.setText("PERMS GRANTED");
-        setupLocationManager();
+        if (locationManager == null) {
+            locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        }
+        if (locationManager != null && !calledFromInstance) {
+            enableLocationUpdates();
+        }
     }
 
     public void showPermissionWarning() {
         Snackbar.make(this, "Location permissions are required for this widget to function properly.", Snackbar.LENGTH_LONG).show();
     }
 
-    private void setupLocationManager() {
-        if (locationManager == null) {
-            locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-            if (locationManager != null) {
-                try {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
-                } catch (SecurityException e) {
-                    Timber.e("FindMe: Error accessing location permissions.");
-                    buildView();
-                }
-            } else {
+    private void registerSensors() {
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void unregisterSensors() {
+        sensorManager.unregisterListener(this);
+    }
+
+    private void enableLocationUpdates() {
+        if (locationManager != null) {
+            try {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
+            } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
                 buildView();
             }
         }
     }
 
+    private void stopLocationUpdates() {
+        if (locationManager != null && locationListener != null) {
+            locationManager.removeUpdates(locationListener);
+        }
+    }
+
+    // https://developer.android.com/guide/topics/sensors/sensors_position.html
+    private void updateOrientationAngles() {
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        SensorManager.getOrientation(rotationMatrix, orientationAngles);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if (sensorEvent.sensor.equals(accelerometer)) {
+            System.arraycopy(sensorEvent.values, 0, accelerometerReading, 0, accelerometerReading.length);
+        }
+        if (sensorEvent.sensor.equals(magnetometer)) {
+            System.arraycopy(sensorEvent.values, 0, magnetometerReading, 0, magnetometerReading.length);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+    }
 }

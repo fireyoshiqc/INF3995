@@ -176,7 +176,7 @@ public class MainActivity extends DrawerActivity {
                     // TODO: Use some kind of observer pattern to notify FindMe and Map elements
                     for (View view : viewsContainer) {
                         if (view instanceof FindMe) {
-                            ((FindMe)view).grantPermissions();
+                            ((FindMe)view).grantPermissions(false);
                         }
                     }
 
