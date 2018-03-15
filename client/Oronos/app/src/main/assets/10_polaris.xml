@@ -79,7 +79,7 @@
 				</Tab>
 				<Tab name="Data Logs"><DisplayLogWidget/></Tab>
 				<Tab name="Plots">
-                    <Plot name="" unit="g" axis="Acceleration">
+                    <Plot name="Vectorial Acceleration" unit="g" axis="Acceleration">
 						<CAN id="ICM_ACC_X"/>
 						<CAN id="ICM_ACC_Y"/>
 						<CAN id="ICM_ACC_Z"/>
