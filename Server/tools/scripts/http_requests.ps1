@@ -39,7 +39,7 @@ function send_post_users_login ( [string] $user, [string] $pass = "" )
 		Write-Warning "Credentials not found"
 		$login_info = @{"username" = $user; "password" = $pass}
 	}
-	$login_info["device"] = "pc"
+	$login_info["device"] = "PC"
 	$json_str = ConvertTo-Json $login_info
 	
 	$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body $json_str -SessionVariable session -UseBasicParsing

@@ -4,13 +4,17 @@
 from inf3995.core.AbstractTaskNode import *
 from inf3995.data_tx.OscSender import *
 from inf3995.core.ProgramOptions import *
+import inf3995.core
 
 
 class OscTxTask(AbstractTaskNode):
 	def __init__(self):
-		super(OscTxTask, self).__init__(False, 1024)
+		super(OscTxTask, self).__init__(True, 1024)
+		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		udp_port = ProgramOptions.get_value("server")
-		self.__sender = OscSender("/inf3995-03/flight-data", udp_port)
+		self.__sender = OscSender("/inf3995-03/can-data",
+		                          "/inf3995-03/modules",
+		                          udp_port)
 	
 	def init(self):
 		pass
@@ -24,7 +28,7 @@ class OscTxTask(AbstractTaskNode):
 		self.__sender.send_message()
 	
 	def cleanup(self):
-		pass
+		self.__sender = None
 	
 	def get_sender(self):
 		return self.__sender

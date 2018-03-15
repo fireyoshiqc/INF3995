@@ -54,6 +54,7 @@ class ApplicationManager(object):
 		if len(argv) == 1:
 			# TODO: Show GUI to enter the options visually
 			print("And God said, Let there be a GUI: and there was a GUI (someday maybe)." "\n")
+			sys.stdout.flush()
 		
 		self.__quit = False
 		self.__exit_code = 0
@@ -64,9 +65,11 @@ class ApplicationManager(object):
 		
 		if ProgramOptions.get_value("run-tests"):
 			print("This will run the test suite instead of the server." "\n")
+			sys.stdout.flush()
 			return
 		elif ProgramOptions.get_value("edit-passwords"):
 			print("This will run the interactive password editor." "\n")
+			sys.stdout.flush()
 			return
 		
 		self.__setup_task_nodes()
@@ -76,6 +79,10 @@ class ApplicationManager(object):
 			return self.__run_tests()
 		elif ProgramOptions.get_value("edit-passwords"):
 			return self.__run_password_editor()
+		
+		# No need to start the threads if exit is already signalled
+		if self.__quit:
+			return self.__exit_code
 		
 		self.__start_threads()
 		
@@ -131,7 +138,7 @@ class ApplicationManager(object):
 			osc_sender = osc_tx_node.get_sender()
 			rest_server = rest_node.get_server_app()
 			rest_server.register_ip_callbacks(osc_sender.add_socket,
-												osc_sender.remove_socket)
+			                                  osc_sender.remove_socket)
 			tx_node = osc_tx_node
 		elif _ConnectorType[connector_type] == _ConnectorType.SIMULATION:
 			rx_node = data_rx.CSVReaderTask(log_file=connector_file)
@@ -144,8 +151,8 @@ class ApplicationManager(object):
 		else:
 			# This shouldn't happen because the inputs are filtered
 			# in ProgramOptions on startup
-			print(__name__ + ': Unrecognized connector type')
-			ApplicationManager().exit(0)
+			self.__event_log.log_error(__name__ + ": Unrecognized connector type")
+			ApplicationManager().exit(1)
 
 		# TODO: Move to settings manager
 		CANSidParser()
