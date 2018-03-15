@@ -24,13 +24,17 @@ class OscSender(object):
 		                      self.__msg_builders[1].build_msg()]
 	
 	def add_socket(self, ipv4_address):
-		if ipv4_address not in self.__targets:
-			self.__targets[ipv4_address] = None
+		if ipv4_address in self.__targets:
+			self.__targets[ipv4_address] += 1
+		else:
+			self.__targets[ipv4_address] = 1
 			self.__event_logger.log_info("Added UDP socket : " + ipv4_address)
 	
 	def remove_socket(self, ipv4_address):
-		del self.__targets[ipv4_address]
-		self.__event_logger.log_info("Removed socket : " + ipv4_address)
+		if ipv4_address in self.__targets:
+			self.__targets[ipv4_address] -= 1
+			if self.__targets[ipv4_address] == 0:
+				del self.__targets[ipv4_address]
 	
 	def update_value(self, can_rx_data_elem):
 		for i in range(0, len(self.__msg_builders)):
