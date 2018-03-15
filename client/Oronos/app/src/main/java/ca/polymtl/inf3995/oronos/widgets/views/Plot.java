@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -40,9 +41,16 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     private LinearLayout containerLayout;
     private LinearLayout horizontalLayout;
+    private LinearLayout timeSelectionLayout;
     private TextView titleView;
     private TextView axisView;
+    private TextView timeSecondsView;
     private LineChart chart;
+
+    private SeekBar slider;
+
+
+
 
     //Class containing information about a certain data from the graph, allowing to update it
     private class Data {
@@ -61,6 +69,37 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     }
 
+
+    private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
+        private int timeSelected;
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            timeSelected = i + 60;
+            int minutesShow = timeSelected/60;
+            int secondsShow = timeSelected%60;
+            String appendSecondStr = " seconds";
+            if (secondsShow < 10){
+                appendSecondStr = "   seconds";
+            }
+            timeSecondsView.setText(Integer.toString(minutesShow) + " minutes " + Integer.toString(secondsShow) + appendSecondStr);
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            seconds = timeSelected;
+            initializeDataList();
+            generatePlot();
+        }
+    }
+
+
+
     private void initializeDataList(){
         this.dataList = new ArrayList<Data>();
         int[] colors = {Color.RED,Color.GREEN,Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
@@ -68,7 +107,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
         for (int can = 0; can < canList.size(); can++){
             List<Entry> entries = new ArrayList<Entry>();
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < seconds*5; i++) {
                 // turn data into Entry objects
                 entries.add(new Entry(i+can, i));
             }
@@ -79,24 +118,41 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     private void initializeViews(){
         createTitle();
         createAxis();
+        createSlider();
         this.chart.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
         this.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        //main container
         this.containerLayout = new LinearLayout(context);
         this.containerLayout.setOrientation(LinearLayout.VERTICAL);
         this.containerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        this.containerLayout.addView(this.titleView);
 
+        //horizontal layout with axis and chart
         this.horizontalLayout = new LinearLayout(context);
         this.horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
-        this.horizontalLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        LayoutParams horizontalLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        horizontalLayoutParams.weight = 20;
+        this.horizontalLayout.setLayoutParams(horizontalLayoutParams);
 
         this.horizontalLayout.addView(this.axisView);
         this.horizontalLayout.addView(this.chart);
 
+        //second horizontal layout for time selection
+        this.timeSelectionLayout = new LinearLayout(context);
+        this.timeSelectionLayout.setOrientation(LinearLayout.HORIZONTAL);
+        LayoutParams timeSelectionLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        timeSelectionLayoutParams.weight = 1;
+        this.timeSelectionLayout.setLayoutParams(timeSelectionLayoutParams);
+
+        this.timeSelectionLayout.addView(slider);
+        this.timeSelectionLayout.addView(timeSecondsView);
+
+        this.containerLayout.addView(this.titleView);
         this.containerLayout.addView(this.horizontalLayout);
+        this.containerLayout.addView(this.timeSelectionLayout);
+
         addView(this.containerLayout);
     }
 
@@ -109,6 +165,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.canList = list;
         this.context = context;
         this.seconds = 60;
+        this.chart = new LineChart(context);
 
         initializeDataList();
 
@@ -137,7 +194,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
         this.titleView = new TextView(context);
 
-        if(name == ""){
+        if(name.equals("")){
             this.titleView.setText("this graph has no name");
         } else {
             this.titleView.setText(name);
@@ -150,9 +207,29 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     }
 
+    private void createSlider(){
+        timeSecondsView = new TextView(context);
+        timeSecondsView.setText(1 + " minute");
+        LayoutParams timeViewParams = new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT
+        );
+        timeViewParams.weight = 4;
+        timeSecondsView.setLayoutParams(timeViewParams);
+        timeSecondsView.setGravity(Gravity.CENTER_VERTICAL);
+
+        this.slider = new SeekBar(context);
+        slider.setMax(240);
+        SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SliderChangeListener();
+        slider.setOnSeekBarChangeListener(seekBarChangeListener);
+        LayoutParams sliderLayoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        sliderLayoutParams.weight = 1;
+        slider.setLayoutParams(sliderLayoutParams);
+    }
+
     private void generatePlot() {
 
-        this.chart = new LineChart(context);
+
 
         LineData lineData = new LineData();
         List<ILineDataSet> lines = new ArrayList<ILineDataSet> ();
