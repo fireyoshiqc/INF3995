@@ -19,6 +19,8 @@ class SecondConsole(object):
 	@staticmethod
 	def run():
 		pipe = SimpleNamedPipeClient(PIPE_NAME, PipeMode.READER)
+		print("--- Connected Clients ---" "\n")
+		sys.stdout.flush()
 		
 		while True:
 			msg = pipe.read()
@@ -36,6 +38,7 @@ class SecondConsole(object):
 			else:
 				os.system("clear")
 			
+			print("--- Connected Clients ---" "\n")
 			print(msg.decode("utf-8"))
 			sys.stdout.flush()
 
