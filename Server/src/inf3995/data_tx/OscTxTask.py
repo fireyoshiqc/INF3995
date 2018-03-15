@@ -23,8 +23,9 @@ class OscTxTask(AbstractTaskNode):
 		pass
 	
 	def handle_data(self):
-		data = self._get_source_data()
-		self.__sender.update_value(data)
+		while self._has_new_data():
+			data = self._get_source_data()
+			self.__sender.update_value(data)
 		self.__sender.send_message()
 	
 	def cleanup(self):

@@ -166,7 +166,7 @@ class ApplicationManager(object):
 		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
 		self.__build_thread([rx_node])
-		self.__build_thread([tx_node])
+		self.__build_thread([tx_node], 30.0)
 		self.__build_thread([data_logger_node])
 		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
 		self.__build_thread([event_logger_node])
