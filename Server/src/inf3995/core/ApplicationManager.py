@@ -6,6 +6,7 @@ import time
 import sys
 import keyboard
 import unittest
+from enum import Enum
 
 import inf3995.rest as rest
 import inf3995.data_rx as data_rx
@@ -21,6 +22,9 @@ from inf3995.logging.EventLoggerTask import *
 from inf3995.view.EventLogViewerTask import *
 from inf3995.view.UsersViewerTask import *
 
+class _ConnectorType(Enum):
+	SERIAL = 1  # Start at 1 because 0 is False in a boolean sense
+	SIMULATION = 2
 
 class ApplicationManager(object):
 	__instance = None
@@ -111,32 +115,51 @@ class ApplicationManager(object):
 		# TODO: Build the task nodes
 		dummy_node = DummyTaskNode()
 		rest_node = rest.RestHandlerTask()
-		# TODO: Change so that server starts based on connector-type
-		connector_file = ProgramOptions.get_value('connector-file')
-		csv_reader_node = data_rx.CSVReaderTask(log_file=connector_file)
-		osc_tx_node = data_tx.OscTxTask()
 		data_logger_node = DataLoggerTask()
 		users_viewer_node = UsersViewerTask(rest_node.get_server_app())
 		log_viewer_node = EventLogViewerTask()
 		event_logger_node = EventLoggerTask()
+
+		baudrate = ProgramOptions.get_value('baudrate')
+		connector_type = ProgramOptions.get_value('connector-type').upper()
+		connector_file = ProgramOptions.get_value('connector-file')
+		# TODO: Figure out a cleaner way to do this to avoid code repetition
+		if _ConnectorType[connector_type] == _ConnectorType.SERIAL:
+			rx_node = data_rx.USBReaderTask(serial_port=connector_file,
+											baudrate=baudrate)
+			osc_tx_node = data_tx.OscTxTask()
+			osc_sender = osc_tx_node.get_sender()
+			rest_server = rest_node.get_server_app()
+			rest_server.register_ip_callbacks(osc_sender.add_socket,
+												osc_sender.remove_socket)
+			tx_node = osc_tx_node
+		elif _ConnectorType[connector_type] == _ConnectorType.SIMULATION:
+			rx_node = data_rx.CSVReaderTask(log_file=connector_file)
+			osc_tx_node = data_tx.OscTxTask()
+			osc_sender = osc_tx_node.get_sender()
+			rest_server = rest_node.get_server_app()
+			rest_server.register_ip_callbacks(osc_sender.add_socket,
+												osc_sender.remove_socket)
+			tx_node = osc_tx_node
+		else:
+			# This shouldn't happen because the inputs are filtered
+			# in ProgramOptions on startup
+			print(__name__ + ': Unrecognized connector type')
+			ApplicationManager().exit(0)
+
 		# TODO: Move to settings manager
 		CANSidParser()
 		
 		# TODO: Connect the nodes
-		osc_tx_node.connect_to_source(csv_reader_node)
-		data_logger_node.connect_to_source(csv_reader_node)
+		tx_node.connect_to_source(rx_node)
+		data_logger_node.connect_to_source(rx_node)
 		event_logger_node.connect_to_source(log_viewer_node)
-		
-		osc_sender = osc_tx_node.get_sender()
-		rest_server = rest_node.get_server_app()
-		rest_server.register_ip_callbacks(osc_sender.add_socket,
-		                                  osc_sender.remove_socket)
-		
+
 		# TODO: Build the worker threads
 		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
-		self.__build_thread([csv_reader_node])
-		self.__build_thread([osc_tx_node])
+		self.__build_thread([rx_node])
+		self.__build_thread([tx_node])
 		self.__build_thread([data_logger_node])
 		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
 		self.__build_thread([event_logger_node])
