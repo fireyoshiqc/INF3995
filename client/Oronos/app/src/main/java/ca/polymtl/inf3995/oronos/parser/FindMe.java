@@ -16,11 +16,10 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -48,13 +47,13 @@ public class FindMe extends OronosView implements SensorEventListener {
     private final float[] orientationAngles = new float[3];
     private final CoordinatorLayout coordinator;
     private final LinearLayout content;
-    //private final GLSurfaceView renderSurface;
     private final WebView threeView;
+    private final float[] unitDistance = {1, 0, 0};
+    private final float[] arrowVector = {0, 0, 0};
     private Timer sensorUpdater;
     private LocationManager locationManager;
     private TextView locationText;
     private TextView sensorText;
-    private Button permsButton;
     private Snackbar warningBar;
 
 
@@ -62,10 +61,10 @@ public class FindMe extends OronosView implements SensorEventListener {
         super(context);
         coordinator = new CoordinatorLayout(getContext());
         content = new LinearLayout(getContext());
-        //renderSurface = new GLSurfaceView(getContext());
         threeView = new WebView(getContext());
         threeView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         threeView.getSettings().setJavaScriptEnabled(true);
+        threeView.addJavascriptInterface(this, "android");
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -93,6 +92,9 @@ public class FindMe extends OronosView implements SensorEventListener {
                         "XFromPoly (test):" + xDist[0] + "\n" +
                         "YFromPoly (test):" + yDist[0] + "\n" +
                         "ZFromPoly (test):" + zDist);
+                unitDistance[0] = (float) (xDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
+                unitDistance[1] = (float) (yDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
+                unitDistance[2] = (float) (zDist / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
             }
 
             @Override
@@ -121,20 +123,11 @@ public class FindMe extends OronosView implements SensorEventListener {
         content.addView(locationText);
         sensorText = new TextView(getContext());
         content.addView(sensorText);
-        //setupRenderSurface();
-        //content.addView(renderSurface);
         content.addView(threeView);
         coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         coordinator.addView(content);
         addView(coordinator);
     }
-
-    /*
-    private void setupRenderSurface() {
-        renderSurface.setRenderer(new ArrowRenderer());
-        renderSurface.onPause();
-    }
-    */
 
     private void setupWebGLRenderer() {
         threeView.loadUrl("file:///android_asset/html/findme_renderer.html");
@@ -148,6 +141,7 @@ public class FindMe extends OronosView implements SensorEventListener {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        flushWebGLRenderer();
         if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
             warningBar = Snackbar.make(coordinator, "GPS Permissions are required for using this tag.", Snackbar.LENGTH_INDEFINITE);
             warningBar.setAction("ENABLE", new OnClickListener() {
@@ -162,12 +156,10 @@ public class FindMe extends OronosView implements SensorEventListener {
 
         if (PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
             enableLocationUpdates();
+            setupWebGLRenderer();
         }
         registerSensors();
         startSensorTask();
-        setupWebGLRenderer();
-        //renderSurface.onResume();
-        Toast.makeText(getContext(), "FindMe Attached to Window. Location enabled if permission is given.", Toast.LENGTH_LONG).show();
     }
 
     // Called when the FindMe widget goes off screen, should disable sensors
@@ -178,8 +170,6 @@ public class FindMe extends OronosView implements SensorEventListener {
         stopLocationUpdates();
         unregisterSensors();
         flushWebGLRenderer();
-        //renderSurface.onPause();
-        Toast.makeText(getContext(), "FindMe Detached from Window. Location disabled.", Toast.LENGTH_LONG).show();
     }
 
     private void startSensorTask() {
@@ -196,7 +186,7 @@ public class FindMe extends OronosView implements SensorEventListener {
 
             }
         };
-        sensorUpdater.scheduleAtFixedRate(sensorTask, 0, 500);
+        sensorUpdater.scheduleAtFixedRate(sensorTask, 0, 150);
     }
 
     private void stopSensorTask() {
@@ -264,6 +254,10 @@ public class FindMe extends OronosView implements SensorEventListener {
     private void updateOrientationAngles() {
         SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
         SensorManager.getOrientation(rotationMatrix, orientationAngles);
+        arrowVector[0] = 0;//orientationAngles[1] - (float)Math.PI/2 + (float) Math.atan(unitDistance[2]/unitDistance[1]);
+        arrowVector[1] = 0;//(float) Math.atan(unitDistance[0]/unitDistance[2]);
+        arrowVector[2] = ((orientationAngles[0]+(float) Math.atan(unitDistance[1]/unitDistance[0]))+ (float)(2*Math.PI)) % (float)(2*Math.PI);//-orientationAngles[2] + (float) Math.atan(unitDistance[1]/unitDistance[0]);
+
         sensorText.setText("Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2]);
     }
 
@@ -280,5 +274,25 @@ public class FindMe extends OronosView implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
+    }
+
+    @JavascriptInterface
+    public float getArrowVectorX() {
+        return this.arrowVector[0];
+    }
+
+    @JavascriptInterface
+    public float getArrowVectorY() {
+        return this.arrowVector[1];
+    }
+
+    @JavascriptInterface
+    public float getArrowVectorZ() {
+        return this.arrowVector[2];
+    }
+
+    @JavascriptInterface
+    public float[] getRotationMatrix() {
+        return this.rotationMatrix;
     }
 }
