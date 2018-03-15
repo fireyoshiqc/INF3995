@@ -34,7 +34,6 @@ class CSVReaderTask(AbstractTaskNode):
 		try:
 			self.next_line = self.csv_reader.__next__()
 		except StopIteration:
-			# print(__name__ + ': End of CSV file.')
 			self.__event_logger.log_debug(__name__ + ": End of CSV file.")
 			inf3995.core.ApplicationManager().exit(0)
 			return
@@ -42,7 +41,6 @@ class CSVReaderTask(AbstractTaskNode):
 		csv_log_format = ';'.join(self.next_line)
 		# TODO : Throw an exception if CSV file is bad
 		if csv_log_format != CSV_LOG_FORMAT:
-			# print(__name__ + ': Bad CSV file.')
 			self.__event_logger.log_error(__name__ + ": Bad of CSV file.")
 			# If we don't do this, we shall slumber for a hundred years
 			self.csv_file.close()
@@ -66,7 +64,6 @@ class CSVReaderTask(AbstractTaskNode):
 			try:
 				self.next_line = self.csv_reader.__next__()
 			except StopIteration:
-				# print(__name__ + ': End of CSV file.')
 				self.__event_logger.log_debug(__name__ + ": End of CSV file.")
 				# If we don't do this, we shall slumber for a hundred years
 				self.csv_file.close()
@@ -89,7 +86,6 @@ class CSVReaderTask(AbstractTaskNode):
 				sid_name = self.next_line[6]
 				sid = CANSid[sid_name]
 			except KeyError as e:
-				# print(__name__ + ': KeyError: ' + str(e))
 				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 				continue
 
@@ -100,7 +96,6 @@ class CSVReaderTask(AbstractTaskNode):
 				dest_name = self.next_line[4]
 				dest_type = ModuleType[dest_name]
 			except KeyError as e:
-				# print(__name__ + ': KeyError: ' + str(e))
 				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 				continue
 
@@ -123,5 +118,4 @@ class CSVReaderTask(AbstractTaskNode):
 
 	def cleanup(self):
 		self.csv_file.close()
-		# print('CSV Reader cleanup.')
-		self.__event_logger.log_debug("CSV Reader cleanup.")
+		self.__event_logger.log_debug(__name__ + ': Cleanup.')

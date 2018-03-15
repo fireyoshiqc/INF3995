@@ -33,6 +33,7 @@ class USBReaderTask(AbstractTaskNode):
 	def __init__(self, serial_port, baudrate):
 		super(USBReaderTask, self).__init__(is_queued_input_data = False,
 											buffer_size = 1024)
+		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.stream = serial.Serial(serial_port, baudrate,
 									timeout=0,
 									stopbits=serial.STOPBITS_ONE,
@@ -85,7 +86,7 @@ class USBReaderTask(AbstractTaskNode):
 			can_sid_info = CANSidParser.can_sid_info[sid]
 			sid = CANSid(sid)
 		except KeyError as e:
-			print(__name__ + ': KeyError: ' + str(e))
+			self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 			return
 
 		# Discard all messages with invalid destination types
@@ -190,6 +191,6 @@ class USBReaderTask(AbstractTaskNode):
 		# print(decodedData1, decodedData2)
 
 	def cleanup(self):
-		print('USBReaderTask: Cleanup')
+		self.__event_logger.log_error(__name__ + ': Cleanup')
 		# TODO Don't try and close stream that was never opened?
 		self.stream.close()
