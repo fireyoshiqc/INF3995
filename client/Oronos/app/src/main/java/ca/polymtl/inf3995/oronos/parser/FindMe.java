@@ -11,13 +11,18 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ca.polymtl.inf3995.oronos.PermissionsUtil;
 import timber.log.Timber;
@@ -34,26 +39,34 @@ public class FindMe extends OronosView implements SensorEventListener {
     private final Sensor magnetometer;
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
     private final float LOCATION_REFRESH_DISTANCE = 0.0f; // 0 meter refresh distance
+    private final int SENSOR_REFRESH_TIME = 500000; // 0.5 second
     private final LocationListener locationListener;
-    private LocationManager locationManager;
-    private TextView status;
-    private Button permsButton;
     private final float[] accelerometerReading = new float[3];
     private final float[] magnetometerReading = new float[3];
     private final float[] rotationMatrix = new float[9];
     private final float[] orientationAngles = new float[3];
+    private final Timer sensorUpdater;
+    private final CoordinatorLayout container;
+    private final LinearLayout content;
+    private LocationManager locationManager;
+    private TextView locationText;
+    private TextView sensorText;
+    private Button permsButton;
+    private Snackbar warningBar;
 
 
     public FindMe(Context context) {
         super(context);
-        sensorManager = (SensorManager)getContext().getSystemService(Context.SENSOR_SERVICE);
+        container = new CoordinatorLayout(getContext());
+        content = new LinearLayout(getContext());
+        sensorUpdater = new Timer(true);
+        sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         //TODO: Error checking for sensors
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                updateOrientationAngles();
                 Location fakeLocation = new Location(location);
                 fakeLocation.setLatitude(45.504422);
                 fakeLocation.setLongitude(-73.612883);
@@ -65,17 +78,15 @@ public class FindMe extends OronosView implements SensorEventListener {
                         location.getLongitude(), fakeLocation.getLatitude(), location.getLongitude(), xDist);
                 Location.distanceBetween(location.getLatitude(),
                         location.getLongitude(), location.getLatitude(), fakeLocation.getLongitude(), yDist);
-                zDist = (float)(fakeLocation.getAltitude() - location.getAltitude());
-                status.setText("Latitude: " + location.getLatitude() + "\n" +
+                zDist = (float) (fakeLocation.getAltitude() - location.getAltitude());
+                locationText.setText("Latitude: " + location.getLatitude() + "\n" +
                         "Longitude: " + location.getLongitude() + "\n" +
                         "Altitude: " + location.getAltitude() + "\n" +
                         "Accuracy: " + location.getAccuracy() + "\n" +
-                        "Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2] + "\n" +
-                        "DistanceFromPoly (test): " + location.distanceTo(fakeLocation)+"\n" +
-                        "XFromPoly (test):" + xDist[0]+"\n" +
-                        "YFromPoly (test):" + yDist[0]+"\n" +
+                        "DistanceFromPoly (test): " + location.distanceTo(fakeLocation) + "\n" +
+                        "XFromPoly (test):" + xDist[0] + "\n" +
+                        "YFromPoly (test):" + yDist[0] + "\n" +
                         "ZFromPoly (test):" + zDist);
-
             }
 
             @Override
@@ -97,36 +108,39 @@ public class FindMe extends OronosView implements SensorEventListener {
     }
 
     private void buildView() {
-        setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        status = new TextView(getContext());
-        addView(status);
-        if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
-            status.setText("GPS Permissions are required for using this tag. Press the button to enable this widget once permissions are granted.\n" +
-                    "Pressing the button when permissions are not granted will open the dialog to allow that.");
-            permsButton = new Button(getContext());
-            permsButton.setText("ENABLE");
-            permsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GPS_PERMISSION);
-                }
-            });
-            addView(permsButton);
-
-        } else {
-            grantPermissions(true);
-        }
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        locationText = new TextView(getContext());
+        content.addView(locationText);
+        sensorText = new TextView(getContext());
+        content.addView(sensorText);
+        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        container.addView(content);
+        addView(container);
     }
 
     // Called when the FindMe widget comes on screen, should enable sensors
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+        if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            warningBar = Snackbar.make(container, "GPS Permissions are required for using this tag.", Snackbar.LENGTH_INDEFINITE);
+            warningBar.setAction("ENABLE", new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ActivityCompat.requestPermissions((Activity) getContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, GPS_PERMISSION);
+                }
+            }).show();
+        } else {
+            grantPermissions(true);
+        }
+
+        if (PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
             enableLocationUpdates();
         }
         registerSensors();
+        startSensorTask();
         Toast.makeText(getContext(), "FindMe Attached to Window. Location enabled if permission is given.", Toast.LENGTH_LONG).show();
     }
 
@@ -134,19 +148,42 @@ public class FindMe extends OronosView implements SensorEventListener {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        stopSensorTask();
         stopLocationUpdates();
         unregisterSensors();
         Toast.makeText(getContext(), "FindMe Detached from Window. Location disabled.", Toast.LENGTH_LONG).show();
     }
 
+    private void startSensorTask() {
+        TimerTask sensorTask = new TimerTask() {
+            @Override
+            public void run() {
+                ((Activity) getContext()).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateOrientationAngles();
+                    }
+                });
+
+            }
+        };
+        sensorUpdater.scheduleAtFixedRate(sensorTask, 0, 500);
+    }
+
+    private void stopSensorTask() {
+        sensorUpdater.cancel();
+        sensorUpdater.purge();
+    }
+
     public void grantPermissions(boolean calledFromInstance) {
-        removeViewInLayout(permsButton);
-        status.setText("PERMS GRANTED");
         if (locationManager == null) {
             locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         }
         if (locationManager != null && !calledFromInstance) {
             enableLocationUpdates();
+        }
+        if (warningBar != null && warningBar.isShown()) {
+            warningBar.dismiss();
         }
     }
 
@@ -155,8 +192,8 @@ public class FindMe extends OronosView implements SensorEventListener {
     }
 
     private void registerSensors() {
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, accelerometer, SENSOR_REFRESH_TIME);
+        sensorManager.registerListener(this, magnetometer, SENSOR_REFRESH_TIME);
     }
 
     private void unregisterSensors() {
@@ -166,7 +203,21 @@ public class FindMe extends OronosView implements SensorEventListener {
     private void enableLocationUpdates() {
         if (locationManager != null) {
             try {
+                //Criteria providerCriteria = new Criteria();
+                //providerCriteria.setAccuracy(Criteria.ACCURACY_COARSE);
+                //String bestProvider = locationManager.getBestProvider(providerCriteria, true);
+                //Timber.v("FindMe: Provider chosen for location : %s", bestProvider);
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
+                Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (lastLocation != null) {
+                    locationListener.onLocationChanged(lastLocation);
+                } else {
+                    lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    if (lastLocation != null) {
+                        locationListener.onLocationChanged(lastLocation);
+                    }
+                }
             } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
                 buildView();
@@ -184,6 +235,7 @@ public class FindMe extends OronosView implements SensorEventListener {
     private void updateOrientationAngles() {
         SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
         SensorManager.getOrientation(rotationMatrix, orientationAngles);
+        sensorText.setText("Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2]);
     }
 
     @Override
