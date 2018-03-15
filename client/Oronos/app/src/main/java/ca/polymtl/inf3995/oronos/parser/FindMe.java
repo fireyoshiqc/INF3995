@@ -16,6 +16,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -45,9 +46,11 @@ public class FindMe extends OronosView implements SensorEventListener {
     private final float[] magnetometerReading = new float[3];
     private final float[] rotationMatrix = new float[9];
     private final float[] orientationAngles = new float[3];
-    private final Timer sensorUpdater;
-    private final CoordinatorLayout container;
+    private final CoordinatorLayout coordinator;
     private final LinearLayout content;
+    //private final GLSurfaceView renderSurface;
+    private final WebView threeView;
+    private Timer sensorUpdater;
     private LocationManager locationManager;
     private TextView locationText;
     private TextView sensorText;
@@ -57,9 +60,12 @@ public class FindMe extends OronosView implements SensorEventListener {
 
     public FindMe(Context context) {
         super(context);
-        container = new CoordinatorLayout(getContext());
+        coordinator = new CoordinatorLayout(getContext());
         content = new LinearLayout(getContext());
-        sensorUpdater = new Timer(true);
+        //renderSurface = new GLSurfaceView(getContext());
+        threeView = new WebView(getContext());
+        threeView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        threeView.getSettings().setJavaScriptEnabled(true);
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -115,9 +121,27 @@ public class FindMe extends OronosView implements SensorEventListener {
         content.addView(locationText);
         sensorText = new TextView(getContext());
         content.addView(sensorText);
-        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        container.addView(content);
-        addView(container);
+        //setupRenderSurface();
+        //content.addView(renderSurface);
+        content.addView(threeView);
+        coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        coordinator.addView(content);
+        addView(coordinator);
+    }
+
+    /*
+    private void setupRenderSurface() {
+        renderSurface.setRenderer(new ArrowRenderer());
+        renderSurface.onPause();
+    }
+    */
+
+    private void setupWebGLRenderer() {
+        threeView.loadUrl("file:///android_asset/html/findme_renderer.html");
+    }
+
+    private void flushWebGLRenderer() {
+        threeView.loadUrl("about:blank");
     }
 
     // Called when the FindMe widget comes on screen, should enable sensors
@@ -125,7 +149,7 @@ public class FindMe extends OronosView implements SensorEventListener {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-            warningBar = Snackbar.make(container, "GPS Permissions are required for using this tag.", Snackbar.LENGTH_INDEFINITE);
+            warningBar = Snackbar.make(coordinator, "GPS Permissions are required for using this tag.", Snackbar.LENGTH_INDEFINITE);
             warningBar.setAction("ENABLE", new OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -141,6 +165,8 @@ public class FindMe extends OronosView implements SensorEventListener {
         }
         registerSensors();
         startSensorTask();
+        setupWebGLRenderer();
+        //renderSurface.onResume();
         Toast.makeText(getContext(), "FindMe Attached to Window. Location enabled if permission is given.", Toast.LENGTH_LONG).show();
     }
 
@@ -151,10 +177,13 @@ public class FindMe extends OronosView implements SensorEventListener {
         stopSensorTask();
         stopLocationUpdates();
         unregisterSensors();
+        flushWebGLRenderer();
+        //renderSurface.onPause();
         Toast.makeText(getContext(), "FindMe Detached from Window. Location disabled.", Toast.LENGTH_LONG).show();
     }
 
     private void startSensorTask() {
+        sensorUpdater = new Timer(true);
         TimerTask sensorTask = new TimerTask() {
             @Override
             public void run() {
@@ -188,7 +217,7 @@ public class FindMe extends OronosView implements SensorEventListener {
     }
 
     public void showPermissionWarning() {
-        Snackbar.make(this, "Location permissions are required for this widget to function properly.", Snackbar.LENGTH_LONG).show();
+        warningBar.show();
     }
 
     private void registerSensors() {

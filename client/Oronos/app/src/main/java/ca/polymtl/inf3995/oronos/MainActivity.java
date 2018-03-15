@@ -108,10 +108,6 @@ public class MainActivity extends DrawerActivity {
      * to be displayed in the dataLayout).
      */
     private void fillViewsContainer() {
-
-        //TODO: Check if the layout contains a FindMe or Map component that requires GPS permissions
-
-
         parser = new OronosXmlParser(getWindow().getContext());
         try {
             InputStream fis = getAssets().open("10_polaris.xml");
@@ -163,8 +159,7 @@ public class MainActivity extends DrawerActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case FindMe.GPS_PERMISSION: {
                 // If request is cancelled, the result arrays are empty.
@@ -192,7 +187,6 @@ public class MainActivity extends DrawerActivity {
                         }
                     }
                 }
-                return;
             }
 
             // other 'case' lines to check for other
