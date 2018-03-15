@@ -3,6 +3,7 @@
 import platform
 import sys
 import enum
+import struct
 
 if platform.system() == "Windows":
 	import wpipe
@@ -33,7 +34,7 @@ class SimpleNamedPipeServer(object):
 		if self.__mode == PipeMode.READER:
 			raise RuntimeError("Cannot write to reader pipe")
 		
-		self.__write_to_clients(data)
+		return self.__write_to_clients(data)
 	
 	def read(self):
 		if self.__mode == PipeMode.WRITER:
@@ -52,8 +53,13 @@ class SimpleNamedPipeServer(object):
 			self.__pipe = wpipe.Server(self.__name, wpipe.Mode.Reader)
 		
 		def __write_to_clients(self, data):
-			for client in self.__pipe:
-				client.write(data)
+			self.__pipe.dropdeadclients()
+			try:
+				for client in self.__pipe:
+					client.write(data)
+			except:
+				return False
+			return True
 		
 		def __read_from_clients(self):
 			result = []
@@ -69,7 +75,6 @@ class SimpleNamedPipeServer(object):
 		def __open_writer_pipe(self):
 			self.__unlink_pipe()
 			os.mkfifo(self.__name, 0o666)
-			self.__pipe = os.open(self.__name, os.O_WRONLY)
 		
 		def __open_reader_pipe(self):
 			self.__unlink_pipe()
@@ -77,7 +82,18 @@ class SimpleNamedPipeServer(object):
 			self.__pipe = os.open(self.__name, os.O_RDONLY | os.O_NONBLOCK)
 		
 		def __write_to_clients(self, data):
-			os.write(self.__pipe, data)
+			if self.__pipe is None:
+				try:
+					self.__pipe = os.open(self.__name, os.O_WRONLY | os.O_NONBLOCK)
+				except OSError as e:
+					if e.errno == errno.ENXIO:
+						return False
+					else:
+						raise
+				except:
+					raise
+			sent_bytes = os.write(self.__pipe, data)
+			return sent_bytes == len(data)
 		
 		def __read_from_clients(self):
 			try:
@@ -94,7 +110,8 @@ class SimpleNamedPipeServer(object):
 				raise
 		
 		def __close_pipe(self):
-			os.close(self.__pipe)
+			if self.__pipe is not None:
+				os.close(self.__pipe)
 			self.__unlink_pipe()
 		
 		def __unlink_pipe(self):
@@ -145,23 +162,34 @@ class SimpleNamedPipeClient(object):
 			return self.__pipe.read()
 	else:
 		def __open_writer_pipe(self):
-			self.__pipe = os.open(self.__name, os.O_WRONLY)
+			pass
 		
 		def __open_reader_pipe(self):
 			self.__pipe = os.open(self.__name, os.O_RDONLY | os.O_NONBLOCK)
 		
 		def __write(self, data):
+			if self.__pipe == None:
+				try:
+					self.__pipe = os.open(self.__name, os.O_WRONLY | os.O_NONBLOCK)
+				except OSError as e:
+					if e.errno == errno.ENXIO:
+						return False
+					else:
+						raise
+				except:
+					raise
 			os.write(self.__pipe, data)
+			return True
 		
 		def __read(self):
 			try:
 				msg = os.read(self.__pipe, 4096)
 				if len(msg) == 0:
-					raise RuntimeError("Pipe closed")
-				return [msg]
+					return None
+				return msg
 			except OSError as e:
 				if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
-					return [None]
+					return None
 				else:
 					raise
 			except:
