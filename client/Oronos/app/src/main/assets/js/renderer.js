@@ -40,9 +40,9 @@ arrow.add(wireframe);
 
 
 var frameSmoothing = 5;
-nextRotationX = android.getArrowVectorX();
-nextRotationY = android.getArrowVectorY();
-nextRotationZ = android.getArrowVectorZ();
+nextRotationX = android.getArrowVectorElement(0);
+nextRotationY = android.getArrowVectorElement(1);
+nextRotationZ = android.getArrowVectorElement(2);
 
 function animate() {
     setTimeout( function()  {
@@ -55,9 +55,9 @@ function animate() {
     frameSmoothing--;
     if (frameSmoothing === 0) {
         frameSmoothing = 5;
-        nextRotationX = android.getArrowVectorX();
-        nextRotationY = android.getArrowVectorY();
-        nextRotationZ = android.getArrowVectorZ();
+        nextRotationX = android.getArrowVectorElement(0);
+        nextRotationY = android.getArrowVectorElement(1);
+        nextRotationZ = android.getArrowVectorElement(2);
     }
     
     renderer.render( scene, camera );

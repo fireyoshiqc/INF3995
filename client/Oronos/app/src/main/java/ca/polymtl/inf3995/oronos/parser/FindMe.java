@@ -1,6 +1,7 @@
 package ca.polymtl.inf3995.oronos.parser;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
@@ -31,7 +32,7 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class FindMe extends OronosView implements SensorEventListener {
+public class FindMe extends OronosView implements SensorEventListener, LocationListener {
 
     public static final int GPS_PERMISSION = 1;
     private final SensorManager sensorManager;
@@ -40,10 +41,9 @@ public class FindMe extends OronosView implements SensorEventListener {
     private final int LOCATION_REFRESH_TIME = 1000; // 1 second refresh time
     private final float LOCATION_REFRESH_DISTANCE = 0.0f; // 0 meter refresh distance
     private final int SENSOR_REFRESH_TIME = 500000; // 0.5 second
-    private final LocationListener locationListener;
     private final float[] accelerometerReading = new float[3];
     private final float[] magnetometerReading = new float[3];
-    private final float[] rotationMatrix = new float[9];
+    private final float[] rotationMatrix = new float[16];
     private final float[] orientationAngles = new float[3];
     private final CoordinatorLayout coordinator;
     private final LinearLayout content;
@@ -56,7 +56,11 @@ public class FindMe extends OronosView implements SensorEventListener {
     private TextView sensorText;
     private Snackbar warningBar;
 
+    private long lastLocationTime = 0;
+    private float lastLocationAccuracy = Float.POSITIVE_INFINITY;
 
+
+    @SuppressLint("SetJavaScriptEnabled")
     public FindMe(Context context) {
         super(context);
         coordinator = new CoordinatorLayout(getContext());
@@ -68,50 +72,6 @@ public class FindMe extends OronosView implements SensorEventListener {
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        //TODO: Error checking for sensors
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                Location fakeLocation = new Location(location);
-                fakeLocation.setLatitude(45.504422);
-                fakeLocation.setLongitude(-73.612883);
-                fakeLocation.setAltitude(0.0);
-                float[] xDist = new float[1];
-                float[] yDist = new float[1];
-                float zDist;
-                Location.distanceBetween(location.getLatitude(),
-                        location.getLongitude(), fakeLocation.getLatitude(), location.getLongitude(), xDist);
-                Location.distanceBetween(location.getLatitude(),
-                        location.getLongitude(), location.getLatitude(), fakeLocation.getLongitude(), yDist);
-                zDist = (float) (fakeLocation.getAltitude() - location.getAltitude());
-                locationText.setText("Latitude: " + location.getLatitude() + "\n" +
-                        "Longitude: " + location.getLongitude() + "\n" +
-                        "Altitude: " + location.getAltitude() + "\n" +
-                        "Accuracy: " + location.getAccuracy() + "\n" +
-                        "DistanceFromPoly (test): " + location.distanceTo(fakeLocation) + "\n" +
-                        "XFromPoly (test):" + xDist[0] + "\n" +
-                        "YFromPoly (test):" + yDist[0] + "\n" +
-                        "ZFromPoly (test):" + zDist);
-                unitDistance[0] = (float) (xDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
-                unitDistance[1] = (float) (yDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
-                unitDistance[2] = (float) (zDist / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
         buildView();
     }
 
@@ -222,20 +182,15 @@ public class FindMe extends OronosView implements SensorEventListener {
     private void enableLocationUpdates() {
         if (locationManager != null) {
             try {
-                //Criteria providerCriteria = new Criteria();
-                //providerCriteria.setAccuracy(Criteria.ACCURACY_COARSE);
-                //String bestProvider = locationManager.getBestProvider(providerCriteria, true);
-                //Timber.v("FindMe: Provider chosen for location : %s", bestProvider);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, locationListener);
-                Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (lastLocation != null) {
-                    locationListener.onLocationChanged(lastLocation);
-                } else {
+                Location lastLocation;
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE, this);
+                if ((lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)) == null) {
                     lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                    if (lastLocation != null) {
-                        locationListener.onLocationChanged(lastLocation);
-                    }
+                }
+
+                if (lastLocation != null) {
+                    this.onLocationChanged(lastLocation);
                 }
             } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
@@ -245,8 +200,8 @@ public class FindMe extends OronosView implements SensorEventListener {
     }
 
     private void stopLocationUpdates() {
-        if (locationManager != null && locationListener != null) {
-            locationManager.removeUpdates(locationListener);
+        if (locationManager != null) {
+            locationManager.removeUpdates(this);
         }
     }
 
@@ -256,9 +211,45 @@ public class FindMe extends OronosView implements SensorEventListener {
         SensorManager.getOrientation(rotationMatrix, orientationAngles);
         arrowVector[0] = 0;//orientationAngles[1] - (float)Math.PI/2 + (float) Math.atan(unitDistance[2]/unitDistance[1]);
         arrowVector[1] = 0;//(float) Math.atan(unitDistance[0]/unitDistance[2]);
-        arrowVector[2] = ((orientationAngles[0]+(float) Math.atan(unitDistance[1]/unitDistance[0]))+ (float)(2*Math.PI)) % (float)(2*Math.PI);//-orientationAngles[2] + (float) Math.atan(unitDistance[1]/unitDistance[0]);
+        arrowVector[2] = ((orientationAngles[0] + (float) Math.atan(unitDistance[1] / unitDistance[0])) + (float) (2 * Math.PI)) % (float) (2 * Math.PI);//-orientationAngles[2] + (float) Math.atan(unitDistance[1]/unitDistance[0]);
 
         sensorText.setText("Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2]);
+    }
+
+    private void updateLocation(Location location) {
+        Location fakeLocation = new Location(location);
+        fakeLocation.setLatitude(45.504422);
+        fakeLocation.setLongitude(-73.612883);
+        fakeLocation.setAltitude(0.0);
+        float[] xDist = new float[1];
+        float[] yDist = new float[1];
+        float zDist;
+        Location.distanceBetween(location.getLatitude(),
+                location.getLongitude(), fakeLocation.getLatitude(), location.getLongitude(), xDist);
+        Location.distanceBetween(location.getLatitude(),
+                location.getLongitude(), location.getLatitude(), fakeLocation.getLongitude(), yDist);
+        zDist = (float) (fakeLocation.getAltitude() - location.getAltitude());
+        locationText.setText(String.format("Latitude: %s\n" +
+                        "Longitude: %s\n" +
+                        "Altitude: %s\n" +
+                        "Accuracy: %s\n" +
+                        "DistanceFromPoly (test): %s\n" +
+                        "XFromPoly (test):%s\n" +
+                        "YFromPoly (test):%s\n" +
+                        "ZFromPoly (test):%s\n" +
+                        "provider:%s",
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getAltitude(),
+                location.getAccuracy(),
+                location.distanceTo(fakeLocation),
+                xDist[0],
+                yDist[0],
+                zDist,
+                location.getProvider()));
+        unitDistance[0] = (float) (xDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
+        unitDistance[1] = (float) (yDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
+        unitDistance[2] = (float) (zDist / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
     }
 
     @Override
@@ -277,22 +268,41 @@ public class FindMe extends OronosView implements SensorEventListener {
     }
 
     @JavascriptInterface
-    public float getArrowVectorX() {
-        return this.arrowVector[0];
+    public float getArrowVectorElement(int i) {
+        return this.arrowVector[i];
     }
 
     @JavascriptInterface
-    public float getArrowVectorY() {
-        return this.arrowVector[1];
+    public float getRotationMatrixElement(int i) {
+        return rotationMatrix[i];
+
+
     }
 
-    @JavascriptInterface
-    public float getArrowVectorZ() {
-        return this.arrowVector[2];
+    @Override
+    public void onLocationChanged(Location location) {
+        long timeSinceLastLocation = lastLocationTime - System.currentTimeMillis();
+        if (location.getProvider().equals(LocationManager.GPS_PROVIDER)
+                || (location.getProvider().equals(LocationManager.NETWORK_PROVIDER) && (timeSinceLastLocation > 10000 && location.getAccuracy() < (2 * lastLocationAccuracy)))
+                || timeSinceLastLocation > 60000) {
+            updateLocation(location);
+        }
+        lastLocationTime = System.currentTimeMillis();
+        lastLocationAccuracy = location.getAccuracy();
     }
 
-    @JavascriptInterface
-    public float[] getRotationMatrix() {
-        return this.rotationMatrix;
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }
