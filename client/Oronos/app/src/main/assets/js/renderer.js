@@ -23,43 +23,57 @@ arrowGeometry.merge(arrowShaft.geometry, arrowShaft.matrix);
 arrowHead.updateMatrix();
 arrowGeometry.merge(arrowHead.geometry, arrowHead.matrix);
 
-var material = new THREE.MeshBasicMaterial( {
+var material = new THREE.MeshBasicMaterial({
     color: 0x00aaaa,
-    polygonOffset : true,
-    polygonOffsetFactor : 1,
-    polygonOffsetUnits : 1
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1
 });
 var arrow = new THREE.Mesh(arrowGeometry, material);
 scene.add(arrow);
 
 var wireGeometry = new THREE.EdgesGeometry(arrow.geometry);
-var wireMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 });
-var wireframe = new THREE.LineSegments( wireGeometry, wireMaterial );
+var wireMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+var wireframe = new THREE.LineSegments(wireGeometry, wireMaterial);
 arrow.add(wireframe);
 
 
-
+/*
 var frameSmoothing = 5;
 nextRotationX = android.getArrowVectorElement(0);
 nextRotationY = android.getArrowVectorElement(1);
 nextRotationZ = android.getArrowVectorElement(2);
+*/
 
 function animate() {
-    setTimeout( function()  {
-        requestAnimationFrame( animate );
-    }, 1000/30)
-    arrow.rotation.set(arrow.rotation.x + (nextRotationX - arrow.rotation.x)/frameSmoothing,
-    arrow.rotation.y + (nextRotationY - arrow.rotation.y)/frameSmoothing,
-    arrow.rotation.z + (nextRotationZ - arrow.rotation.z)/frameSmoothing);
-    
-    frameSmoothing--;
-    if (frameSmoothing === 0) {
-        frameSmoothing = 5;
-        nextRotationX = android.getArrowVectorElement(0);
-        nextRotationY = android.getArrowVectorElement(1);
-        nextRotationZ = android.getArrowVectorElement(2);
+    setTimeout(function () {
+        requestAnimationFrame(animate);
+    }, 1000 / 30)
+    var rotationMatrixArray = [];
+    for (i = 0; i < 16; i++) {
+        rotationMatrixArray.push(android.getRotationMatrixElement(i));
     }
-    
-    renderer.render( scene, camera );
+    var rotationMatrix = new THREE.Matrix4();
+    rotationMatrix.fromArray(rotationMatrixArray);
+    arrow.applyMatrix(rotationMatrix);
+    document.getElementById("debug").innerHTML = "RotX: " + arrow.rotation.x.toFixed(2) +
+        " RotY: " + arrow.rotation.y.toFixed(2) +
+        " RotZ: " + arrow.rotation.z.toFixed(2);
+        /*
+        arrow.rotation.set(arrow.rotation.x + (nextRotationX - arrow.rotation.x)/frameSmoothing,
+        arrow.rotation.y + (nextRotationY - arrow.rotation.y)/frameSmoothing,
+        arrow.rotation.z + (nextRotationZ - arrow.rotation.z)/frameSmoothing);
+        
+        frameSmoothing--;
+        if (frameSmoothing === 0) {
+            frameSmoothing = 5;
+            nextRotationX = android.getArrowVectorElement(0);
+            nextRotationY = android.getArrowVectorElement(1);
+            nextRotationZ = android.getArrowVectorElement(2);
+        }
+        */
+
+    renderer.render(scene, camera);
+    arrow.applyMatrix(rotationMatrix.transpose());
 }
 animate();

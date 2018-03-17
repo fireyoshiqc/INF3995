@@ -213,7 +213,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         arrowVector[1] = 0;//(float) Math.atan(unitDistance[0]/unitDistance[2]);
         arrowVector[2] = ((orientationAngles[0] + (float) Math.atan(unitDistance[1] / unitDistance[0])) + (float) (2 * Math.PI)) % (float) (2 * Math.PI);//-orientationAngles[2] + (float) Math.atan(unitDistance[1]/unitDistance[0]);
 
-        sensorText.setText("Sensors: x-" + orientationAngles[0] + " y-" + orientationAngles[1] + " z-" + orientationAngles[2]);
+        sensorText.setText("Sensors: x: " + orientationAngles[0] + " y: " + orientationAngles[1] + " z: " + orientationAngles[2]);
     }
 
     private void updateLocation(Location location) {
