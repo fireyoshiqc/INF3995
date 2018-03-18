@@ -63,9 +63,9 @@ public class ModuleStatusAdapter extends BaseAdapter {
      * StatusOfPCB represent each possible state with a color and a string.
      * */
     private enum StatusOfPCB {
-        ONLINE ("ONLINE",   android.R.color.holo_green_dark),
-        DELAY  ("DELAY", 	android.R.color.holo_orange_dark),
-        OFFLINE("OFFLINE",  android.R.color.holo_red_dark);
+        ONLINE ("ONLINE",   GlobalParameters.GREEN_STATUS),
+        DELAY  ("DELAY", 	GlobalParameters.ORANGE_STATUS),
+        OFFLINE("OFFLINE",  GlobalParameters.RED_STATUS);
 
         private final String text;
         private final int    color;
@@ -122,7 +122,7 @@ public class ModuleStatusAdapter extends BaseAdapter {
         int position = findPositionOfPCB(PCBname, noSerial, noMsg);
         if (position < getCount()) {
             PCBPair pcb = PCBList.get(position);
-            if (pcb.getLastNoMsg() != noMsg) {
+            if (pcb.getLastNoMsg() < noMsg) {
                 pcb.setLastNoMsg(noMsg);
                 pcb.setLastTimeSeen(DateTime.now());
                 pcb.setStatus(StatusOfPCB.ONLINE);
@@ -159,8 +159,8 @@ public class ModuleStatusAdapter extends BaseAdapter {
             cardView.addView(textView);
         } else {
             cardView = (CardView) convertView;
+            setPCBText((TextView)cardView.getChildAt(0), position);
         }
-        setPCBText((TextView)cardView.getChildAt(0), position);
         if (PCBList.size() > position) {
             cardView.setCardBackgroundColor(PCBList.get(position).getStatus().toColor());
         }
