@@ -120,7 +120,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         super.onAttachedToWindow();
         flushWebGLRenderer();
         if (!PermissionsUtil.hasPermissions(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-            warningBar = Snackbar.make(coordinator, "GPS Permissions are required for using this tag.", Snackbar.LENGTH_INDEFINITE);
+            warningBar = Snackbar.make(coordinator, "GPS Permissions are required for using this tag. Swipe to dismiss.", Snackbar.LENGTH_INDEFINITE);
             warningBar.setAction("ENABLE", new OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -171,8 +171,10 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
      * This method stops the task started by the method above.
      */
     private void stopSensorTask() {
-        sensorUpdater.cancel();
-        sensorUpdater.purge();
+        if (sensorUpdater != null) {
+            sensorUpdater.cancel();
+            sensorUpdater.purge();
+        }
     }
 
     /**
