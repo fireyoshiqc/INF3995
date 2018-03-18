@@ -9,7 +9,7 @@ from inf3995.core.AbstractTaskNode import *
 
 class EventLogViewerTask(AbstractTaskNode):
 	def __init__(self):
-		super(EventLogViewerTask, self).__init__(False, 1024)
+		super(EventLogViewerTask, self).__init__(True, 1024)
 		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.__event_queue = self.__event_logger.build_reader()
 	
