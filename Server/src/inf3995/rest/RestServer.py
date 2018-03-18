@@ -220,9 +220,11 @@ class RestServer(object):
 			RestServer._raise_http_error(404)
 		
 		data = request.json
-		if len(data) == 1 and "username" in data:
+		if "username" in data:
 			session = self._get_session()
-			if "username" in data and data["username"] == session["user"]:
+			can_delete = session is not None and \
+			             (self.__skip_auth or data["username"] == session["user"])
+			if can_delete:
 				for fn in self.__remove_ip_callbacks:
 					fn(session["ip"])
 				
@@ -232,7 +234,7 @@ class RestServer(object):
 			else:
 				RestServer._raise_http_error(401)
 		else:
-			RestServer._raise_http_error(401)
+			RestServer._raise_http_error(400)
 	
 	@staticmethod
 	def _raise_http_error(code):
