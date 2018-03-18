@@ -28,13 +28,13 @@ document.body.appendChild(renderer.domElement);
 camera.position.z = 5;
 
 // Define arrow shaft (cylinder) geometry
-var arrowShaftGeometry = new THREE.CylinderGeometry(0.1, 0.1, 4, 8);
+var arrowShaftGeometry = new THREE.CylinderGeometry(0.1, 0.1, 3, 8);
 var arrowShaft = new THREE.Mesh(arrowShaftGeometry);
 
 // Define arrow head (cone) geometry
 var arrowHeadGeometry = new THREE.ConeGeometry(0.3, 1, 8);
 var arrowHead = new THREE.Mesh(arrowHeadGeometry);
-arrowHead.position.y = 2.;
+arrowHead.position.y = 1.95;
 
 // Merge geometries to produce a single optimized mesh
 var arrowGeometry = new THREE.Geometry();
