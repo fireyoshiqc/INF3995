@@ -7,6 +7,8 @@ import java.util.Map;
 
 
 public class GlobalParameters {
+    GlobalParameters() {}
+
     // SocketClient
     public static String CLIENT_ADDRESS = "0.0.0.0";
     public static int CLIENT_PORT = 5005;
@@ -14,9 +16,6 @@ public class GlobalParameters {
     public static Map<Integer, String> canSid;
     public static Map<String, String> canDataTypes;
     public static Map<String, List<String>> canMsgDataTypes;
-
-    GlobalParameters() {
-    }
 
     // ModuleStatus
     public final static int ONLINE_TO_DELAY = 120000; // in milliseconds.
@@ -37,4 +36,6 @@ public class GlobalParameters {
             Integer.parseInt("2f", 16)
     );
 
+    // DisplayLogWidget
+    public final static int LIMIT_OF_N_MSG = 5000;
 }
