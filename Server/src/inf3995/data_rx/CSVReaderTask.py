@@ -5,7 +5,7 @@ import time
 from enum import Enum
 
 from inf3995.settings.CANSid import CANSid
-from inf3995.settings.ModuleTypes import ModuleType
+from inf3995.settings.ModuleTypes import ModuleType, ALL_SERIAL_NBS
 from inf3995.core.AbstractTaskNode import *
 # from inf3995.core.ApplicationManager import *
 import inf3995.core
@@ -13,6 +13,7 @@ from inf3995.data_rx.RxData import RxData
 
 CSV_LOG_FORMAT = 'Temps (s);Direction;Mod. source;Ser. source;Mod. dest;Ser. dest;ID message;Donnée 1;Donnée 2'
 CSV_LOG_N_COLUMNS = 9
+ALL_SERIAL_NBS_STR = 'ALL_SERIAL_NBS'
 
 class _Direction(Enum):
 	IN = 1  # Start at 1 because 0 is False in a boolean sense
@@ -99,12 +100,35 @@ class CSVReaderTask(AbstractTaskNode):
 				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 				continue
 
+			# Skip log messages with invalid PCB serial numbers
+			try:
+				src_serial = int(self.next_line[3])
+				if src_serial < 0:
+					continue
+			except ValueError as e:
+				if self.next_line[3] == ALL_SERIAL_NBS_STR:
+					src_serial = ALL_SERIAL_NBS
+				else:
+					self.__event_logger.log_error(__name__ + ": ValueError: " + str(e))
+					continue
+
+			try:
+				dest_serial = int(self.next_line[5])
+				if dest_serial < 0:
+					continue
+			except ValueError as e:
+				if self.next_line[5] == ALL_SERIAL_NBS_STR:
+					dest_serial = ALL_SERIAL_NBS
+				else:
+					self.__event_logger.log_error(__name__ + ": ValueError: " + str(e))
+					continue
+
 			# Put data point in outgoing data buffer
 			data = RxData(sid=sid,
 						  src_type=src_type,
-						  src_serial=self.next_line[3],
+						  src_serial=src_serial,
 						  dest_type=dest_type,
-						  dest_serial=self.next_line[5],
+						  dest_serial=dest_serial,
 						  data1=self.next_line[7],
 						  data2=self.next_line[8])
 			# print(self.next_line)
