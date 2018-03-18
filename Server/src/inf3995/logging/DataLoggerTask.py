@@ -32,12 +32,16 @@ class DataLoggerTask(AbstractTaskNode):
 	
 	def handle_data(self):
 		can_data = self._get_source_data()
+		src_serial_str = "ALL_SERIAL_NBS" if can_data.src_serial == ALL_SERIAL_NBS \
+		                 else str(can_data.src_serial)
+		dest_serial_str = "ALL_SERIAL_NBS" if can_data.dest_serial == ALL_SERIAL_NBS \
+		                  else str(can_data.dest_serial)
 		self.__log_file.write(str(time.monotonic() - self.__start_time) + ";" + \
 		                      "IN" + ";" + \
 		                      can_data.src_type.name + ";" + \
-		                      str(can_data.src_serial) + ";" + \
+		                      src_serial_str + ";" + \
 		                      can_data.dest_type.name + ";" + \
-		                      str(can_data.dest_serial) + ";" + \
+		                      dest_serial_str + ";" + \
 		                      can_data.sid.name + ";" + \
 		                      str(can_data.data1) + ";" + \
 		                      str(can_data.data2) + "\n")
