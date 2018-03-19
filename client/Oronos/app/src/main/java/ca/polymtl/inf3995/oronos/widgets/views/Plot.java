@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -93,8 +94,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seconds = timeSelected;
-            initializeDataList();
-            generatePlot();
+            updateAxisScale();
         }
     }
 
@@ -107,13 +107,14 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
         for (int can = 0; can < canList.size(); can++){
             List<Entry> entries = new ArrayList<Entry>();
-            for (int i = 0; i < seconds*5; i++) {
+            for (int i = 0; i < 5*seconds; i++) {
                 // turn data into Entry objects
                 entries.add(new Entry(i+can, i));
             }
             dataList.add(new Data(canList.get(can).getId(), colors[can], entries));
         }
     }
+
 
     private void initializeViews(){
         createTitle();
@@ -229,8 +230,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     private void generatePlot() {
 
-
-
         LineData lineData = new LineData();
         List<ILineDataSet> lines = new ArrayList<ILineDataSet> ();
         for (Data data : dataList){
@@ -240,7 +239,13 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart.setData(new LineData(lines));
         this.chart.invalidate(); // refresh
 
+    }
 
+    private void updateAxisScale(){
+        XAxis xAxis = this.chart.getXAxis();
+        xAxis.setAxisMaximum(seconds);
+        xAxis.setAxisMinimum(0);
+        this.chart.invalidate(); // refresh
     }
 
     private void setGenericPlotSettings() {
