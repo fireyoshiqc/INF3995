@@ -118,7 +118,7 @@ class ApplicationManager(object):
 	def __register_key_handlers(self):
 		try:
 			keyboard.hook(ApplicationManager.__key_handler)
-		except e as OSError:
+		except OSError:
 			self.__event_log.log_warning("Keyboard hook not registered, ESC key will not work")
 	
 	def __setup_task_nodes(self):
