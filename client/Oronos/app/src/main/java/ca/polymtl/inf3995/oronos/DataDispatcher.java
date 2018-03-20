@@ -15,15 +15,38 @@ import java.util.List;
 public class DataDispatcher {
 
     static private Context context;
+    static private final ModuleType[] ModuleTypeValues = ModuleType.values();
 
     public static void setContext(Context context) {
         DataDispatcher.context = context.getApplicationContext();
     }
 
-    static public void dataToDispatch(List<Object> data) {
-        Intent intent = new Intent((String) data.get(0));
-        intent.putExtra("data", Parcels.wrap(data));
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    public static void dataToDispatch(List<Object> data) {
+
+        if (GlobalParameters.canSid == null
+                || GlobalParameters.canDataTypes == null
+                || GlobalParameters.canMsgDataTypes == null) {
+            return;
+        }
+
+        for (int i = 0; i < data.size(); i += 6) {
+            String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
+            Number data1 = (Number) data.get(i + 1);
+            Number data2 = (Number) data.get(i + 2);
+            //ModuleType moduleSource = ModuleTypeValues[(Integer) data.get(i + 3)];
+            ModuleType moduleSource = ModuleType.UNKNOWN_MODULE;
+            Integer noSerieSource = (Integer) data.get(i + 4);
+            Integer counter = (Integer) data.get(i + 5);
+
+            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
+
+            Intent intent = new Intent(canSid);
+            intent.putExtra("data", Parcels.wrap(broadcastMessage));
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
+
+        }
+
     }
 
 }

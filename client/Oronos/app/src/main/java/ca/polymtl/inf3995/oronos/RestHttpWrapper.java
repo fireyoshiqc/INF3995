@@ -4,14 +4,10 @@ package ca.polymtl.inf3995.oronos;
  * Created by Fabri on 2018-02-13.
  * Wrapper for Http and Rest requests
  */
+
 import android.content.Context;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
 import android.widget.Toast;
-
-import ca.polymtl.inf3995.oronos.VolleySingleton;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
@@ -26,25 +22,18 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.util.HashMap;
-import java.util.Map;
+import timber.log.Timber;
 
 
 public class RestHttpWrapper {
 
 
     private RequestQueue volleyQueue;
-    static final String SERVER_IP = "10.0.2.2"; //has to change according to user input
+    static final String SERVER_IP = "10.200.24.65"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
     static final String DEVICE_NAME = Build.MODEL;
@@ -60,7 +49,6 @@ public class RestHttpWrapper {
     }
 
 
-
     public void postUserLogin(Response.Listener<JSONObject> resListener) {
         String URLSubfix = "users/login";
 
@@ -69,12 +57,11 @@ public class RestHttpWrapper {
             json.put("username", username);
             json.put("password", password);
             json.put("device", DEVICE_NAME);
-        }
-        catch(JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
-       JsonObjectRequest POSTRequest = new JsonObjectRequest(
+        JsonObjectRequest POSTRequest = new JsonObjectRequest(
                 Request.Method.POST,
                 SERVER_URL + URLSubfix,
                 json,
@@ -85,19 +72,18 @@ public class RestHttpWrapper {
                         volleyOnErrorResponse(error);
                     }
                 }
-        ){
-           @Override
-           protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-               JSONObject jsonObject = new JSONObject();
-               try {
-                   jsonObject.put("statusCode", response.statusCode);
-               }
-               catch(JSONException e) {
-                   e.printStackTrace();
-               }
-               return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
-           }
-       };
+        ) {
+            @Override
+            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("statusCode", response.statusCode);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
+            }
+        };
 
         volleyQueue.add(POSTRequest);
     }
@@ -109,8 +95,7 @@ public class RestHttpWrapper {
         JSONObject json = new JSONObject();
         try {
             json.put("username", username);
-        }
-        catch(JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         JsonObjectRequest POSTRequest = new JsonObjectRequest(
@@ -124,14 +109,13 @@ public class RestHttpWrapper {
                         volleyOnErrorResponse(error);
                     }
                 }
-        ){
+        ) {
             @Override
             protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("statusCode", response.statusCode);
-                }
-                catch(JSONException e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
@@ -198,6 +182,32 @@ public class RestHttpWrapper {
         volleyQueue.add(JSONRequest);
     }
 
+    public void getConfigCanSid(Response.Listener<JSONObject> resListener) {
+        getJSON("config/canSid", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getConfigCanDataTypes(Response.Listener<JSONObject> resListener) {
+        getJSON("config/canDataTypes", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getConfigCanMsgDataTypes(Response.Listener<JSONObject> resListener) {
+        getJSON("config/canMsgDataTypes", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
 
 
     //Peut être utilisé dans errListener
@@ -208,19 +218,24 @@ public class RestHttpWrapper {
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
             //This indicates that the request has either time out or there is no connection
             Toast.makeText(this.appContext, "TimeoutError or NoConnectionError", Toast.LENGTH_SHORT).show();
+            Timber.v("TimeoutError or NoConnectionError");
         } else if (error instanceof AuthFailureError) {
             // Error indicating that there was an Authentication Failure while performing the request
             Toast.makeText(this.appContext, "AuthFailureError", Toast.LENGTH_SHORT).show();
+            Timber.v("AuthFailureError");
         } else if (error instanceof ServerError) {
             //Indicates that the server responded with a error response
             String statusCode = String.valueOf(error.networkResponse.statusCode);
             Toast.makeText(this.appContext, statusCode, Toast.LENGTH_SHORT).show();
+            Timber.v(statusCode);
         } else if (error instanceof NetworkError) {
             //Indicates that there was network error while performing the request
             Toast.makeText(this.appContext, "NetworkError", Toast.LENGTH_SHORT).show();
+            Timber.v("NetworkError");
         } else if (error instanceof ParseError) {
             // Indicates that the server response could not be parsed
             Toast.makeText(this.appContext, "ParseError", Toast.LENGTH_SHORT).show();
+            Timber.v("ParseError");
         }
     }
 

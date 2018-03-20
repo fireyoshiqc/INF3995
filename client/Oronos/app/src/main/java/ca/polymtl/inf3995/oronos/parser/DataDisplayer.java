@@ -13,6 +13,11 @@ import android.util.DisplayMetrics;
 import org.parceler.Parcels;
 
 import java.util.List;
+import java.util.Objects;
+
+import ca.polymtl.inf3995.oronos.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.GlobalParameters;
+import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -65,18 +70,38 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         addView(recycler);
 
-        IntentFilter filter = new IntentFilter();
+        IntentFilter intentFilter = new IntentFilter();
         for (CAN can : list) {
-            filter.addAction(can.getId());
+            intentFilter.addAction(can.getId());
         }
-        LocalBroadcastManager.getInstance(context).registerReceiver(dataReceiver, filter);
+        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
     }
 
-    private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            List data = (List) Parcels.unwrap(intent.getParcelableExtra("data"));
+            BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
+
+            Timber.v("" + msg.getCanSid());
+
+            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("INT"))
+                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
+                Timber.v("" + msg.getData1().intValue());
+            } else {
+                Timber.v("" + msg.getData1().doubleValue());
+            }
+
+            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("INT"))
+                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
+                Timber.v("" + msg.getData1().intValue());
+            } else {
+                Timber.v("" + msg.getData1().doubleValue());
+            }
+
+            Timber.v("" + msg.getModuleSource() + msg.getNoSerieSource() + msg.getCounter());
+
+
         }
     };
 

@@ -22,7 +22,6 @@ public class SocketClient {
     private AsyncDatagramSocket asyncDatagramSocket;
 
     private OSCByteArrayToJavaConverter byteToJavaConverter = new OSCByteArrayToJavaConverter();
-    private OSCMessage message;
 
     /**
      * Datagram Sockets for asynchronous reception of UDP packets. Heavily inspired by the
@@ -86,21 +85,23 @@ public class SocketClient {
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
                 if (bb != null) {
                     byte[] bytesReceived = bb.getAllByteArray();
-                    Timber.v("SocketClient [UDP] : " + new String(bytesReceived));
-                    // todo : Continue developing the following functions when server is ready for udp
-                    //getOSCMessage(bytesReceived);
-                    //forwardToDispatcher();
-                    numMessagesReceived(1);
+                    OSCMessage message = getOSCMessage(bytesReceived);
+
+                    if (message.getAddress().equals("/inf3995-03/can-data")) {
+                        forwardToDispatcher(message);
+                        numMessagesReceived(1);
+                    }
+
                 }
             }
         });
     }
 
-    private void getOSCMessage(byte[] bytesReceived) {
-        this.message = (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);
+    private OSCMessage getOSCMessage(byte[] bytesReceived) {
+        return (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);
     }
 
-    private void forwardToDispatcher() {
-        DataDispatcher.dataToDispatch(this.message.getArguments());
+    private void forwardToDispatcher(OSCMessage message) {
+        DataDispatcher.dataToDispatch(message.getArguments());
     }
 }
