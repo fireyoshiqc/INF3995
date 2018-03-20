@@ -40,6 +40,8 @@ public class DataDispatcher {
             BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
 
             Intent intent = new Intent(canSid);
+            intent.addCategory(moduleSource.name());
+            intent.addCategory(noSerieSource.toString());
             intent.putExtra("data", Parcels.wrap(broadcastMessage));
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }

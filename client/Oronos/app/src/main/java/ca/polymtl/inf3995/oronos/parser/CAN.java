@@ -1,6 +1,17 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
+
+import org.parceler.Parcels;
+
+import ca.polymtl.inf3995.oronos.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.R;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -17,6 +28,16 @@ public class CAN implements ContainableWidget {
     private final String serialNb;
     private final String customUpdate;
     private final String updateEach;
+    private BroadcastReceiver broadcastReceiver;
+    private String unit;
+    private String dataToDisplay;
+    private DisplayState state;
+
+    enum DisplayState {
+        NONE, GREEN, RED
+    }
+
+
 
     public CAN(String id, @Nullable String name, @Nullable String display,
                @Nullable String minAcceptable, @Nullable String maxAcceptable,
@@ -34,6 +55,9 @@ public class CAN implements ContainableWidget {
         this.serialNb = serialNb;
         this.customUpdate = customUpdate;
         this.updateEach = updateEach;
+        dataToDisplay = "";
+        unit = "";
+        state = DisplayState.NONE;
     }
 
     public String getId() {
@@ -74,5 +98,98 @@ public class CAN implements ContainableWidget {
 
     public String getUpdateEach() {
         return updateEach;
+    }
+
+    public String getDataToDisplay() {
+        return dataToDisplay;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public DisplayState getState() {
+        return state;
+    }
+
+    public boolean updatesAreEnabled() {
+        return broadcastReceiver != null;
+    }
+
+    public void enableUpdates(final CANAdapter adapter, Context context) {
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
+                double newData = 0.0;
+                // TODO: Use notify event to send formatted data into the holder.
+                if (display != null) {
+                    switch (display) {
+                        case "__DATA1__":
+                            newData = msg.getData1().doubleValue();
+                            break;
+                        case "__DATA2__":
+                            newData = msg.getData2().doubleValue();
+                            break;
+                    }
+
+                    if (chiffresSign != null) {
+                        String signFormat = "%." + chiffresSign + "f";
+                        dataToDisplay = String.format(signFormat, newData);
+                    } else {
+                        dataToDisplay = String.format("%f", newData);
+                    }
+                    String[] dataSplit = display.split(" ");
+                    if (dataSplit.length == 2) {
+                        unit = dataSplit[1];
+                    } else {
+                        unit = "";
+                    }
+                } else {
+                    // TODO: Use customUpdate to generate the data to display.
+                    if (chiffresSign != null) {
+                        String signFormat = "%." + chiffresSign + "f";
+                        dataToDisplay = String.format(signFormat, 0.000000);
+                    }
+                    unit = "CST";
+                }
+
+                // TODO: Change holder appearance according to minAcceptable and maxAcceptable.
+                try {
+                    if (minAcceptable != null && maxAcceptable != null) {
+                        if (newData < Double.parseDouble(minAcceptable)
+                                || newData > Double.parseDouble(maxAcceptable)) {
+                            state = DisplayState.RED;
+                            //view.setBackgroundResource(R.drawable.can_data_large_border_red);
+                            //data.setTextColor(0xFFCC0000);
+                        } else {
+                            state = DisplayState.GREEN;
+                            //view.setBackgroundResource(R.drawable.can_data_large_border_green);
+                            //data.setTextColor(Color.BLACK);
+                        }
+                    }
+
+                    adapter.notifyDataSetChanged();
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(id);
+        if (specificSource != null) {
+            intentFilter.addCategory(specificSource);
+        }
+        if (serialNb != null) {
+            intentFilter.addCategory(serialNb);
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+    }
+
+    public void disableUpdates(Context context) {
+        if (broadcastReceiver != null) {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver);
+            broadcastReceiver = null;
+        }
     }
 }

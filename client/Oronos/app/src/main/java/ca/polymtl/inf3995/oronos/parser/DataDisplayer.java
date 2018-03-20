@@ -65,41 +65,20 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         recycler.setItemAnimator(new DefaultItemAnimator());
         recycler.setAdapter(adapter);
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
+        recycler.setNestedScrollingEnabled(false);
         addView(recycler);
-
-        IntentFilter intentFilter = new IntentFilter();
-        for (CAN can : list) {
-            intentFilter.addAction(can.getId());
-        }
-        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
     }
 
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        ((CANAdapter) recycler.getAdapter()).enableCANUpdates();
+    }
 
-//            Timber.v("" + msg.getCanSid());
-//
-//            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("INT"))
-//                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
-//                Timber.v("" + msg.getData1().intValue());
-//            } else {
-//                Timber.v("" + msg.getData1().doubleValue());
-//            }
-//
-//            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("INT"))
-//                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
-//                Timber.v("" + msg.getData1().intValue());
-//            } else {
-//                Timber.v("" + msg.getData1().doubleValue());
-//            }
-//
-//            Timber.v("" + msg.getModuleSource() + msg.getNoSerieSource() + msg.getCounter());
-
-
-        }
-    };
-
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        ((CANAdapter) recycler.getAdapter()).disableCANUpdates();
+    }
 }
