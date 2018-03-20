@@ -116,7 +116,10 @@ class ApplicationManager(object):
 		pass
 	
 	def __register_key_handlers(self):
-		keyboard.hook(ApplicationManager.__key_handler)
+		try:
+			keyboard.hook(ApplicationManager.__key_handler)
+		except e as OSError:
+			self.__event_log.log_warning("Keyboard hook not registered, ESC key will not work")
 	
 	def __setup_task_nodes(self):
 		# TODO: Build the task nodes

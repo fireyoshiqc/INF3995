@@ -6,7 +6,7 @@ import platform
 from inf3995.utils.SimpleNamedPipe import *
 
 
-PIPE_NAME = "inf3995-users-view"
+PIPE_NAME = "/tmp/inf3995-users-view"
 
 
 @enum.unique

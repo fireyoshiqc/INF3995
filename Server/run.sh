@@ -4,7 +4,7 @@ SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 export PYTHONPATH=$SCRIPTPATH/third_party:$SCRIPTPATH/src
 cd $SCRIPTPATH/tools/scripts
-python3 $SCRIPTPATH/tools/scripts/generateEnums.py
+python3 $SCRIPTPATH/tools/scripts/generateEnums.py > /dev/null
 cd $SCRIPTPATH/working_dir
 python3 $SCRIPTPATH/src/main.py "$@"
 
