@@ -13,11 +13,8 @@ import android.util.DisplayMetrics;
 import org.parceler.Parcels;
 
 import java.util.List;
-import java.util.Objects;
 
 import ca.polymtl.inf3995.oronos.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.GlobalParameters;
-import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -83,23 +80,23 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         public void onReceive(Context context, Intent intent) {
             BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
 
-            Timber.v("" + msg.getCanSid());
-
-            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("INT"))
-                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
-                Timber.v("" + msg.getData1().intValue());
-            } else {
-                Timber.v("" + msg.getData1().doubleValue());
-            }
-
-            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("INT"))
-                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
-                Timber.v("" + msg.getData1().intValue());
-            } else {
-                Timber.v("" + msg.getData1().doubleValue());
-            }
-
-            Timber.v("" + msg.getModuleSource() + msg.getNoSerieSource() + msg.getCounter());
+//            Timber.v("" + msg.getCanSid());
+//
+//            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("INT"))
+//                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(0), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
+//                Timber.v("" + msg.getData1().intValue());
+//            } else {
+//                Timber.v("" + msg.getData1().doubleValue());
+//            }
+//
+//            if (Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("INT"))
+//                    || Objects.equals(GlobalParameters.canMsgDataTypes.get(msg.getCanSid()).get(1), GlobalParameters.canDataTypes.get("UNSIGNED"))) {
+//                Timber.v("" + msg.getData1().intValue());
+//            } else {
+//                Timber.v("" + msg.getData1().doubleValue());
+//            }
+//
+//            Timber.v("" + msg.getModuleSource() + msg.getNoSerieSource() + msg.getCounter());
 
 
         }

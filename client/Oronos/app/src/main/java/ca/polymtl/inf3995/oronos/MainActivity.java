@@ -30,7 +30,6 @@ import ca.polymtl.inf3995.oronos.parser.FindMe;
 import ca.polymtl.inf3995.oronos.parser.ImageAdapter;
 import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.parser.Rocket;
-import ca.polymtl.inf3995.oronos.parser.TabContainer;
 import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;
 import timber.log.Timber;
 
