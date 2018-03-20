@@ -4,7 +4,7 @@ package ca.polymtl.inf3995.oronos;
  * Created by prst on 2018-03-15.
  */
 
-enum ModuleType {
+public enum ModuleType {
     ADM(0),
     ADIRM(3),
     ADLM(4),

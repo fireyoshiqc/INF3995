@@ -86,12 +86,8 @@ public class SocketClient {
                 if (bb != null) {
                     byte[] bytesReceived = bb.getAllByteArray();
                     OSCMessage message = getOSCMessage(bytesReceived);
-
-                    if (message.getAddress().equals("/inf3995-03/can-data")) {
-                        forwardToDispatcher(message);
-                        numMessagesReceived(1);
-                    }
-
+                    forwardToDispatcher(message.getAddress(), message);
+                    numMessagesReceived(1);
                 }
             }
         });
@@ -101,7 +97,11 @@ public class SocketClient {
         return (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);
     }
 
-    private void forwardToDispatcher(OSCMessage message) {
-        DataDispatcher.dataToDispatch(message.getArguments());
+    private void forwardToDispatcher(String address, OSCMessage message) {
+        if (address.equals("/inf3995-03/can-data")) {
+            DataDispatcher.dataToDispatch(message.getArguments());
+        } else if (address.equals("/inf3995-03/modules")) {
+            DataDispatcher.moduleToDispatch((message.getArguments()));
+        }
     }
 }

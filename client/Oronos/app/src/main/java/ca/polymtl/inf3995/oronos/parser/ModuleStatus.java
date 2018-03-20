@@ -29,11 +29,19 @@ public class ModuleStatus extends OronosView {
         setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         addView(gridView);
+
+//        IntentFilter intentFilter = new IntentFilter();
+//        for (int i = 0; i < ModuleType.values().length; i++) {
+//            intentFilter.addAction(ModuleType.values()[i].toString());
+//        }
+//        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+
     }
 
     public int getCount() {
         return adapter.getCount();
     }
+
     public void receiveItem(String PCBname, int noSerial, int noMsg) {
         adapter.receiveItem(PCBname, noSerial, noMsg);
     }
@@ -45,5 +53,14 @@ public class ModuleStatus extends OronosView {
     public GridView getGlobalView() {
         return this.gridView;
     }
+
+//    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            String module = intent.getAction();
+//            int counter = intent.getParcelableExtra("counter");
+//            Timber.v(module + counter);
+//        }
+//    };
 
 }

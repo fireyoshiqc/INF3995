@@ -42,8 +42,25 @@ public class DataDispatcher {
             Intent intent = new Intent(canSid);
             intent.putExtra("data", Parcels.wrap(broadcastMessage));
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
 
+    }
 
+    public static void moduleToDispatch(List<Object> data) {
+
+        if (GlobalParameters.canSid == null
+                || GlobalParameters.canDataTypes == null
+                || GlobalParameters.canMsgDataTypes == null) {
+            return;
+        }
+
+        for (int i = 0; i < data.size(); i += 2) {
+            ModuleType moduleSource = ModuleType.GetValue((Integer) data.get(i));
+            Integer counter = (Integer) data.get(i + 1);
+
+            Intent intent = new Intent(moduleSource.toString());
+            intent.putExtra("counter", counter);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
     }
