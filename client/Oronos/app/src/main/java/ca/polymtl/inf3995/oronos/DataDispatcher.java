@@ -33,8 +33,7 @@ public class DataDispatcher {
             String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
             Number data1 = (Number) data.get(i + 1);
             Number data2 = (Number) data.get(i + 2);
-            //ModuleType moduleSource = ModuleTypeValues[(Integer) data.get(i + 3)];
-            ModuleType moduleSource = ModuleType.UNKNOWN_MODULE;
+            ModuleType moduleSource = ModuleType.GetValue((Integer) data.get(i + 3));
             Integer noSerieSource = (Integer) data.get(i + 4);
             Integer counter = (Integer) data.get(i + 5);
 

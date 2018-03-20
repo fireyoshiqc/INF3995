@@ -28,4 +28,18 @@ enum ModuleType {
     public int getNumVal() {
         return numVal;
     }
+
+    public boolean Compare(int i) {
+        return numVal == i;
+    }
+
+    public static ModuleType GetValue(int _id) {
+        ModuleType[] As = ModuleType.values();
+        for (int i = 0; i < As.length; i++) {
+            if (As[i].Compare(_id))
+                return As[i];
+        }
+        return ModuleType.UNKNOWN_MODULE;
+    }
+
 }
