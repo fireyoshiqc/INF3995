@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.polymtl.inf3995.oronos.parser.DataPlot;
+import ca.polymtl.inf3995.oronos.utils.DataPlot;
 
 import static org.junit.Assert.*;
 /**
