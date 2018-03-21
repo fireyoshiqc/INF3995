@@ -1,8 +1,10 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
-
+import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -10,17 +12,24 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.parceler.Parcels;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
+import ca.polymtl.inf3995.oronos.utils.DataPlot;
+import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
+import timber.log.Timber;
 
 
 /**
@@ -29,17 +38,25 @@ import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 public class Plot extends AbstractWidgetContainer<CAN> {
 
+    //consts
+    private final int REFRESH_DELAY = 5000; //milliseconds
+    private final int UPDATE_DATA_DELAY = 1000; //milliseconds
+    private final int TITLE_TEXT_SIZE = 30; //size in sp
+    private final int DEFAULT_TIME_SELECTED = 60; //seconds
+    private final int MAXIMUM_ENTRIES = 300; //corresponds to seconds, we have 1 entry/second
+
+    //params
     private final String name;
     private final String unit;
     private final String axis;
     private final List<CAN> canList;
-
-    private List<Data> dataList;
-
-    private int seconds;
-
     private Context context;
 
+    //variables
+    private Map<String, DataPlot> dataMap;
+    private int seconds;
+
+    //Views, layouts...
     private LinearLayout containerLayout;
     private LinearLayout horizontalLayout;
     private LinearLayout timeSelectionLayout;
@@ -47,40 +64,201 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     private TextView axisView;
     private TextView timeSecondsView;
     private LineChart chart;
-
     private SeekBar slider;
 
 
 
+    Plot(Context context, String name, String unit, String axis, List<CAN> list) {
 
-    //Class containing information about a certain data from the graph, allowing to update it
-    private class Data {
+        super(context, list);
+        this.name = name;
+        this.unit = unit;
+        this.axis = axis;
+        this.canList = list;
+        this.context = context;
+        this.seconds = DEFAULT_TIME_SELECTED;
+        this.chart = new LineChart(context);
 
-        private LineDataSet lineDataSet;
 
-        Data(String nameID, int color, List<Entry> entryList){
-            this.lineDataSet = new LineDataSet(entryList, nameID);
-            this.lineDataSet.setColor(color);
-            this.lineDataSet.setCircleColor(color);
+        initializeDataList();
+
+        //to remove when real data gets in
+        generateFakeData();
+        //add more data to see what graph looks like when full
+        generateFakeData();
+        generateFakeData();
+        generateFakeData();
+        generateFakeData();
+        generateFakeData();
+
+        refreshPlot();
+        setGenericPlotSettings();
+
+        initializeViews();
+
+        //IntentFilter intentFilter = new IntentFilter();
+        //for (CAN can : list) {
+        //    intentFilter.addAction(can.getId());
+        //}
+        //LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+
+        run();
+
+    }
+
+    private void run() {
+
+        final Handler handler = new Handler();
+
+
+        handler.postDelayed(new Runnable(){
+            public void run(){
+
+               refreshPlot();
+                handler.postDelayed(this, REFRESH_DELAY);
+            }
+        }, REFRESH_DELAY);
+
+        //TODO: remove this when realdata is being added to
+        handler.postDelayed(new Runnable(){
+            public void run(){
+
+                addAFakeEntryInEachSet();
+                handler.postDelayed(this, UPDATE_DATA_DELAY);
+            }
+        }, UPDATE_DATA_DELAY);
+
+    }
+
+    private void initializeDataList() {
+        dataMap = new HashMap<>();
+        for(CAN can : this.canList){
+            DataPlot dataPlot = new DataPlot(MAXIMUM_ENTRIES);
+            String canID = can.getId();
+            dataMap.put(canID, dataPlot);
+            Timber.v("can ID from the CAN object: " + can.getId());
         }
+    }
 
-        public LineDataSet getDataSet(){
-            return this.lineDataSet;
+
+
+    private void refreshPlot() {
+        int[] colors = {Color.RED,Color.GREEN,Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
+        LineData lineData = new LineData();
+        List<ILineDataSet> lines = new ArrayList<ILineDataSet>();
+        int colorCount = 0;
+        for (String dataName: dataMap.keySet()) {
+            DataPlot dataPlot = dataMap.get(dataName);
+            List<Entry> listEntry = dataPlot.retrieveEntries(this.seconds);
+            LineDataSet line = new LineDataSet(listEntry, dataName);
+            line.setColor(colors[colorCount]);
+            line.setCircleColor(colors[colorCount]);
+            lines.add(line);
+            colorCount++;
         }
+        this.chart.setData(new LineData(lines));
+        this.chart.invalidate(); // refresh
 
     }
 
 
+
+    private void setGenericPlotSettings() {
+        //no interaction
+        this.chart.setTouchEnabled(false);
+
+        this.chart.setNoDataText("No data");
+        //TODO: remove this if we don't want any description
+        //if we want a description:
+        //Description desc = new Description();
+        //desc.setText("Time (seconds)");
+        //this.chart.setDescription(desc);
+
+    }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) { //Gets execute each time a can msg is received
+            BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
+            msg.getCanSid();
+
+            //TODO: put new data in DataPlots of hashmap dataMap
+            //Timber.v("can sid: " + msg.getCanSid());
+            //Timber.v("data1: " + msg.getData1().intValue());
+            //Timber.v("data2: " + msg.getData1().doubleValue());
+            //Timber.v("");
+
+
+        }
+    };
+
+    private void generateFakeData(){//TODO: get real data and remove this function
+        for(int i = 0; i < 100; i++){
+            addAFakeEntryInEachSet();
+        }
+    }
+
+    private void addAFakeEntryInEachSet(){//TODO: get real data and remove this function
+        int av = 20;
+        for(DataPlot dataPlot : dataMap.values()){
+            int randomNum = ThreadLocalRandom.current().nextInt(av-5, av+5 + 1);
+            dataPlot.addEntry(randomNum);
+            av+=20;
+        }
+    }
+
+    private void createAxisText() {
+
+        this.axisView = new TextView(context);
+        this.axisView.setText(axis + " (" + unit + ")");
+        this.axisView.setRotation(-90);
+        this.axisView.setGravity(Gravity.CENTER_HORIZONTAL);
+        this.axisView.setGravity(Gravity.CENTER_VERTICAL);
+        this.axisView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+
+    }
+
+    //TODO: remove this if we don't need to change XAxis
+    private void updateAxisScale() {
+        XAxis xAxis = this.chart.getXAxis();
+        xAxis.setAxisMaximum(seconds);
+        xAxis.setAxisMinimum(0);
+        this.chart.invalidate(); // refresh
+    }
+
+    private void createTitle() {
+
+        this.titleView = new TextView(context);
+
+        if (name.equals("")) {
+            this.titleView.setText("this graph has no name");
+        } else {
+            this.titleView.setText(name);
+        }
+        this.titleView.setTextSize(TITLE_TEXT_SIZE);
+        this.titleView.setGravity(Gravity.CENTER_HORIZONTAL);
+        this.titleView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+    }
+
+    //Slider
     private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
         private int timeSelected;
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            timeSelected = i + 60;
-            int minutesShow = timeSelected/60;
-            int secondsShow = timeSelected%60;
+            int minuteInSeconds = 60;
+            timeSelected = i + minuteInSeconds;
+            int minutesShow = timeSelected / minuteInSeconds;
+            int secondsShow = timeSelected % minuteInSeconds;
             String appendSecondStr = " seconds";
-            if (secondsShow < 10){
+            if (secondsShow < 10) {
                 appendSecondStr = "   seconds";
             }
             timeSecondsView.setText(Integer.toString(minutesShow) + " minutes " + Integer.toString(secondsShow) + appendSecondStr);
@@ -94,37 +272,40 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seconds = timeSelected;
-            updateAxisScale();
+            refreshPlot();
         }
     }
 
+    private void createSlider() {
+        timeSecondsView = new TextView(context);
+        timeSecondsView.setText(1 + " minute");
+        LayoutParams timeViewParams = new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT
+        );
+        timeViewParams.weight = 4;
+        timeSecondsView.setLayoutParams(timeViewParams);
+        timeSecondsView.setGravity(Gravity.CENTER_VERTICAL);
 
-
-    private void initializeDataList(){
-        this.dataList = new ArrayList<Data>();
-        int[] colors = {Color.RED,Color.GREEN,Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
-        //TODO: get real data
-
-        for (int can = 0; can < canList.size(); can++){
-            List<Entry> entries = new ArrayList<Entry>();
-            for (int i = 0; i < 5*seconds; i++) {
-                // turn data into Entry objects
-                entries.add(new Entry(i+can, i));
-            }
-            dataList.add(new Data(canList.get(can).getId(), colors[can], entries));
-        }
+        this.slider = new SeekBar(context);
+        slider.setMax(MAXIMUM_ENTRIES - DEFAULT_TIME_SELECTED);
+        SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SliderChangeListener();
+        slider.setOnSeekBarChangeListener(seekBarChangeListener);
+        LayoutParams sliderLayoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        sliderLayoutParams.weight = 1;
+        slider.setLayoutParams(sliderLayoutParams);
     }
 
-
-    private void initializeViews(){
+    private void initializeViews() { //Could have been an xml
         createTitle();
-        createAxis();
+        createAxisText();
         createSlider();
         this.chart.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
         this.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
         //main container
         this.containerLayout = new LinearLayout(context);
         this.containerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -156,109 +337,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
         addView(this.containerLayout);
     }
-
-    Plot(Context context, String name, String unit, String axis, List<CAN> list) {
-
-        super(context, list);
-        this.name = name;
-        this.unit = unit;
-        this.axis = axis;
-        this.canList = list;
-        this.context = context;
-        this.seconds = 60;
-        this.chart = new LineChart(context);
-
-        initializeDataList();
-
-        generatePlot();
-        setGenericPlotSettings();
-
-        initializeViews();
-
-    }
-
-    private void createAxis(){
-
-        this.axisView = new TextView(context);
-        this.axisView.setText(axis + " (" + unit + ")");
-        this.axisView.setRotation(-90);
-        this.axisView.setGravity(Gravity.CENTER_HORIZONTAL);
-        this.axisView.setGravity(Gravity.CENTER_VERTICAL);
-        this.axisView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-
-    }
-
-    private void createTitle(){
-
-        this.titleView = new TextView(context);
-
-        if(name.equals("")){
-            this.titleView.setText("this graph has no name");
-        } else {
-            this.titleView.setText(name);
-        }
-        this.titleView.setGravity(Gravity.CENTER_HORIZONTAL);
-        this.titleView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-
-    }
-
-    private void createSlider(){
-        timeSecondsView = new TextView(context);
-        timeSecondsView.setText(1 + " minute");
-        LayoutParams timeViewParams = new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT
-        );
-        timeViewParams.weight = 4;
-        timeSecondsView.setLayoutParams(timeViewParams);
-        timeSecondsView.setGravity(Gravity.CENTER_VERTICAL);
-
-        this.slider = new SeekBar(context);
-        slider.setMax(240);
-        SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SliderChangeListener();
-        slider.setOnSeekBarChangeListener(seekBarChangeListener);
-        LayoutParams sliderLayoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        sliderLayoutParams.weight = 1;
-        slider.setLayoutParams(sliderLayoutParams);
-    }
-
-    private void generatePlot() {
-
-        LineData lineData = new LineData();
-        List<ILineDataSet> lines = new ArrayList<ILineDataSet> ();
-        for (Data data : dataList){
-            lines.add(data.getDataSet());
-        }
-        String[] xAxis = new String[] {"0", "1", "2", "3", "4", "5", "6", "8", "9"};
-        this.chart.setData(new LineData(lines));
-        this.chart.invalidate(); // refresh
-
-    }
-
-    private void updateAxisScale(){
-        XAxis xAxis = this.chart.getXAxis();
-        xAxis.setAxisMaximum(seconds);
-        xAxis.setAxisMinimum(0);
-        this.chart.invalidate(); // refresh
-    }
-
-    private void setGenericPlotSettings() {
-        //no interaction
-        this.chart.setTouchEnabled(false);
-
-        this.chart.setNoDataText("No data");
-        Description desc = new Description();
-        desc.setText("Graph description");
-        this.chart.setDescription(desc);
-
-    }
-
 
     public String getName() {
         return name;

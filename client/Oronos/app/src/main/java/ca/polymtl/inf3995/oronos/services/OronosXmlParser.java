@@ -299,7 +299,7 @@ public class OronosXmlParser {
         return new FindMe(context);
     }
 
-    private Map readMap(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private MapTag readMap(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Map");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -307,7 +307,7 @@ public class OronosXmlParser {
             }
             skip(parser);
         }
-        return new Map(context);
+        return new MapTag(context);
     }
 
     private ModuleStatus readModuleStatus(XmlPullParser parser) throws XmlPullParserException, IOException {
