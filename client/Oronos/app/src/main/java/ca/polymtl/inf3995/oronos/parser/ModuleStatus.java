@@ -1,12 +1,19 @@
 package ca.polymtl.inf3995.oronos.parser;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.LinearLayout;
+
+import ca.polymtl.inf3995.oronos.ModuleType;
+import timber.log.Timber;
 
 public class ModuleStatus extends OronosView {
     private ModuleStatusAdapter adapter;
@@ -30,11 +37,11 @@ public class ModuleStatus extends OronosView {
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         addView(gridView);
 
-//        IntentFilter intentFilter = new IntentFilter();
-//        for (int i = 0; i < ModuleType.values().length; i++) {
-//            intentFilter.addAction(ModuleType.values()[i].toString());
-//        }
-//        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+        IntentFilter intentFilter = new IntentFilter();
+        for (int i = 0; i < ModuleType.values().length; i++) {
+            intentFilter.addAction(ModuleType.values()[i].toString());
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
     }
 
@@ -54,13 +61,15 @@ public class ModuleStatus extends OronosView {
         return this.gridView;
     }
 
-//    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String module = intent.getAction();
-//            int counter = intent.getParcelableExtra("counter");
-//            Timber.v(module + counter);
-//        }
-//    };
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String module = intent.getAction();
+            int counter = intent.getParcelableExtra("counter");
+            Timber.v(module + counter);
+            //Todo : S'assurer que chaque PCB ait le bon no de série.
+            receiveItem(module, Integer.parseInt(module), counter);
+        }
+    };
 
 }
