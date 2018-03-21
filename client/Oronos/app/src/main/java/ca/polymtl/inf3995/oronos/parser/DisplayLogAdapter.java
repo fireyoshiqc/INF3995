@@ -24,7 +24,6 @@ public class DisplayLogAdapter extends RecyclerView.Adapter<DisplayLogAdapter.Vi
         beginningOfListIndex = 0;
     }
 
-
     public void addCSVMsg(String csvMsg) {
         if (csvMsgs.size() < GlobalParameters.LIMIT_OF_N_MSG) {
             csvMsgs.add(csvMsg);
