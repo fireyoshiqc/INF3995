@@ -5,29 +5,37 @@ package ca.polymtl.inf3995.oronos;
  */
 
 public enum ModuleType {
-    ADM(0),
-    ADIRM(3),
-    ADLM(4),
-    APUM(6),
-    NUC(7),
-    GS(7),
-    MCD(15),
-    AGRUM(16),
-    ADRMSAT(17),
-    ATM_MASTER(18),
-    ATM_SLAVE(19),
+    ADM(0, "ADM"),
+    ADIRM(3, "ADIRM"),
+    ADLM(4, "ADLM"),
+    APUM(6, "APUM"),
+    NUC(7, "NUC"),
+    GS(7, "GS"),
+    MCD(15, "MCD"),
+    AGRUM(16, "AGRUM"),
+    ADRMSAT(17, "ADRMSAT"),
+    ATM_MASTER(18, "ATM_MASTER"),
+    ATM_SLAVE(19, "ATM_SLAVE"),
     UNKNOWN_MODULE(0x1E),
     ALL_MODULES(0x1F);
 
     private int numVal;
+    private String stringModule;
+
+    ModuleType(int numVal, String nameModule) {
+        this.numVal = numVal;
+        this.stringModule = nameModule;
+    }
 
     ModuleType(int numVal) {
         this.numVal = numVal;
+        this.stringModule = "";
     }
 
     public int getNumVal() {
         return numVal;
     }
+    public String getStringModule() { return stringModule; }
 
     public boolean Compare(int i) {
         return numVal == i;
