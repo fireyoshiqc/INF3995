@@ -83,7 +83,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         String     canSID   = msg.getCanSid();
         String     newData1 = Double.toString(msg.getData1().doubleValue());
         String     newData2 = Double.toString(msg.getData2().doubleValue());
-        String     module   = msg.getModuleSource().getStringModule();
+        String     module   = msg.getModuleSource().name();
         String     noSerie  = Integer.toString(msg.getNoSerieSource());
         adapter.addCSVMsg(
                 module + ";" + noSerie + ";" + canSID + ";" + newData1 + ";" + newData2 + ";");
