@@ -12,8 +12,10 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 
+import org.parceler.Parcels;
+
+import ca.polymtl.inf3995.oronos.ModuleMessage;
 import ca.polymtl.inf3995.oronos.ModuleType;
-import timber.log.Timber;
 
 public class ModuleStatus extends OronosView {
     private ModuleStatusAdapter adapter;
@@ -64,11 +66,12 @@ public class ModuleStatus extends OronosView {
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String module = intent.getAction();
-            int counter = intent.getParcelableExtra("counter");
-            Timber.v(module + counter);
-            //Todo : S'assurer que chaque PCB ait le bon no de série.
-            receiveItem(module, Integer.parseInt(module), counter);
+            ModuleMessage msg = (ModuleMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
+            ModuleType module = msg.getModuleSource();
+            Integer noSerie = msg.getNoSerieSource();
+            Integer counter = msg.getCounter();
+
+            receiveItem(module.toString(), noSerie, counter);
         }
     };
 
