@@ -1,33 +1,24 @@
 package ca.polymtl.inf3995.oronos.widgets.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v7.widget.CardView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.List;
 
 import ca.polymtl.inf3995.oronos.R;
+import ca.polymtl.inf3995.oronos.activities.MainActivity;
 
 
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-    // references to our images
-    private Integer[] mThumbIds = {
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
-            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7,
-            R.drawable.ic_sample_0, R.drawable.ic_sample_1,
-            R.drawable.ic_sample_2, R.drawable.ic_sample_3,
-            R.drawable.ic_sample_4, R.drawable.ic_sample_5,
-            R.drawable.ic_sample_6, R.drawable.ic_sample_7
-    };
+    private List<OronosViewCardContents> gridNames;
 
     /**
      * Adapter that can display small images in the Grid View for the MainActivity menu.
@@ -37,45 +28,57 @@ public class ImageAdapter extends BaseAdapter {
      *
      * @param c Context of the app.
      */
-    public ImageAdapter(Context c) {
+    public ImageAdapter(Context c, List<OronosViewCardContents> gridNames) {
         mContext = c;
+        this.gridNames = gridNames;
     }
 
+    @Override
     public int getCount() {
-        return mThumbIds.length;
+        return gridNames.size();
     }
 
+    @Override
     public Object getItem(int position) {
         return null;
     }
 
+    @Override
     public long getItemId(int position) {
         return 0;
     }
 
     // create a new ImageView for each item referenced by the Adapter
-    public View getView(int position, View convertView, ViewGroup parent) {
+    @Override
+    public View getView(final int position, final View convertView, ViewGroup parent) {
         CardView cardView;
-        ImageView imageView;
         if (convertView == null) {
-            // if it's not recycled, initialize some attributes
-            imageView = new ImageView(mContext);
-            imageView.setLayoutParams(new GridView.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-            ));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imageView.setPadding(8, 8, 8, 8);
-            imageView.setBackgroundColor(Color.TRANSPARENT);
-            imageView.setImageResource(mThumbIds[position]);
-            cardView = new CardView(mContext);
-            cardView.setLayoutParams(new GridView.LayoutParams(85, 85));
-            cardView.addView(imageView);
+            cardView = (CardView) LayoutInflater.from(mContext).inflate(R.layout.preview_card, parent, false);
+            ((TextView) cardView.findViewById(R.id.grid_name)).setText(gridNames.get(position).title);
+            StringBuilder subtitle = new StringBuilder();
+            for (String sub : gridNames.get(position).subtitles) {
+                subtitle.append(sub).append("\n");
+            }
+            ((TextView) cardView.findViewById(R.id.sub_elements)).setText(subtitle);
+            cardView.findViewById(R.id.view_button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ((MainActivity) mContext).changeStateOfDataLayout(position);
+                }
+            });
         } else {
             cardView = (CardView) convertView;
         }
-
-        ((ImageView) cardView.getChildAt(0)).setImageResource(mThumbIds[position]);
         return cardView;
+    }
+
+    public static class OronosViewCardContents {
+        private String title;
+        private List<String> subtitles;
+
+        public OronosViewCardContents(String title, List<String> subtitles) {
+            this.title = title;
+            this.subtitles = subtitles;
+        }
     }
 }

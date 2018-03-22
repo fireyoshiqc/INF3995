@@ -15,6 +15,10 @@ public class ModuleMessage {
     private Integer noSerieSource;
     private Integer counter;
 
+    public ModuleMessage() {
+
+    }
+
     public ModuleMessage(ModuleType moduleSource, Integer noSerieSource, Integer counter) {
         this.moduleSource = moduleSource;
         this.noSerieSource = noSerieSource;

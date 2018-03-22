@@ -4,6 +4,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.Toolbar;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,9 +37,14 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import ca.polymtl.inf3995.oronos.utils.LogTree;
 import ca.polymtl.inf3995.oronos.widgets.adapters.ImageAdapter;
+import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
+import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
 import ca.polymtl.inf3995.oronos.widgets.containers.UnsupportedContainerWidgetException;
+import ca.polymtl.inf3995.oronos.widgets.views.ContainableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
+import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
+import ca.polymtl.inf3995.oronos.widgets.views.Plot;
 import timber.log.Timber;
 
 
@@ -47,7 +53,7 @@ public class MainActivity extends DrawerActivity {
     private int currentDataViewState;
     private boolean isMenuActive;
 
-    private List<View> viewsContainer;
+    private List<OronosView> viewsContainer;
     private GridView gridView;
     private RelativeLayout dataLayout;
 
@@ -68,8 +74,9 @@ public class MainActivity extends DrawerActivity {
             }
         });
 
-        setUpToolbar();
+
         fillViewsContainer();
+        setUpToolbar();
         super.onCreateDrawer();
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
@@ -106,14 +113,36 @@ public class MainActivity extends DrawerActivity {
         setSupportActionBar(toolbar);
 
         gridView = new GridView(this);
-        gridView.setColumnWidth(90);
+        int gridPadding = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+        gridView.setPadding(gridPadding, gridPadding, gridPadding, gridPadding);
         gridView.setNumColumns(GridView.AUTO_FIT);
-        gridView.setVerticalSpacing(10);
-        gridView.setHorizontalSpacing(10);
+        gridView.setVerticalSpacing(gridPadding);
+        gridView.setHorizontalSpacing(gridPadding);
         gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
         gridView.setGravity(Gravity.CENTER);
-        gridView.setAdapter(new ImageAdapter(this));
+        ArrayList<ImageAdapter.OronosViewCardContents> names = new ArrayList<>();
+        for (OronosView view : viewsContainer) {
+            String name = view.getClass().getSimpleName();
+            ArrayList<String> subnames = new ArrayList<>();
+            if (view instanceof AbstractWidgetContainer) {
+                for (Object sub : ((AbstractWidgetContainer) view).getList()) {
+                    if (sub instanceof Tab) {
+                        subnames.add("Tab - " + ((Tab) sub).getName());
+                    }
+                    else if (sub instanceof Plot) {
+                        subnames.add("Plot - " + ((Plot) sub).getName());
+                    }
+                    else {
+                        subnames.add(sub.getClass().getSimpleName());
+                    }
 
+                }
+            }
+            names.add(new ImageAdapter.OronosViewCardContents(name, subnames));
+        }
+        gridView.setAdapter(new ImageAdapter(this, names));
+
+        /*
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
@@ -121,7 +150,7 @@ public class MainActivity extends DrawerActivity {
                 changeStateOfDataLayout(position);
             }
         });
-
+        */
     }
 
     /**
