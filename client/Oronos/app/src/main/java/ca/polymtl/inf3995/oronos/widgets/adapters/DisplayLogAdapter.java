@@ -1,4 +1,4 @@
-package ca.polymtl.inf3995.oronos.parser;
+package ca.polymtl.inf3995.oronos.widgets.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -10,7 +10,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.polymtl.inf3995.oronos.GlobalParameters;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 public class DisplayLogAdapter extends RecyclerView.Adapter<DisplayLogAdapter.ViewHolder> {
 

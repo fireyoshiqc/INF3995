@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import ca.polymtl.inf3995.oronos.parser.DisplayLogAdapter;
+import ca.polymtl.inf3995.oronos.widgets.adapters.DisplayLogAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
