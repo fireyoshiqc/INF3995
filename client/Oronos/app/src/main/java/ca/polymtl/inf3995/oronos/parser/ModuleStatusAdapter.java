@@ -122,7 +122,7 @@ public class ModuleStatusAdapter extends BaseAdapter {
         int position = findPositionOfPCB(PCBname, noSerial, noMsg);
         if (position < getCount()) {
             PCBPair pcb = PCBList.get(position);
-            if (pcb.getLastNoMsg() < noMsg) {
+            if (pcb.getLastNoMsg() != noMsg) {
                 pcb.setLastNoMsg(noMsg);
                 pcb.setLastTimeSeen(DateTime.now());
                 pcb.setStatus(StatusOfPCB.ONLINE);

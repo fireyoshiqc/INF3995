@@ -56,12 +56,15 @@ public class DataDispatcher {
             return;
         }
 
-        for (int i = 0; i < data.size(); i += 2) {
+        for (int i = 0; i < data.size(); i += 3) {
             ModuleType moduleSource = ModuleType.GetValue((Integer) data.get(i));
-            Integer counter = (Integer) data.get(i + 1);
+            Integer noSerie = (Integer) data.get(i + 1);
+            Integer counter = (Integer) data.get(i + 2);
+
+            ModuleMessage moduleMessage = new ModuleMessage(moduleSource, noSerie, counter);
 
             Intent intent = new Intent(moduleSource.toString());
-            intent.putExtra("counter", counter);
+            intent.putExtra("data", Parcels.wrap(moduleMessage));
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
