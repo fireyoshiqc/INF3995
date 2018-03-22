@@ -14,21 +14,21 @@ public class DataPlot {
     private final int ONE_SECOND_IN_MILLIS = 1000;
 
     private int nEntries;
-    private List<Integer> entriesList;
+    private List<Double> entriesList;
     private int MAX_ENTRIES;
     private long lastEntryTime = 0;
 
     public DataPlot(int maxEntries) {
         this.MAX_ENTRIES = maxEntries;
-        entriesList = new ArrayList<Integer>();
+        entriesList = new ArrayList<Double>();
     }
 
-    public void addEntry(int value) {
+    public void addEntry(double value) {
         long newEntryTime = System.currentTimeMillis();
         if(newEntryTime < lastEntryTime + ONE_SECOND_IN_MILLIS){
             return; //We don't add the value if not enough time has gone by
         }
-        
+
         fillNoData(newEntryTime);
         lastEntryTime = newEntryTime;
 
@@ -51,6 +51,9 @@ public class DataPlot {
             while(rest > newEntryTime){
                 rest += ONE_SECOND_IN_MILLIS;
                 entriesList.add(entriesList.get(0));
+                if (nEntries == MAX_ENTRIES){
+                    entriesList.remove(0);
+                }
             }
         }
     }
@@ -69,7 +72,9 @@ public class DataPlot {
         }
 
         for (int i = nEntries - actualAmount; i < nEntries; i++){
-            formattedEntries.add(new Entry(index - actualAmount, entriesList.get(i)));
+            double entryd = entriesList.get(i);
+            float entryf = (float)entryd;
+            formattedEntries.add(new Entry(index - actualAmount, entryf));
             index++;
         }
         return formattedEntries;

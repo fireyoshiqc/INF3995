@@ -182,6 +182,8 @@ public class Plot extends AbstractWidgetContainer<CAN> {
             BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
             msg.getCanSid();
 
+            dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
+
             //TODO: put new data in DataPlots of hashmap dataMap
             //Timber.v("can sid: " + msg.getCanSid());
             //Timber.v("data1: " + msg.getData1().intValue());
