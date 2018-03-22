@@ -29,6 +29,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     private Timer listUpdater;
     private DisplayLogAdapter adapter;
     private List<MSGPair> lastMsgsReceived;
+    private Context context;
 
     /**
      * MSGPair stocks all necessary data to distinguish 2 logs and register the newest.
@@ -57,6 +58,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
 
     public DisplayLogWidget(Context context, List<CAN> list) {
         super(context, list);
+        this.context = context;
         lastMsgsReceived = new ArrayList<>();
         recycler = new RecyclerView(context);
         adapter = new DisplayLogAdapter(context);
@@ -68,15 +70,14 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         recycler.setNestedScrollingEnabled(false);
         addView(recycler);
+        setUpBroadcast();
+    }
 
+    private void setUpBroadcast() {
         IntentFilter intentFilter = new IntentFilter();
-        if (list.size() > 0) {
-            for (CAN can : list) {
-                intentFilter.addAction(can.getId());
-            }
-        }
+        intentFilter.addAction(GlobalParameters.CATEGORY_FOR_DISPATCH);
+        intentFilter.addCategory(GlobalParameters.CATEGORY_FOR_DISPATCH);
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
-
     }
 
     public void receiveMsgToLog(BroadcastMessage msg) {
@@ -97,29 +98,40 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
             String module   = msg.getSourceModule();
             Integer    noSerie  = msg.getSerialNb();
             Integer    counter  = msg.getCounter();
-            Boolean isNewMsgToLog = true;
-            Boolean isNewMsgReceived = true;
+            boolean isDesiredCanMsg = false;
 
-            for (MSGPair msgPair: lastMsgsReceived) {
-                if (canSID == msgPair.getCansid()
-                        && module == msgPair.getModuleType()
-                        && noSerie == msgPair.getNoSerial()) {
-                    isNewMsgReceived = false;
-                    if (counter != msgPair.getLastNoMsg()) {
-                        msgPair.setLastNoMsg(counter);
-                        break;
-                    } else {
-                        isNewMsgToLog = false;
-                        break;
-                    }
+            for (CAN can : list) {
+                if (canSID == can.getId()) {
+                    isDesiredCanMsg = true;
                 }
             }
 
-            if (isNewMsgReceived) {
-                lastMsgsReceived.add(new MSGPair(canSID, module, noSerie, counter));
-            }
-            if (isNewMsgToLog) {
-                receiveMsgToLog(msg);
+            if (list.size() == 0 || isDesiredCanMsg) {
+
+                Boolean isNewMsgToLog = true;
+                Boolean isNewMsgReceived = true;
+
+                for (MSGPair msgPair : lastMsgsReceived) {
+                    if (canSID == msgPair.getCansid()
+                            && module == msgPair.getModuleType()
+                            && noSerie == msgPair.getNoSerial()) {
+                        isNewMsgReceived = false;
+                        if (counter != msgPair.getLastNoMsg()) {
+                            msgPair.setLastNoMsg(counter);
+                            break;
+                        } else {
+                            isNewMsgToLog = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isNewMsgReceived) {
+                    lastMsgsReceived.add(new MSGPair(canSID, module, noSerie, counter));
+                }
+                if (isNewMsgToLog) {
+                    receiveMsgToLog(msg);
+                }
             }
         }
     };

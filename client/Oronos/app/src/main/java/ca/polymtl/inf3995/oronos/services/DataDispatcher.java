@@ -58,6 +58,32 @@ public class DataDispatcher {
 
     }
 
+    public static void logToDispatch(List<Object> data) {
+
+        if (GlobalParameters.canSid == null
+                || GlobalParameters.canDataTypes == null
+                || GlobalParameters.canMsgDataTypes == null) {
+            return;
+        }
+
+        for (int i = 0; i < data.size(); i += 6) {
+            String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
+            Number data1 = (Number) data.get(i + 1);
+            Number data2 = (Number) data.get(i + 2);
+            ModuleType moduleSource = ModuleType.getValue((Integer) data.get(i + 3));
+            Integer noSerieSource = (Integer) data.get(i + 4);
+            Integer counter = (Integer) data.get(i + 5);
+
+            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
+
+            Intent intent = new Intent(GlobalParameters.CATEGORY_FOR_DISPATCH);
+            intent.addCategory(GlobalParameters.CATEGORY_FOR_DISPATCH);
+            intent.putExtra("data", Parcels.wrap(broadcastMessage));
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+
+    }
+
     public static void moduleToDispatch(List<Object> data) {
 
         if (GlobalParameters.canModuleTypes == null) {
