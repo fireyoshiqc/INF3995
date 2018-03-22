@@ -1,20 +1,14 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-import android.content.BroadcastReceiver;
+import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 
-import org.parceler.Parcels;
-
 import java.util.List;
-
-import ca.polymtl.inf3995.oronos.BroadcastMessage;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -26,12 +20,10 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
     private final int HALF_SPAN = 2;
     private final int FULL_SPAN = 4;
     private final int MAX_LARGE_DATA = 32;
-
-    enum DataLayout {
-        HORIZONTAL, VERTICAL, FULL
-    }
-
+    private final int UI_CHANGE_ANIM_DURATION = 100;
+    private final int DATA_UPDATE_PERIOD = 500;
     private RecyclerView recycler;
+    private Timer listUpdater;
 
     DataDisplayer(Context context, List<CAN> list, DataLayout layout) {
         super(context, list);
@@ -58,11 +50,10 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
                 adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA * (screenInches / TARGET_SCREEN_SIZE)));
                 gridLayoutManager = new GridLayoutManager(context, (int) (FULL_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
-
         }
 
         recycler.setLayoutManager(gridLayoutManager);
-        recycler.setItemAnimator(new DefaultItemAnimator());
+        recycler.getItemAnimator().setChangeDuration(UI_CHANGE_ANIM_DURATION);
         recycler.setAdapter(adapter);
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         recycler.setNestedScrollingEnabled(false);
@@ -70,15 +61,66 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
 
     }
 
+    private void enableCANUpdates() {
+        for (CAN can : list) {
+            if (!can.updatesAreEnabled()) {
+                can.enableDataDisplayerUpdates(getContext());
+            }
+        }
+    }
+
+    private void disableCANUpdates() {
+        for (CAN can : list) {
+            can.disableDataDisplayerUpdates(getContext());
+        }
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        ((CANAdapter) recycler.getAdapter()).enableCANUpdates();
+        enableCANUpdates();
+        startUpdateTask();
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        ((CANAdapter) recycler.getAdapter()).disableCANUpdates();
+        disableCANUpdates();
+        stopUpdateTask();
+    }
+
+    private void startUpdateTask() {
+        listUpdater = new Timer(true);
+        TimerTask sensorTask = new TimerTask() {
+            @Override
+            public void run() {
+                ((Activity) getContext()).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = 0; i < list.size(); i++) {
+                            if (list.get(i).isChanged()) {
+                                recycler.getAdapter().notifyItemChanged(i);
+                                list.get(i).notifyReset();
+                            }
+                        }
+                    }
+                });
+            }
+        };
+        listUpdater.scheduleAtFixedRate(sensorTask, 0, DATA_UPDATE_PERIOD);
+    }
+
+    /**
+     * This method stops the task started by the method above.
+     */
+    private void stopUpdateTask() {
+        if (listUpdater != null) {
+            listUpdater.cancel();
+            listUpdater.purge();
+        }
+    }
+
+    enum DataLayout {
+        HORIZONTAL, VERTICAL, FULL
     }
 }

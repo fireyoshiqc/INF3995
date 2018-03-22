@@ -32,13 +32,12 @@ import timber.log.Timber;
 public class RestHttpWrapper {
 
 
-    private RequestQueue volleyQueue;
-    static final String SERVER_IP = "10.200.8.113"; //has to change according to user input
+    static final String SERVER_IP = "192.168.0.102"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
     static final String DEVICE_NAME = Build.MODEL;
     Context appContext;
-
+    private RequestQueue volleyQueue;
     private String username = "foo"; //has to change according to user input
     private String password = "password1234"; //has to change according to user input
 

@@ -4,14 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.parceler.Parcels;
 
 import ca.polymtl.inf3995.oronos.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.R;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -32,12 +31,7 @@ public class CAN implements ContainableWidget {
     private String unit;
     private String dataToDisplay;
     private DisplayState state;
-
-    enum DisplayState {
-        NONE, GREEN, RED
-    }
-
-
+    private boolean hasChanged = false;
 
     public CAN(String id, @Nullable String name, @Nullable String display,
                @Nullable String minAcceptable, @Nullable String maxAcceptable,
@@ -56,7 +50,16 @@ public class CAN implements ContainableWidget {
         this.customUpdate = customUpdate;
         this.updateEach = updateEach;
         dataToDisplay = "";
-        unit = "";
+        if (display != null) {
+            String[] dataSplit = this.display.split(" ");
+            if (dataSplit.length == 2) {
+                unit = dataSplit[1];
+            } else {
+                unit = "";
+            }
+        } else {
+            unit = "CST";
+        }
         state = DisplayState.NONE;
     }
 
@@ -116,13 +119,15 @@ public class CAN implements ContainableWidget {
         return broadcastReceiver != null;
     }
 
-    public void enableUpdates(final CANAdapter adapter, Context context) {
+    public void enableDataDisplayerUpdates(Context context) {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(final Context context, final Intent intent) {
+
                 BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
                 double newData = 0.0;
                 // TODO: Use notify event to send formatted data into the holder.
+                String formattedData = "";
                 if (display != null) {
                     switch (display) {
                         case "__DATA1__":
@@ -133,25 +138,25 @@ public class CAN implements ContainableWidget {
                             break;
                     }
 
+
                     if (chiffresSign != null) {
                         String signFormat = "%." + chiffresSign + "f";
-                        dataToDisplay = String.format(signFormat, newData);
+                        formattedData = String.format(signFormat, newData);
                     } else {
-                        dataToDisplay = String.format("%f", newData);
+                        formattedData = String.format("%f", newData);
                     }
-                    String[] dataSplit = display.split(" ");
-                    if (dataSplit.length == 2) {
-                        unit = dataSplit[1];
-                    } else {
-                        unit = "";
-                    }
+
                 } else {
                     // TODO: Use customUpdate to generate the data to display.
                     if (chiffresSign != null) {
                         String signFormat = "%." + chiffresSign + "f";
-                        dataToDisplay = String.format(signFormat, 0.000000);
+                        formattedData = String.format(signFormat, 0.000000);
                     }
-                    unit = "CST";
+                }
+
+                if (!formattedData.equals(dataToDisplay)) {
+                    dataToDisplay = formattedData;
+                    hasChanged = true;
                 }
 
                 // TODO: Change holder appearance according to minAcceptable and maxAcceptable.
@@ -168,8 +173,6 @@ public class CAN implements ContainableWidget {
                             //data.setTextColor(Color.BLACK);
                         }
                     }
-
-                    adapter.notifyDataSetChanged();
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
@@ -184,12 +187,26 @@ public class CAN implements ContainableWidget {
             intentFilter.addCategory(serialNb);
         }
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+
     }
 
-    public void disableUpdates(Context context) {
+    public void disableDataDisplayerUpdates(Context context) {
         if (broadcastReceiver != null) {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver);
             broadcastReceiver = null;
         }
     }
+
+    public boolean isChanged() {
+        return hasChanged;
+    }
+
+    public void notifyReset() {
+        this.hasChanged = false;
+    }
+
+    enum DisplayState {
+        NONE, GREEN, RED
+    }
+
 }

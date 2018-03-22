@@ -89,7 +89,7 @@ public class MainActivity extends DrawerActivity {
     private void setUpUtilities() {
         CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
-        SocketClient socketClient = new SocketClient(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
+        SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
         DataDispatcher.setContext(this.getApplicationContext());
         restHttpWrapper = new RestHttpWrapper(getApplicationContext());
     }
@@ -127,7 +127,7 @@ public class MainActivity extends DrawerActivity {
      * to be displayed in the dataLayout).
      */
     private void fillViewsContainer() {
-        parser = new OronosXmlParser(getWindow().getContext());
+        parser = new OronosXmlParser(this);
         try {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);

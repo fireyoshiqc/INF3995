@@ -1,22 +1,15 @@
 package ca.polymtl.inf3995.oronos.parser;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.parceler.Parcels;
-
 import java.util.List;
 
-import ca.polymtl.inf3995.oronos.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.R;
 
 /**
@@ -25,28 +18,14 @@ import ca.polymtl.inf3995.oronos.R;
 
 public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
 
+    private final int maxLargeItems;
     private Context context;
     private List<CAN> canTags;
-    private final int maxLargeItems;
 
     public CANAdapter(Context context, List<CAN> canTags, int maxLargeItems) {
         this.context = context;
         this.canTags = canTags;
         this.maxLargeItems = maxLargeItems;
-    }
-
-    public void enableCANUpdates() {
-        for (CAN can : canTags) {
-            if (!can.updatesAreEnabled()) {
-                can.enableUpdates(this, context);
-            }
-        }
-    }
-
-    public void disableCANUpdates() {
-        for (CAN can : canTags) {
-            can.disableUpdates(context);
-        }
     }
 
     @Override
@@ -63,9 +42,6 @@ public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
     @Override
     public void onBindViewHolder(CANContainer holder, int position) {
         CAN can = canTags.get(position);
-        if (!can.updatesAreEnabled()) {
-            can.enableUpdates(this, context);
-        }
         holder.name.setText(can.getName());
         holder.canid.setText(can.getId());
         holder.data.setText(can.getDataToDisplay());
