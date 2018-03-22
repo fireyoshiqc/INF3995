@@ -12,7 +12,8 @@ PIPE_NAME = "/tmp/inf3995-users-view"
 @enum.unique
 class SignalCodes(enum.IntEnum):
 	OK = 0,
-	EXIT = 1;
+	EXIT = 1,
+	NOTHING_TO_SHOW = 2;
 
 
 class SecondConsole(object):
@@ -29,6 +30,8 @@ class SecondConsole(object):
 			elif len(msg) == 1:
 				if msg[0] == SignalCodes.EXIT:
 					return
+				elif msg[0] == SignalCodes.OK:
+					continue
 			
 			# Yes, I know it's ugly, shut up!
 			if platform.system() == "Windows":
@@ -37,7 +40,8 @@ class SecondConsole(object):
 				os.system("clear")
 			
 			print("--- Connected Clients ---" "\n")
-			print(msg.decode("utf-8"))
+			if len(msg) != 1:
+				print(msg.decode("utf-8"))
 			sys.stdout.flush()
 
 
