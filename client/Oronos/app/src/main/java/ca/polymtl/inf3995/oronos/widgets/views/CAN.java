@@ -10,6 +10,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.parceler.Parcels;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
+import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -25,7 +27,9 @@ public class CAN implements ContainableWidget {
     private final String specificSource;
     private final String serialNb;
     private final String customUpdate;
+    private final String customUpdateParam;
     private final String updateEach;
+    private final String customAcceptable;
     private BroadcastReceiver broadcastReceiver;
     private String unit;
     private String dataToDisplay;
@@ -36,7 +40,8 @@ public class CAN implements ContainableWidget {
                @Nullable String minAcceptable, @Nullable String maxAcceptable,
                @Nullable String chiffresSign, @Nullable String specificSource,
                @Nullable String serialNb, @Nullable String customUpdate,
-               @Nullable String updateEach) {
+               @Nullable String customUpdateParam, @Nullable String updateEach,
+               @Nullable String customAcceptable) {
 
         this.id = id;
         this.name = name;
@@ -47,7 +52,9 @@ public class CAN implements ContainableWidget {
         this.specificSource = specificSource;
         this.serialNb = serialNb;
         this.customUpdate = customUpdate;
+        this.customUpdateParam = customUpdateParam;
         this.updateEach = updateEach;
+        this.customAcceptable = customAcceptable;
         dataToDisplay = "";
         if (display != null) {
             String[] dataSplit = this.display.split(" ");
@@ -57,7 +64,7 @@ public class CAN implements ContainableWidget {
                 unit = "";
             }
         } else {
-            unit = "CST";
+            unit = "";
         }
         state = DisplayState.NONE;
     }
@@ -145,12 +152,29 @@ public class CAN implements ContainableWidget {
                         formattedData = String.format("%f", newData);
                     }
 
-                } else {
-                    // TODO: Use customUpdate to generate the data to display.
-                    if (chiffresSign != null) {
-                        String signFormat = "%." + chiffresSign + "f";
-                        formattedData = String.format(signFormat, 0.000000);
+                } else if (customUpdate != null) {
+
+                    newData = msg.getData1().doubleValue();
+                    String[] dataAndUnit;
+                    String updated;
+
+                    if (customUpdateParam != null) {
+                        updated = CANCustomUpdate.updateWithParam(customUpdate, customUpdateParam, msg);
+                    } else {
+                        updated = CANCustomUpdate.update(customUpdate, msg);
                     }
+                    if (updated != null) {
+                        dataAndUnit = updated.split(" ");
+                        formattedData = dataAndUnit[0];
+                        if (dataAndUnit.length == 2) {
+                            unit = dataAndUnit[1];
+                        }
+                    } else {
+                        formattedData = dataToDisplay;
+                    }
+
+                } else {
+                    formattedData = "N/A";
                 }
 
                 if (!formattedData.equals(dataToDisplay)) {
@@ -158,25 +182,26 @@ public class CAN implements ContainableWidget {
                     hasChanged = true;
                 }
 
-                // TODO: Change holder appearance according to minAcceptable and maxAcceptable.
                 try {
-                    if (minAcceptable != null && maxAcceptable != null) {
-                        if (newData < Double.parseDouble(minAcceptable)
-                                || newData > Double.parseDouble(maxAcceptable)) {
+                    if (customAcceptable != null) {
+                        if (!CANCustomUpdate.acceptable(customAcceptable, msg)) {
                             state = DisplayState.RED;
-                            //view.setBackgroundResource(R.drawable.can_data_large_border_red);
-                            //data.setTextColor(0xFFCC0000);
                         } else {
                             state = DisplayState.GREEN;
-                            //view.setBackgroundResource(R.drawable.can_data_large_border_green);
-                            //data.setTextColor(Color.BLACK);
                         }
+                    } else if ((minAcceptable != null && newData < Double.parseDouble(minAcceptable))
+                            || (maxAcceptable != null && newData > Double.parseDouble(maxAcceptable))) {
+                        state = DisplayState.RED;
+                    } else {
+                        state = DisplayState.GREEN;
                     }
+
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    Timber.e("Error: Could not update CAN tag state due to NumberFormatException.");
                 }
             }
         };
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(id);
         if (specificSource != null) {
