@@ -15,9 +15,9 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ca.polymtl.inf3995.oronos.parser.OronosXmlParser;
-import ca.polymtl.inf3995.oronos.parser.Rocket;
-import ca.polymtl.inf3995.oronos.parser.UnsupportedContainerWidgetException;
+import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
+import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
+import ca.polymtl.inf3995.oronos.widgets.containers.UnsupportedContainerWidgetException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
