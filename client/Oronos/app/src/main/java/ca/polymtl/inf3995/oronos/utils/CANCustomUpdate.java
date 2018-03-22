@@ -22,7 +22,7 @@ public class CANCustomUpdate {
 
 
     // REFLECTION WOOOOOO
-    public static String format(String customUpdate, BroadcastMessage msg) {
+    public static String update(String customUpdate, BroadcastMessage msg) {
 
         try {
             Method method = CANCustomUpdate.class.getDeclaredMethod(customUpdate, BroadcastMessage.class);
@@ -30,6 +30,38 @@ public class CANCustomUpdate {
             return (String) method.invoke(null, msg);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             return "WRONG_UPDATE";
+        }
+    }
+
+    public static boolean acceptable(String customAcceptable, BroadcastMessage msg) {
+        try {
+            Method method = CANCustomUpdate.class.getDeclaredMethod(customAcceptable, BroadcastMessage.class);
+            method.setAccessible(true);
+            return (boolean) method.invoke(null, msg);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return false;
+        }
+    }
+
+    public static String updateWithParam(String customUpdate, String param, BroadcastMessage msg) {
+        try {
+            Method method = CANCustomUpdate.class.getDeclaredMethod(customUpdate, BroadcastMessage.class, String.class);
+            method.setAccessible(true);
+            return (String) method.invoke(null, msg, param);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return "WRONG_UPDATE";
+        }
+    }
+
+    private static String oneWire(BroadcastMessage msg, String param) {
+        try {
+            if ((long) msg.getData1().intValue() == Long.decode(param)) {
+                return String.format("%.2f", msg.getData2().doubleValue())+" C";
+            } else {
+                return null;
+            }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            return null;
         }
     }
 
@@ -109,10 +141,7 @@ public class CANCustomUpdate {
     // oneWire needs an address that we don't have.
 
     private static String admBWVoltsToOhmsString(BroadcastMessage msg) {
-        double conv = msg.getData1().doubleValue() * 3.5 / 1000.0;
-        if (conv < 11.0) {
-            conv = Double.POSITIVE_INFINITY;
-        }
+        double conv = admBWVoltsToOhms(msg.getData1().doubleValue());
         return String.format("%.1f", conv)+" Ω";
     }
 
@@ -158,10 +187,20 @@ public class CANCustomUpdate {
         }
     }
 
+    private static boolean isBWOhmAcceptable(BroadcastMessage msg) {
+        double conv = admBWVoltsToOhms(msg.getData1().doubleValue());
+        return 4.0 < conv && conv < 6.5;
+    }
+
+    private static boolean oneWireAcceptable(BroadcastMessage msg) {
+        double wire = msg.getData2().doubleValue();
+        return 15.0 < wire && wire < 65.0;
+    }
+
     private static double pascalToFeet(double pascal) {
         // Sea level pressure : 1013.25 kPa
         // Sea level temp : 288.15 K
-        double meters = (((Math.log10(pascal / 1013.25) / Math.log(5.255)) * 288.15) - 1) / -0.0065;
+        double meters = (((Math.log10(pascal / 101325) / Math.log(5.255)) * 28815) - 1) / (-0.65);
 
         // 1 meter = 3.28084 ft
         return metersToFeet(meters);
@@ -169,5 +208,13 @@ public class CANCustomUpdate {
 
     private static double metersToFeet(double meters) {
         return meters * 3.28084;
+    }
+
+    private static double admBWVoltsToOhms(double volts) {
+        double conv = volts * 3.5 / 1000.0;
+        if (conv < 11.0) {
+            conv = Double.POSITIVE_INFINITY;
+        }
+        return conv < 11.0 ? conv : Double.POSITIVE_INFINITY;
     }
 }

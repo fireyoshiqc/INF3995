@@ -354,14 +354,18 @@ public class OronosXmlParser {
         String specificSource = parser.getAttributeValue(null, "specificSource");
         String serialNb = parser.getAttributeValue(null, "serialNb");
         String customUpdate = parser.getAttributeValue(null, "customUpdate");
+        String customUpdateParam = parser.getAttributeValue(null, "customUpdateParam");
         String updateEach = parser.getAttributeValue(null, "updateEach");
+        String customAcceptable = parser.getAttributeValue(null, "customAcceptable");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
             skip(parser);
         }
-        return new CAN(id, canName, display, minAcceptable, maxAcceptable, chiffresSign, specificSource, serialNb, customUpdate, updateEach);
+        return new CAN(id, canName, display, minAcceptable, maxAcceptable, chiffresSign,
+                specificSource, serialNb, customUpdate, customUpdateParam, updateEach,
+                customAcceptable);
     }
 
     private UnsupportedWidget readUnsupportedWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
