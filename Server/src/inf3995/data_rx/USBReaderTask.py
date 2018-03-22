@@ -92,6 +92,8 @@ class USBReaderTask(AbstractTaskNode):
 		except KeyError as e:
 			self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 			return
+		except ValueError:
+			return
 
 		# Discard all messages with invalid destination types
 		try:
@@ -107,51 +109,60 @@ class USBReaderTask(AbstractTaskNode):
 		except KeyError as e:
 			self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 			return
+		except ValueError:
+			return
 
 		#TODO: Make function that returns casting type (int, float, unsigned?)
 		# Parse data 1
 		# Les 3 bits inutilisés ne sont pas traités
-		data1_type = can_sid_info['data1_type']
-		if _DataType[data1_type] == _DataType.INT:
-			data1 = int(msg_bitfield[32:64])
-		elif _DataType[data1_type] == _DataType.FLOAT:
-			# Produces a different result for some reason
-			#data1 = float(msg_bitfield[32:64])
-			data1 = unpack('f', msg_decoded[4:8])[0]
-		elif _DataType[data1_type] == _DataType.UNSIGNED:
-			# TODO: Make sure is interpreted as unsigned?
-			data1 = int(msg_bitfield[32:64])
-		elif _DataType[data1_type] == _DataType.TIMESTAMP:
-			# TODO: Make sure is interpreted as unsigned?
-			data1 = int(msg_bitfield[32:64])
-		elif _DataType[data1_type] == _DataType.MAGIC:
-			# TODO: Special traitement because it's in hex?
-			data1 = int(msg_bitfield[32:64])
-		else:
-			# Unrecognized data type
+		try:
+			data1_type = can_sid_info['data1_type']
+			if _DataType[data1_type] == _DataType.INT:
+				data1 = int(msg_bitfield[32:64])
+			elif _DataType[data1_type] == _DataType.FLOAT:
+				# Produces a different result for some reason
+				#data1 = float(msg_bitfield[32:64])
+				data1 = unpack('f', msg_decoded[4:8])[0]
+			elif _DataType[data1_type] == _DataType.UNSIGNED:
+				# TODO: Unpack as unsigned integer (format: 'I')
+				data1 = int(msg_bitfield[32:64])
+			elif _DataType[data1_type] == _DataType.TIMESTAMP:
+				# TODO: Unpack as unsigned integer (format: 'I')
+				data1 = int(msg_bitfield[32:64])
+			elif _DataType[data1_type] == _DataType.MAGIC:
+				# TODO: Special traitement because it's in hex?
+				data1 = int(msg_bitfield[32:64])
+			else:
+				# Unrecognized data type
+				return
+		except ValueError:
 			return
 
 		# Parse data 2
 		# All data types possible in second data field?
 		data2_type = can_sid_info['data2_type']
-		if _DataType[data2_type] == _DataType.INT:
-			data2 = int(msg_bitfield[64:96])
-		elif _DataType[data2_type] == _DataType.FLOAT:
-			# Produces a different result for some reason
-			#data2 = float(msg_bitfield[64:96])
-			data2 = unpack('f', msg_decoded[8:12])[0]
-		elif _DataType[data2_type] == _DataType.UNSIGNED:
-			# TODO: Make sure is interpreted as unsigned?
-			data2 = int(msg_bitfield[64:96])
-		elif _DataType[data2_type] == _DataType.TIMESTAMP:
-			data2 = int(msg_bitfield[64:96])
-		elif _DataType[data2_type] == _DataType.MAGIC:
-			# TODO: Special traitement because it's in hex?
-			data2 = int(msg_bitfield[64:96])
-		elif _DataType[data2_type] == _DataType.NONE:
-			data2 = int(msg_bitfield[64:96])
-		else:
-			# Unrecognized data type
+		try:
+			if _DataType[data2_type] == _DataType.INT:
+				data2 = int(msg_bitfield[64:96])
+			elif _DataType[data2_type] == _DataType.FLOAT:
+				# Produces a different result for some reason
+				#data2 = float(msg_bitfield[64:96])
+				data2 = unpack('f', msg_decoded[8:12])[0]
+			elif _DataType[data2_type] == _DataType.UNSIGNED:
+				# TODO: Unpack as unsigned integer (format: 'I')
+				data2 = int(msg_bitfield[64:96])
+			elif _DataType[data2_type] == _DataType.TIMESTAMP:
+				# TODO: Unpack as unsigned integer (format: 'I')
+				data2 = int(msg_bitfield[64:96])
+			elif _DataType[data2_type] == _DataType.MAGIC:
+				# TODO: Special traitement because it's in hex?
+				data2 = int(msg_bitfield[64:96])
+			elif _DataType[data2_type] == _DataType.NONE:
+				data2 = int(msg_bitfield[64:96])
+			else:
+				# Unrecognized data type
+				return
+		except ValueError:
 			return
 
 		# For debugging: Print data1 & data2 in binary and then
