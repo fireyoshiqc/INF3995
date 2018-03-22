@@ -134,20 +134,20 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         LineData lineData = new LineData();
         List<ILineDataSet> lines = new ArrayList<ILineDataSet>();
         int colorCount = 0;
-        for (String dataName: dataMap.keySet()) {
-            DataPlot dataPlot = dataMap.get(dataName);
+        for (CAN can : this.canList){
+            DataPlot dataPlot = dataMap.get(can.getId());
             List<Entry> listEntry = dataPlot.retrieveEntries(this.seconds);
             if(!listEntry.isEmpty()){
-                LineDataSet line = new LineDataSet(listEntry, dataName);
+                LineDataSet line = new LineDataSet(listEntry, can.getId());
                 line.setColor(colors[colorCount]);
                 line.setCircleColor(colors[colorCount]);
                 lines.add(line);
                 colorCount++;
             }
         }
+
         this.chart.setData(new LineData(lines));
         this.chart.invalidate(); // refresh
-
     }
 
 
@@ -172,10 +172,9 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
             dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
 
-            //TODO: put new data in DataPlots of hashmap dataMap
-            Timber.v("can sid: " + msg.getCanSid());
-            Timber.v("data1: " + msg.getData1().intValue());
-            Timber.v("data2: " + msg.getData1().doubleValue());
+            //Timber.v("can sid: " + msg.getCanSid());
+            //Timber.v("data1: " + msg.getData1().intValue());
+            //Timber.v("data2: " + msg.getData1().doubleValue());
             //Timber.v("");
 
 
@@ -197,20 +196,12 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     }
 
-    //TODO: remove this if we don't need to change XAxis
-    private void updateAxisScale() {
-        XAxis xAxis = this.chart.getXAxis();
-        xAxis.setAxisMaximum(seconds);
-        xAxis.setAxisMinimum(0);
-        this.chart.invalidate(); // refresh
-    }
-
     private void createTitle() {
 
         this.titleView = new TextView(context);
 
         if (name.equals("")) {
-            this.titleView.setText("this graph has no name");
+            //this.titleView.setText("plot");
         } else {
             this.titleView.setText(name);
         }
@@ -280,7 +271,12 @@ public class Plot extends AbstractWidgetContainer<CAN> {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        this.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        this.setLayoutParams(
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                )
+        );
 
         //main container
         this.containerLayout = new LinearLayout(context);
