@@ -14,7 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import ca.polymtl.inf3995.oronos.parser.ModuleStatus;
+import ca.polymtl.inf3995.oronos.widgets.views.ModuleStatus;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 @RunWith(AndroidJUnit4.class)
 

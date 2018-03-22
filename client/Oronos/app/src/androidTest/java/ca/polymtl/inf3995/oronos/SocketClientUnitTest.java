@@ -9,6 +9,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import ca.polymtl.inf3995.oronos.services.SocketClient;
+import ca.polymtl.inf3995.oronos.utils.FakeServer;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+
 @RunWith(AndroidJUnit4.class)
 /**
  * Instrumented unit test to assert that the SocketClient receive UDP packets when connected to server.
