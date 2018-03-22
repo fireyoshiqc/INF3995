@@ -3,6 +3,7 @@
 
 import socket
 import sys
+import threading
 
 import inf3995.core
 from inf3995.data_tx.OscMsgBuilder import *
@@ -17,6 +18,7 @@ class OscSender(object):
 		self.__socket.setblocking(False)
 		self.__udp_port = udp_port
 		self.__targets = {}
+		self.__targets_mutex = threading.Lock()
 		self.__msg_builders = [OscMsgBuilder(can_data_osc_address),
 		                       OscMsgBuilder(modules_osc_address)]
 		self.__msg_elem_types = [CanDataMsgElem, ModulesMsgElem]
@@ -27,14 +29,15 @@ class OscSender(object):
 		if ipv4_address in self.__targets:
 			self.__targets[ipv4_address] += 1
 		else:
-			self.__targets[ipv4_address] = 1
+			self.__add_new_target(ipv4_address)
 			self.__event_logger.log_info("Added UDP socket : " + ipv4_address)
 	
 	def remove_socket(self, ipv4_address):
 		if ipv4_address in self.__targets:
 			self.__targets[ipv4_address] -= 1
 			if self.__targets[ipv4_address] == 0:
-				del self.__targets[ipv4_address]
+				self.__remove_target(ipv4_address)
+				self.__event_logger.log_info("Removed UDP socket : " + ipv4_address)
 	
 	def update_value(self, can_rx_data_elem):
 		for i in range(0, len(self.__msg_builders)):
@@ -50,7 +53,19 @@ class OscSender(object):
 				msg_builder.write_elem_in_buffer(data_elem, self.__msg_buffers[i])
 	
 	def send_message(self):
+		self.__targets_mutex.acquire()
 		for buf in self.__msg_buffers:
 			for target in self.__targets:
 				self.__socket.sendto(buf, (target, self.__udp_port))
+		self.__targets_mutex.release()
+	
+	def __add_new_target(self, ipv4_address):
+		self.__targets_mutex.acquire()
+		self.__targets[ipv4_address] = 1
+		self.__targets_mutex.release()
+	
+	def __remove_target(self, ipv4_address):
+		self.__targets_mutex.acquire()
+		del self.__targets[ipv4_address]
+		self.__targets_mutex.release()
 

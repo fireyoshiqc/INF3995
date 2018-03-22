@@ -40,6 +40,7 @@ class UsersViewerTask(AbstractTaskNode):
 				msg_str += "* Session ID  : " + str(id) + "\n" + \
 				           "* IP address  : " + session["ip"] + "\n" + \
 				           "* Device type : " + session["device"] + "\n\n"
+			msg_str += "  "
 			self.__pipe.write(bytes(msg_str, "utf-8"))
 			self.__last_sessions = sessions
 		except Exception as e:

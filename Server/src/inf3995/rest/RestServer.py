@@ -23,6 +23,7 @@ class RestServer(object):
 	__ROCKETS_DIR = "rockets"
 	
 	def __init__(self):
+		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.__sessions = {}
 		self.__sessions_mutex = threading.Lock()
 		self.__skip_auth = inf3995.core.ProgramOptions.get_value("skip-auth")
@@ -206,6 +207,9 @@ class RestServer(object):
 			session["datetime"] = datetime.datetime.now()
 			session["device"] = self._get_device_from_request(request)
 			
+			self.__event_logger.log_info("User login : '" + session["user"] + "'" + \
+			                             " at IP " + session["ip"])
+			
 			for fn in self.__add_ip_callbacks:
 				fn(session["ip"])
 			
@@ -225,6 +229,7 @@ class RestServer(object):
 			can_delete = session is not None and \
 			             (self.__skip_auth or data["username"] == session["user"])
 			if can_delete:
+				self.__event_logger.log_info("User logout : '" + session["user"] + "'")
 				for fn in self.__remove_ip_callbacks:
 					fn(session["ip"])
 				

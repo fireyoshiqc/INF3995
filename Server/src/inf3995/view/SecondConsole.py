@@ -29,8 +29,6 @@ class SecondConsole(object):
 			elif len(msg) == 1:
 				if msg[0] == SignalCodes.EXIT:
 					return
-				else:
-					continue
 			
 			# Yes, I know it's ugly, shut up!
 			if platform.system() == "Windows":
