@@ -62,7 +62,11 @@ class USBReaderTask(AbstractTaskNode):
 		# For debugging: Print encoded message
 		#print(line)
 
-		msg_decoded = base64.b64decode(line)
+		try:
+			msg_decoded = base64.b64decode(line)
+		except TypeError as e:
+			self.__event_logger.log_error(__name__ + ": TypeError: " + str(e))
+			return
 		# Represent serialized message as an integer (from little endian)
 		msg_int = int.from_bytes(msg_decoded, byteorder='little',
 									signed=False)
