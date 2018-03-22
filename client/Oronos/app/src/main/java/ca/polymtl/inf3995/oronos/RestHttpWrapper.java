@@ -32,7 +32,8 @@ import timber.log.Timber;
 public class RestHttpWrapper {
 
 
-    static final String SERVER_IP = "192.168.0.102"; //has to change according to user input
+    private static RestHttpWrapper instance;
+    static final String SERVER_IP = "10.200.24.65"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
     static final String DEVICE_NAME = Build.MODEL;
@@ -41,12 +42,24 @@ public class RestHttpWrapper {
     private String username = "foo"; //has to change according to user input
     private String password = "password1234"; //has to change according to user input
 
-    public RestHttpWrapper(Context appContext) {
-        this.appContext = appContext;
-        volleyQueue = VolleySingleton.getInstance(appContext).getRequestQueue();
-
+    private RestHttpWrapper() {
     }
 
+    public static RestHttpWrapper getInstance() {
+        if (instance == null) {
+            instance = new RestHttpWrapper();
+        }
+        return instance;
+    }
+
+    public void setup(Context appContext) {
+        if (this.appContext == null) {
+            this.appContext = appContext;
+            volleyQueue = VolleySingleton.getInstance(appContext).getRequestQueue();
+        } else {
+            Timber.e("Error: RestHttpWrapper has already been set up, this method should only be called once.");
+        }
+    }
 
     public void postUserLogin(Response.Listener<JSONObject> resListener) {
         String URLSubfix = "users/login";

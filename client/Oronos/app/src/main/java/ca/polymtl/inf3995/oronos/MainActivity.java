@@ -39,15 +39,9 @@ public class MainActivity extends DrawerActivity {
     private int currentDataViewState;
     private boolean isMenuActive;
 
-    private Toolbar toolbar;
-    private OronosXmlParser parser;
     private List<View> viewsContainer;
     private GridView gridView;
     private RelativeLayout dataLayout;
-
-    private Rocket rocket;
-
-    private RestHttpWrapper restHttpWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +51,7 @@ public class MainActivity extends DrawerActivity {
         setContentView(R.layout.activity_main);
 
         // login to receive UDP
-        restHttpWrapper.postUserLogin(new Response.Listener<JSONObject>() {
+        RestHttpWrapper.getInstance().postUserLogin(new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Timber.v("REST logged in");
@@ -90,8 +84,8 @@ public class MainActivity extends DrawerActivity {
         CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
         SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
-        DataDispatcher.setContext(this.getApplicationContext());
-        restHttpWrapper = new RestHttpWrapper(getApplicationContext());
+        DataDispatcher.setContext(getApplicationContext());
+        RestHttpWrapper.getInstance().setup(getApplicationContext());
     }
 
 
@@ -99,7 +93,7 @@ public class MainActivity extends DrawerActivity {
      * This method declare the toolbar and its menu elements.
      */
     private void setUpToolbar() {
-        toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("ORONOS");
         setSupportActionBar(toolbar);
 
@@ -127,7 +121,7 @@ public class MainActivity extends DrawerActivity {
      * to be displayed in the dataLayout).
      */
     private void fillViewsContainer() {
-        parser = new OronosXmlParser(this);
+        OronosXmlParser parser = new OronosXmlParser(this);
         try {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
@@ -240,7 +234,7 @@ public class MainActivity extends DrawerActivity {
     }
 
     public void getCanConfig() {
-        restHttpWrapper.getConfigCanSid(new Response.Listener<JSONObject>() {
+        RestHttpWrapper.getInstance().getConfigCanSid(new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Map<String, Object> canSid = null;
@@ -266,7 +260,7 @@ public class MainActivity extends DrawerActivity {
             }
         });
 
-        restHttpWrapper.getConfigCanDataTypes(new Response.Listener<JSONObject>() {
+        RestHttpWrapper.getInstance().getConfigCanDataTypes(new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Map<String, Object> canDataTypes = null;
@@ -292,7 +286,7 @@ public class MainActivity extends DrawerActivity {
             }
         });
 
-        restHttpWrapper.getConfigCanMsgDataTypes(new Response.Listener<JSONObject>() {
+        RestHttpWrapper.getInstance().getConfigCanMsgDataTypes(new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Map<String, Object> canMsgDataTypes = null;
