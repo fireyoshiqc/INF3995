@@ -39,7 +39,7 @@ import timber.log.Timber;
 public class Plot extends AbstractWidgetContainer<CAN> {
 
     //consts
-    private final int REFRESH_DELAY = 5000; //milliseconds
+    private final int REFRESH_DELAY = 1000; //milliseconds
     private final int UPDATE_DATA_DELAY = 1000; //milliseconds
     private final int TITLE_TEXT_SIZE = 30; //size in sp
     private final int DEFAULT_TIME_SELECTED = 60; //seconds
@@ -59,6 +59,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     //Views, layouts...
     private LinearLayout containerLayout;
     private LinearLayout horizontalLayout;
+    private LinearLayout innerPlotVerticalLayout;
     private LinearLayout timeSelectionLayout;
     private TextView titleView;
     private TextView axisView;
@@ -79,29 +80,24 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.seconds = DEFAULT_TIME_SELECTED;
         this.chart = new LineChart(context);
 
-
         initializeDataList();
-
-        //to remove when real data gets in
-        generateFakeData();
-        //add more data to see what graph looks like when full
-        generateFakeData();
-        generateFakeData();
-        generateFakeData();
-        generateFakeData();
-        generateFakeData();
+        Timber.v("initialized data list");
 
         refreshPlot();
+        Timber.v("Refreshed plot");
         setGenericPlotSettings();
+        Timber.v("Set generic plot settings");
 
         initializeViews();
+        Timber.v("initialized views");
 
-        //IntentFilter intentFilter = new IntentFilter();
-        //for (CAN can : list) {
-        //    intentFilter.addAction(can.getId());
-        //}
-        //LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+        IntentFilter intentFilter = new IntentFilter();
+        for (CAN can : list) {
+            intentFilter.addAction(can.getId());
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
+        Timber.v("setted up the necessary for receiving data");
         run();
 
     }
@@ -118,15 +114,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
                 handler.postDelayed(this, REFRESH_DELAY);
             }
         }, REFRESH_DELAY);
-
-        //TODO: remove this when realdata is being added to
-        handler.postDelayed(new Runnable(){
-            public void run(){
-
-                addAFakeEntryInEachSet();
-                handler.postDelayed(this, UPDATE_DATA_DELAY);
-            }
-        }, UPDATE_DATA_DELAY);
 
     }
 
@@ -150,11 +137,13 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         for (String dataName: dataMap.keySet()) {
             DataPlot dataPlot = dataMap.get(dataName);
             List<Entry> listEntry = dataPlot.retrieveEntries(this.seconds);
-            LineDataSet line = new LineDataSet(listEntry, dataName);
-            line.setColor(colors[colorCount]);
-            line.setCircleColor(colors[colorCount]);
-            lines.add(line);
-            colorCount++;
+            if(!listEntry.isEmpty()){
+                LineDataSet line = new LineDataSet(listEntry, dataName);
+                line.setColor(colors[colorCount]);
+                line.setCircleColor(colors[colorCount]);
+                lines.add(line);
+                colorCount++;
+            }
         }
         this.chart.setData(new LineData(lines));
         this.chart.invalidate(); // refresh
@@ -168,11 +157,10 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart.setTouchEnabled(false);
 
         this.chart.setNoDataText("No data");
-        //TODO: remove this if we don't want any description
-        //if we want a description:
-        //Description desc = new Description();
-        //desc.setText("Time (seconds)");
-        //this.chart.setDescription(desc);
+        //no desc
+        Description desc = new Description();
+        desc.setText("");
+        this.chart.setDescription(desc);
 
     }
 
@@ -185,29 +173,15 @@ public class Plot extends AbstractWidgetContainer<CAN> {
             dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
 
             //TODO: put new data in DataPlots of hashmap dataMap
-            //Timber.v("can sid: " + msg.getCanSid());
-            //Timber.v("data1: " + msg.getData1().intValue());
-            //Timber.v("data2: " + msg.getData1().doubleValue());
+            Timber.v("can sid: " + msg.getCanSid());
+            Timber.v("data1: " + msg.getData1().intValue());
+            Timber.v("data2: " + msg.getData1().doubleValue());
             //Timber.v("");
 
 
         }
     };
 
-    private void generateFakeData(){//TODO: get real data and remove this function
-        for(int i = 0; i < 100; i++){
-            addAFakeEntryInEachSet();
-        }
-    }
-
-    private void addAFakeEntryInEachSet(){//TODO: get real data and remove this function
-        int av = 20;
-        for(DataPlot dataPlot : dataMap.values()){
-            int randomNum = ThreadLocalRandom.current().nextInt(av-5, av+5 + 1);
-            dataPlot.addEntry(randomNum);
-            av+=20;
-        }
-    }
 
     private void createAxisText() {
 
@@ -319,6 +293,9 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         LayoutParams horizontalLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         horizontalLayoutParams.weight = 20;
         this.horizontalLayout.setLayoutParams(horizontalLayoutParams);
+
+        this.innerPlotVerticalLayout = new LinearLayout(context);
+        this.innerPlotVerticalLayout.setOrientation(LinearLayout.VERTICAL);
 
         this.horizontalLayout.addView(this.axisView);
         this.horizontalLayout.addView(this.chart);

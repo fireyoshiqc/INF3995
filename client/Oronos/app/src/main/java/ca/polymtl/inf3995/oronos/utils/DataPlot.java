@@ -59,10 +59,14 @@ public class DataPlot {
     }
 
     public List<Entry> retrieveEntries(int amount){
+        List<Entry> formattedEntries = new ArrayList<>();
         if (amount > MAX_ENTRIES){
-            return null;
+            return formattedEntries;
         }
-        List<Entry> formattedEntries = new ArrayList<Entry>();
+        if (entriesList.isEmpty()){
+            return formattedEntries;
+        }
+
         int index = 0;
 
         int actualAmount = amount;
