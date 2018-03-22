@@ -56,7 +56,10 @@ class OscSender(object):
 		self.__targets_mutex.acquire()
 		for buf in self.__msg_buffers:
 			for target in self.__targets:
-				self.__socket.sendto(buf, (target, self.__udp_port))
+				try:
+					self.__socket.sendto(buf, (target, self.__udp_port))
+				except BlockingIOError:
+					self.__event_logger.log_error("A UDP packet could not be sent to " + target)
 		self.__targets_mutex.release()
 	
 	def __add_new_target(self, ipv4_address):
