@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,17 +14,21 @@ import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ca.polymtl.inf3995.oronos.parser.DisplayLogAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.ModuleType;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget {
-    RecyclerView recycler;
-    DisplayLogAdapter adapter;
-    List<MSGPair> lastMsgsReceived;
+    private RecyclerView recycler;
+    private Timer listUpdater;
+    private DisplayLogAdapter adapter;
+    private List<MSGPair> lastMsgsReceived;
 
     /**
      * MSGPair stocks all necessary data to distinguish 2 logs and register the newest.
@@ -68,15 +73,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         if (list.size() > 0) {
             for (CAN can : list) {
                 intentFilter.addAction(can.getId());
-                if (can.getSpecificSource() != null) {
-                    intentFilter.addCategory(can.getSpecificSource());
-                }
-                if (can.getSerialNb() != null) {
-                    intentFilter.addCategory(can.getSerialNb());
-                }
             }
-        } else {
-            //Todo : add all actions related to all possible can ids.
         }
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
@@ -108,7 +105,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
                         && module == msgPair.getModuleType()
                         && noSerie == msgPair.getNoSerial()) {
                     isNewMsgReceived = false;
-                    if (counter > msgPair.getLastNoMsg()) {
+                    if (counter != msgPair.getLastNoMsg()) {
                         msgPair.setLastNoMsg(counter);
                         break;
                     } else {
@@ -126,4 +123,44 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
             }
         }
     };
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        startUpdateTask();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopUpdateTask();
+    }
+
+    private void startUpdateTask() {
+        listUpdater = new Timer(true);
+        TimerTask sensorTask = new TimerTask() {
+            @Override
+            public void run() {
+                ((Activity) getContext()).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = 0; i < adapter.getItemCount(); i++) {
+                            recycler.getAdapter().notifyItemChanged(i);
+                        }
+                    }
+                });
+            }
+        };
+        listUpdater.scheduleAtFixedRate(sensorTask, 0, GlobalParameters.DATA_UPDATE_PERIOD);
+    }
+
+    /**
+     * This method stops the task started by the method above.
+     */
+    private void stopUpdateTask() {
+        if (listUpdater != null) {
+            listUpdater.cancel();
+            listUpdater.purge();
+        }
+    }
 }

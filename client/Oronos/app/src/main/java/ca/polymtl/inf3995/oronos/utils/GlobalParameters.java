@@ -38,4 +38,5 @@ public class GlobalParameters {
 
     // DisplayLogWidget
     public final static int LIMIT_OF_N_MSG = 5000;
+    public final static int DATA_UPDATE_PERIOD = 500;
 }
