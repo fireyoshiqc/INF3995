@@ -13,6 +13,7 @@ import inf3995.core
 from inf3995.core.ProgramOptions import *
 from inf3995.rest.AuthenticationManager import *
 from inf3995.settings.CANSid import *
+from inf3995.settings.ModuleTypes import *
 
 
 @cherrypy.expose
@@ -70,7 +71,8 @@ class RestServer(object):
 			"deviceTypes"     : self.get_config_devicetypes,
 			"canSid"          : self.get_config_cansid,
 			"canDataTypes"    : self.get_config_candatatypes,
-			"canMsgDataTypes" : self.get_config_canmsgdatatypes
+			"canMsgDataTypes" : self.get_config_canmsgdatatypes,
+			"canModuleTypes"  : self.get_config_canmoduletypes
 		}
 		default = RestServer._raise_error_404
 		return switch.get(url[0], default)(request, url[1:len(url)])
@@ -177,6 +179,18 @@ class RestServer(object):
 		for name, member in CANSid.__members__.items():
 			result[name] = (CANMsgDataTypes[member][0].name,
 			                CANMsgDataTypes[member][1].name)
+		
+		cherrypy.response.headers["Content-Type"] = "application/json"
+		return json.dumps(result, indent=2).encode("utf-8")
+	
+	def get_config_canmoduletypes(self, request, url):
+		self._check_if_logged_in()
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		result = collections.OrderedDict([])
+		for name, member in ModuleType.__members__.items():
+			result[name] = member.value
 		
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")

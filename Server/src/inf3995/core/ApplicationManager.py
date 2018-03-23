@@ -136,7 +136,7 @@ class ApplicationManager(object):
 		# TODO: Figure out a cleaner way to do this to avoid code repetition
 		if _ConnectorType[connector_type] == _ConnectorType.SERIAL:
 			rx_node = data_rx.USBReaderTask(serial_port=connector_file,
-											baudrate=baudrate)
+			                                baudrate=baudrate)
 			osc_tx_node = data_tx.OscTxTask()
 			osc_sender = osc_tx_node.get_sender()
 			rest_server = rest_node.get_server_app()
@@ -149,7 +149,7 @@ class ApplicationManager(object):
 			osc_sender = osc_tx_node.get_sender()
 			rest_server = rest_node.get_server_app()
 			rest_server.register_ip_callbacks(osc_sender.add_socket,
-												osc_sender.remove_socket)
+			                                  osc_sender.remove_socket)
 			tx_node = osc_tx_node
 		else:
 			# This shouldn't happen because the inputs are filtered
@@ -166,10 +166,10 @@ class ApplicationManager(object):
 		event_logger_node.connect_to_source(log_viewer_node)
 
 		# TODO: Build the worker threads
-		self.__build_thread([dummy_node], 0.5)
+		# self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
 		self.__build_thread([rx_node])
-		self.__build_thread([tx_node], 30.0)
+		self.__build_thread([tx_node], 20.0)
 		self.__build_thread([data_logger_node])
 		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
 		self.__build_thread([event_logger_node])
