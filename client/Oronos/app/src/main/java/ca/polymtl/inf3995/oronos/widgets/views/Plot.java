@@ -3,9 +3,14 @@ package ca.polymtl.inf3995.oronos.widgets.views;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -13,6 +18,7 @@ import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -81,15 +87,11 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart = new LineChart(context);
 
         initializeDataList();
-        Timber.v("initialized data list");
 
         refreshPlot();
-        Timber.v("Refreshed plot");
         setGenericPlotSettings();
-        Timber.v("Set generic plot settings");
 
         initializeViews();
-        Timber.v("initialized views");
 
         IntentFilter intentFilter = new IntentFilter();
         for (CAN can : list) {
@@ -97,7 +99,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         }
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
-        Timber.v("setted up the necessary for receiving data");
         run();
 
     }
@@ -123,7 +124,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
             DataPlot dataPlot = new DataPlot(MAXIMUM_ENTRIES);
             String canID = can.getId();
             dataMap.put(canID, dataPlot);
-            Timber.v("can ID from the CAN object: " + can.getId());
         }
     }
 
@@ -250,7 +250,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
         );
-        timeViewParams.weight = 4;
+        timeViewParams.weight = (float)3.5;
         timeSecondsView.setLayoutParams(timeViewParams);
         timeSecondsView.setGravity(Gravity.CENTER_VERTICAL);
 
@@ -261,6 +261,8 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         LayoutParams sliderLayoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         sliderLayoutParams.weight = 1;
         slider.setLayoutParams(sliderLayoutParams);
+        DisplayMetrics dm = slider.getResources().getDisplayMetrics();
+        sliderLayoutParams.setMargins(convertDpToPx(100, dm), convertDpToPx(0, dm), convertDpToPx(0, dm), convertDpToPx(0, dm));
     }
 
     private void initializeViews() { //Could have been an xml
@@ -311,6 +313,12 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.containerLayout.addView(this.timeSelectionLayout);
 
         addView(this.containerLayout);
+    }
+
+
+    private int convertDpToPx(int dp, DisplayMetrics displayMetrics) {
+        float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, displayMetrics);
+        return Math.round(pixels);
     }
 
     public String getName() {
