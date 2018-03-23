@@ -3,7 +3,10 @@ package ca.polymtl.inf3995.oronos.widgets.views;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,15 +18,23 @@ import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.LinearLayoutCompat;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import org.parceler.Parcels;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.utils.ModuleType;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
@@ -46,6 +57,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     private final CoordinatorLayout coordinator;
     private final LinearLayout content;
     private final WebView threeView;
+    private final TextView distanceHelper;
     private final float[] unitDistance = {0, -1, 0};
     private Timer sensorUpdater;
     private LocationManager locationManager;
@@ -53,6 +65,8 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
 
     private long lastLocationTime = 0;
     private float lastLocationAccuracy = Float.POSITIVE_INFINITY;
+    private Location rocketLocation = new Location("");
+    private BroadcastReceiver locationReceiver;
 
     /**
      * FindMe widget constructor. Initializes fields then calls the view builder method.
@@ -64,6 +78,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         coordinator = new CoordinatorLayout(getContext());
         content = new LinearLayout(getContext());
         threeView = new WebView(getContext());
+        distanceHelper = new TextView(getContext());
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -80,6 +95,12 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         content.setOrientation(LinearLayout.VERTICAL);
         content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        distanceHelper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        distanceHelper.setTextSize(24);
+        distanceHelper.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+        int textPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+        distanceHelper.setPadding(textPadding, textPadding, textPadding, textPadding);
+        content.addView(distanceHelper);
         threeView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         threeView.getSettings().setJavaScriptEnabled(true);
         threeView.addJavascriptInterface(this, "android");
@@ -241,6 +262,33 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                 if (lastLocation != null) {
                     this.onLocationChanged(lastLocation);
                 }
+
+                locationReceiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                        switch (msg.getCanSid()) {
+                            case "GPS1_LATITUDE":
+                                rocketLocation.setLatitude(msg.getData1().doubleValue());
+                                break;
+                            case "GPS1_LONGITUDE":
+                                rocketLocation.setLongitude(msg.getData1().doubleValue());
+                                break;
+                            case "GPS1_ALT_MSL":
+                                rocketLocation.setAltitude(msg.getData1().doubleValue());
+                                break;
+                        }
+                    }
+                };
+
+                IntentFilter intentFilter = new IntentFilter();
+                intentFilter.addAction("GPS1_LATITUDE");
+                intentFilter.addAction("GPS1_LONGITUDE");
+                intentFilter.addAction("GPS1_ALT_MSL");
+                intentFilter.addCategory(ModuleType.MCD.name());
+                intentFilter.addCategory("1");
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
+
             } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
             }
@@ -254,6 +302,10 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         if (locationManager != null) {
             locationManager.removeUpdates(this);
         }
+        if (locationReceiver != null) {
+            locationReceiver = null;
+        }
+
     }
 
     /**
@@ -264,26 +316,30 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     }
 
     /**
-     * This method updates the location unit vector from the device's location to a given location.
+     * This method updates the location unit vector from the device's location to the rocket's location.
      *
-     * @param location The location to target with the unit vector.
+     * @param location The new device location.
      */
+    @SuppressLint("DefaultLocale")
     private void updateLocation(Location location) {
-        Location fakeLocation = new Location(location);
-        fakeLocation.setLatitude(45.504422);
-        fakeLocation.setLongitude(-73.612883);
-        fakeLocation.setAltitude(0.0);
         float[] xDist = new float[1];
         float[] yDist = new float[1];
         float zDist;
+        float totalDist = location.distanceTo(rocketLocation);
+        if (totalDist > 1000.0) {
+            distanceHelper.setText(String.format("Distance : %.2f km", totalDist/1000));
+        } else {
+            distanceHelper.setText(String.format("Distance : %.1f m", totalDist));
+        }
+
         Location.distanceBetween(location.getLatitude(),
-                location.getLongitude(), fakeLocation.getLatitude(), location.getLongitude(), xDist);
+                location.getLongitude(), rocketLocation.getLatitude(), location.getLongitude(), xDist);
         Location.distanceBetween(location.getLatitude(),
-                location.getLongitude(), location.getLatitude(), fakeLocation.getLongitude(), yDist);
-        zDist = (float) (fakeLocation.getAltitude() - location.getAltitude());
-        unitDistance[0] = (float) (xDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
-        unitDistance[1] = (float) (yDist[0] / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
-        unitDistance[2] = (float) (zDist / (Math.sqrt(Math.pow(xDist[0], 2) + Math.pow(yDist[0], 2) + Math.pow(zDist, 2))));
+                location.getLongitude(), location.getLatitude(), rocketLocation.getLongitude(), yDist);
+        zDist = (float) (rocketLocation.getAltitude() - location.getAltitude());
+        unitDistance[0] = xDist[0] / totalDist;
+        unitDistance[1] = yDist[0] / totalDist;
+        unitDistance[2] = zDist / totalDist;
     }
 
     /**
