@@ -285,7 +285,13 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                 intentFilter.addAction("GPS1_LATITUDE");
                 intentFilter.addAction("GPS1_LONGITUDE");
                 intentFilter.addAction("GPS1_ALT_MSL");
-                intentFilter.addCategory(ModuleType.MCD.name());
+
+                // Listen for all categories, since it depends on the rocket
+                for (ModuleType type : ModuleType.values()) {
+                    intentFilter.addCategory(type.name());
+                }
+
+                // Listen only for first serial number (2nd isn't used apparently)
                 intentFilter.addCategory("1");
                 LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
 
