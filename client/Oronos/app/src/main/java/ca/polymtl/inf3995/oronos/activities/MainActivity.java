@@ -162,7 +162,7 @@ public class MainActivity extends DrawerActivity {
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
         try {
-            InputStream fis = getAssets().open("10_polaris.xml");
+            InputStream fis = getAssets().open("11_valkyrieM2.xml");
             Rocket rocket = parser.parse(fis);
 
             viewsContainer = new ArrayList<>();
@@ -303,7 +303,6 @@ public class MainActivity extends DrawerActivity {
                 } else {
                     Timber.e("Error");
                 }
-
             }
         });
 

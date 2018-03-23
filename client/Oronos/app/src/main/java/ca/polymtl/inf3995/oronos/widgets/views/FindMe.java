@@ -15,7 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -281,21 +281,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                     }
                 };
 
-                IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction("GPS1_LATITUDE");
-                intentFilter.addAction("GPS1_LONGITUDE");
-                intentFilter.addAction("GPS1_ALT_MSL");
-
-                // Listen for all categories, since it depends on the rocket
-                if (GlobalParameters.canModuleTypes != null) {
-                    for (String key : GlobalParameters.canModuleTypes.keySet()) {
-                        intentFilter.addCategory(key);
-                    }
-                }
-                for (int i = 0; i < 16; i++) {
-                    intentFilter.addCategory(String.format("%d", i));
-                }
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
+                enableLocationReceiver();
 
             } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
@@ -311,9 +297,44 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
             locationManager.removeUpdates(this);
         }
         if (locationReceiver != null) {
-            locationReceiver = null;
+            disableLocationReceiver();
         }
+    }
 
+    private void enableLocationReceiver() {
+
+        if (GlobalParameters.canModuleTypes != null) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction("GPS1_LATITUDE");
+            intentFilter.addAction("GPS1_LONGITUDE");
+            intentFilter.addAction("GPS1_ALT_MSL");
+
+            // Listen for all categories, since it depends on the rocket
+
+            for (String key : GlobalParameters.canModuleTypes.keySet()) {
+                intentFilter.addCategory(key);
+            }
+
+            for (int i = 0; i < 16; i++) {
+                intentFilter.addCategory(String.format("%d", i));
+            }
+
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
+        } else {
+            final Handler handler = new Handler();
+
+            // Retry enabling updates
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    enableLocationReceiver();
+                }
+            }, 1000);
+        }
+    }
+
+    private void disableLocationReceiver() {
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(locationReceiver);
+        locationReceiver = null;
     }
 
     /**
@@ -335,7 +356,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         float zDist;
         float totalDist = location.distanceTo(rocketLocation);
         if (totalDist > 1000.0) {
-            distanceHelper.setText(String.format("Distance : %.2f km", totalDist/1000));
+            distanceHelper.setText(String.format("Distance : %.2f km", totalDist / 1000));
         } else {
             distanceHelper.setText(String.format("Distance : %.1f m", totalDist));
         }
