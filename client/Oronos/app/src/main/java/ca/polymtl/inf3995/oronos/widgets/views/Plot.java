@@ -75,7 +75,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
 
 
-    Plot(Context context, String name, String unit, String axis, List<CAN> list) {
+    public Plot(Context context, String name, String unit, String axis, List<CAN> list) {
 
         super(context, list);
         this.name = name;

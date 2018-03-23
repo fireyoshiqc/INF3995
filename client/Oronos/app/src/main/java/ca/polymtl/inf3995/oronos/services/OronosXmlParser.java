@@ -20,7 +20,7 @@ import ca.polymtl.inf3995.oronos.widgets.views.CAN;
 import ca.polymtl.inf3995.oronos.widgets.views.DataDisplayer;
 import ca.polymtl.inf3995.oronos.widgets.views.DisplayLogWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
-import ca.polymtl.inf3995.oronos.widgets.views.Map;
+import ca.polymtl.inf3995.oronos.widgets.views.MapTag;
 import ca.polymtl.inf3995.oronos.widgets.views.ModuleStatus;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
