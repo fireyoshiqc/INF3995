@@ -9,7 +9,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
 
@@ -29,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.R;
-import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
+import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.services.SocketClient;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
@@ -41,7 +40,6 @@ import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
 import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
 import ca.polymtl.inf3995.oronos.widgets.containers.UnsupportedContainerWidgetException;
-import ca.polymtl.inf3995.oronos.widgets.views.ContainableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
@@ -113,7 +111,7 @@ public class MainActivity extends DrawerActivity {
         setSupportActionBar(toolbar);
 
         gridView = new GridView(this);
-        int gridPadding = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+        int gridPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
         gridView.setPadding(gridPadding, gridPadding, gridPadding, gridPadding);
         gridView.setNumColumns(GridView.AUTO_FIT);
         gridView.setVerticalSpacing(gridPadding);
@@ -128,11 +126,9 @@ public class MainActivity extends DrawerActivity {
                 for (Object sub : ((AbstractWidgetContainer) view).getList()) {
                     if (sub instanceof Tab) {
                         subnames.add("Tab - " + ((Tab) sub).getName());
-                    }
-                    else if (sub instanceof Plot) {
+                    } else if (sub instanceof Plot) {
                         subnames.add("Plot - " + ((Plot) sub).getName());
-                    }
-                    else {
+                    } else {
                         subnames.add(sub.getClass().getSimpleName());
                     }
 
@@ -160,7 +156,7 @@ public class MainActivity extends DrawerActivity {
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
         try {
-            InputStream fis = getAssets().open("10_polaris.xml");
+            InputStream fis = getAssets().open("11_valkyrieM2.xml");
             Rocket rocket = parser.parse(fis);
 
             viewsContainer = new ArrayList<>();

@@ -290,9 +290,9 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                 for (ModuleType type : ModuleType.values()) {
                     intentFilter.addCategory(type.name());
                 }
-
-                // Listen only for first serial number (2nd isn't used apparently)
-                intentFilter.addCategory("1");
+                for (int i = 0; i < 16; i++) {
+                    intentFilter.addCategory(String.format("%d", i));
+                }
                 LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
 
             } catch (SecurityException e) {

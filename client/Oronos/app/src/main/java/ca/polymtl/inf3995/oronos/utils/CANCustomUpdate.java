@@ -55,13 +55,13 @@ public class CANCustomUpdate {
 
     private static String oneWire(BroadcastMessage msg, String param) {
         try {
-            if ((long) msg.getData1().intValue() == Long.decode(param)) {
-                return String.format("%.2f", msg.getData2().doubleValue())+" C";
+            if (Integer.toHexString(msg.getData1().intValue()).equalsIgnoreCase(param.split("x")[1])) {
+                return String.format("%.2f", msg.getData2().doubleValue()) + " C";
             } else {
                 return null;
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            return null;
+            return "WRONG_UPDATE";
         }
     }
 
@@ -107,7 +107,7 @@ public class CANCustomUpdate {
         } else {
             altFeet = 0;
         }
-        return String.format("%.0f", altFeet)+" ft";
+        return String.format("%.0f", altFeet) + " ft";
 
     }
 
@@ -117,7 +117,7 @@ public class CANCustomUpdate {
         if (msg.getModuleSource() == ModuleType.ADM && msg.getNoSerieSource() == 1) {
             lastRampAlt.put(ModuleType.ADIRM.name() + 0, rampAltFt);
         }
-        return String.format("%.0f", rampAltFt)+" ft";
+        return String.format("%.0f", rampAltFt) + " ft";
     }
 
     private static String apogeeDetect(BroadcastMessage msg) {
@@ -135,22 +135,21 @@ public class CANCustomUpdate {
         if (altFeet > altMax.get(key)) {
             altMax.put(key, altFeet);
         }
-        return String.format("%.0f", altMax.get(key))+" ft";
+        return String.format("%.0f", altMax.get(key)) + " ft";
     }
 
-    // oneWire needs an address that we don't have.
 
     private static String admBWVoltsToOhmsString(BroadcastMessage msg) {
         double conv = admBWVoltsToOhms(msg.getData1().doubleValue());
-        return String.format("%.1f", conv)+" Ω";
+        return String.format("%.1f", conv) + " Ω";
     }
 
     private static String meterToFoot(BroadcastMessage msg) {
-        return String.format("%.0f", msg.getData1().doubleValue() * 3.28084)+" ft";
+        return String.format("%.0f", msg.getData1().doubleValue() * 3.28084) + " ft";
     }
 
     private static String footToMeter(BroadcastMessage msg) {
-        return String.format("%.0f", msg.getData1().doubleValue() * 0.3048)+" m";
+        return String.format("%.0f", msg.getData1().doubleValue() * 0.3048) + " m";
     }
 
     private static String SDSpaceLeft(BroadcastMessage msg) {
@@ -158,15 +157,12 @@ public class CANCustomUpdate {
         double data = msg.getData1().doubleValue();
         if (data < 0) {
             return "ERROR";
-        }
-        else if (data < 10*1024) {
+        } else if (data < 10 * 1024) {
             return String.format("%.0f", data) + " kB";
-        }
-        else if (data < 1024*1024) {
-            return String.format("%.2f", data/1024) + " MB";
-        }
-        else {
-            return String.format("%.2f", data/(1024*1024)) + " GB";
+        } else if (data < 1024 * 1024) {
+            return String.format("%.2f", data / 1024) + " MB";
+        } else {
+            return String.format("%.2f", data / (1024 * 1024)) + " GB";
         }
     }
 
@@ -175,15 +171,12 @@ public class CANCustomUpdate {
         double data = msg.getData1().doubleValue();
         if (data < 0) {
             return "ERROR";
-        }
-        else if (data < 1024*1024) {
-            return String.format("%.0f", data/1024) + " kB";
-        }
-        else if (data < 1024*1024*1024) {
-            return String.format("%.2f", data/(1024*1024)) + " MB";
-        }
-        else {
-            return String.format("%.2f", data/(1024*1024*1024)) + " GB";
+        } else if (data < 1024 * 1024) {
+            return String.format("%.0f", data / 1024) + " kB";
+        } else if (data < 1024 * 1024 * 1024) {
+            return String.format("%.2f", data / (1024 * 1024)) + " MB";
+        } else {
+            return String.format("%.2f", data / (1024 * 1024 * 1024)) + " GB";
         }
     }
 

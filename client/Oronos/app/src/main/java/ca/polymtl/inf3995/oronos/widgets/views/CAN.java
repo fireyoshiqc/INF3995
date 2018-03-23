@@ -11,6 +11,7 @@ import org.parceler.Parcels;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
+import ca.polymtl.inf3995.oronos.utils.ModuleType;
 import timber.log.Timber;
 
 /**
@@ -126,6 +127,7 @@ public class CAN implements ContainableWidget {
     }
 
     public void enableDataDisplayerUpdates(Context context) {
+
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
@@ -134,25 +136,7 @@ public class CAN implements ContainableWidget {
                 double newData = 0.0;
                 String formattedData = "";
 
-                if (display != null) {
-
-                    switch (display) {
-                        case "__DATA1__":
-                            newData = msg.getData1().doubleValue();
-                            break;
-                        case "__DATA2__":
-                            newData = msg.getData2().doubleValue();
-                            break;
-                    }
-
-                    if (chiffresSign != null) {
-                        String signFormat = "%." + chiffresSign + "f";
-                        formattedData = String.format(signFormat, newData);
-                    } else {
-                        formattedData = String.format("%f", newData);
-                    }
-
-                } else if (customUpdate != null) {
+                if (customUpdate != null) {
 
                     newData = msg.getData1().doubleValue();
                     String[] dataAndUnit;
@@ -171,6 +155,21 @@ public class CAN implements ContainableWidget {
                         }
                     } else {
                         formattedData = dataToDisplay;
+                    }
+
+                }
+                else if (display != null) {
+                    if (display.startsWith("__DATA1__")) {
+                        newData = msg.getData1().doubleValue();
+                    } else if (display.startsWith("__DATA2__")) {
+                        newData = msg.getData2().doubleValue();
+                    }
+
+                    if (chiffresSign != null) {
+                        String signFormat = "%." + chiffresSign + "f";
+                        formattedData = String.format(signFormat, newData);
+                    } else {
+                        formattedData = String.format("%f", newData);
                     }
 
                 } else {
@@ -205,10 +204,24 @@ public class CAN implements ContainableWidget {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(id);
         if (specificSource != null) {
-            intentFilter.addCategory(specificSource);
+            try {
+                int enumValue = ModuleType.valueOf(specificSource).getNumVal();
+                intentFilter.addCategory(ModuleType.getValue(enumValue).name());
+            } catch (IllegalArgumentException e) {
+                Timber.e("Error in CAN: Incorrect sourceModule value for CAN ID : %s", id);
+            }
+
+        } else {
+            for (ModuleType type : ModuleType.values()) {
+                intentFilter.addCategory(type.name());
+            }
         }
         if (serialNb != null) {
             intentFilter.addCategory(serialNb);
+        } else {
+            for (int i = 0; i < 16; i++) {
+                intentFilter.addCategory(String.format("%d", i));
+            }
         }
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
