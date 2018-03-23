@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Gravity;
 import android.view.View;
@@ -14,7 +15,7 @@ import android.widget.LinearLayout;
 
 import org.parceler.Parcels;
 
-import ca.polymtl.inf3995.oronos.services.ModuleMessage;
+import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.adapters.ModuleStatusAdapter;
 
@@ -51,7 +52,7 @@ public class ModuleStatus extends OronosView {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    ModuleMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
                     String module = msg.getModuleSource();
                     Integer noSerie = msg.getNoSerieSource();
                     Integer counter = msg.getCounter();
@@ -61,7 +62,7 @@ public class ModuleStatus extends OronosView {
             };
             IntentFilter intentFilter = new IntentFilter();
             for (String key : GlobalParameters.canModuleTypes.keySet()) {
-                intentFilter.addCategory(key);
+                intentFilter.addAction(key);
             }
             LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
         }
