@@ -24,7 +24,7 @@ public class DataDispatcher {
         DataDispatcher.context = context.getApplicationContext();
     }
 
-    public static void dataToDispatch(List<Object> data) {
+    public static void dataToDispatch(List<Object> data, boolean isModulePing) {
 
         if (GlobalParameters.canSid == null
                 || GlobalParameters.canDataTypes == null
@@ -33,59 +33,34 @@ public class DataDispatcher {
             return;
         }
 
-        for (int i = 0; i < data.size(); i += 6) {
-            String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
-            Number data1 = (Number) data.get(i + 1);
-            Number data2 = (Number) data.get(i + 2);
+        for (int i = 0; i < data.size(); i += (isModulePing ? 3 : 6)) {
+            String canSid = isModulePing ? null : GlobalParameters.canSid.get((Integer) data.get(i));
+            Number data1 = isModulePing ? null : (Number) data.get(i + 1);
+            Number data2 = isModulePing ? null : (Number) data.get(i + 2);
             String moduleSource = "";
             for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
-                if (entry.getValue() == data.get(i + 3)) {
+                if (entry.getValue() == (isModulePing ? data.get(i) : data.get(i + 3))) {
                     moduleSource = entry.getKey();
                     break;
                 }
             }
-            Integer noSerieSource = (Integer) data.get(i + 4);
-            Integer counter = (Integer) data.get(i + 5);
+            Integer noSerieSource = isModulePing ? (Integer) data.get(i + 1) : (Integer) data.get(i + 4);
+            Integer counter = isModulePing ? (Integer) data.get(i + 2) : (Integer) data.get(i + 5);
 
             BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
 
-            Intent intent = new Intent(canSid);
-            intent.addCategory(moduleSource);
-            intent.addCategory(noSerieSource.toString());
+            Intent intent;
+            if (!isModulePing) {
+                intent = new Intent(canSid);
+                intent.addCategory(moduleSource);
+                intent.addCategory(noSerieSource.toString());
+
+            } else {
+                intent = new Intent(moduleSource);
+            }
             intent.putExtra("data", Parcels.wrap(broadcastMessage));
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
     }
-
-    public static void moduleToDispatch(List<Object> data) {
-
-        if (GlobalParameters.canSid == null
-                || GlobalParameters.canDataTypes == null
-                || GlobalParameters.canMsgDataTypes == null) {
-            return;
-        }
-
-        /*
-        for (int i = 0; i < data.size(); i += 3) {
-            String moduleSource = "";
-            for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
-                if (entry.getValue() == data.get(i + 3)) {
-                    moduleSource = entry.getKey();
-                    break;
-                }
-            }
-            Integer noSerie = (Integer) data.get(i + 1);
-            Integer counter = (Integer) data.get(i + 2);
-
-            ModuleMessage moduleMessage = new ModuleMessage(moduleSource, noSerie, counter);
-
-            Intent intent = new Intent(moduleSource);
-            intent.putExtra("data", Parcels.wrap(moduleMessage));
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-        }
-        */
-
-    }
-
 }

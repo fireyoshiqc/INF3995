@@ -1,6 +1,7 @@
 package ca.polymtl.inf3995.oronos.services;
 
 import android.os.Process;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.illposed.osc.OSCMessage;
@@ -115,9 +116,9 @@ public class SocketClient {
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 if (address.equals("/inf3995-03/can-data")) {
-                    DataDispatcher.dataToDispatch(message.getArguments());
+                    DataDispatcher.dataToDispatch(message.getArguments(), false);
                 } else if (address.equals("/inf3995-03/modules")) {
-                    DataDispatcher.moduleToDispatch((message.getArguments()));
+                    DataDispatcher.dataToDispatch(message.getArguments(), true);
                 }
             }
         });
