@@ -101,9 +101,9 @@ public class CANCustomUpdate {
 
     private static String pressToAlt(BroadcastMessage msg) {
         double altFeet;
-        if (lastRampAlt.containsKey(msg.getModuleSource().name() + msg.getNoSerieSource())) {
+        if (lastRampAlt.containsKey(msg.getModuleSource() + msg.getNoSerieSource())) {
             altFeet = pascalToFeet(msg.getData1().doubleValue()) -
-                    lastRampAlt.get(msg.getModuleSource().name() + msg.getNoSerieSource());
+                    lastRampAlt.get(msg.getModuleSource() + msg.getNoSerieSource());
         } else {
             altFeet = 0;
         }
@@ -113,17 +113,17 @@ public class CANCustomUpdate {
 
     private static String rampAlt(BroadcastMessage msg) {
         double rampAltFt = metersToFeet(msg.getData1().doubleValue());
-        lastRampAlt.put(msg.getModuleSource().name() + msg.getNoSerieSource(), rampAltFt);
-        if (msg.getModuleSource() == ModuleType.ADM && msg.getNoSerieSource() == 1) {
-            lastRampAlt.put(ModuleType.ADIRM.name() + 0, rampAltFt);
+        lastRampAlt.put(msg.getModuleSource() + msg.getNoSerieSource(), rampAltFt);
+        if (msg.getModuleSource().equals("ADM") && msg.getNoSerieSource() == 1) {
+            lastRampAlt.put("ADIRM" + 0, rampAltFt);
         }
         return String.format("%.0f", rampAltFt) + " ft";
     }
 
     private static String apogeeDetect(BroadcastMessage msg) {
-        String key = msg.getModuleSource().name() + msg.getNoSerieSource();
+        String key = msg.getModuleSource()+ msg.getNoSerieSource();
         if (!altMax.containsKey(key)) {
-            altMax.put(msg.getModuleSource().name() + msg.getNoSerieSource(), Double.NEGATIVE_INFINITY);
+            altMax.put(msg.getModuleSource() + msg.getNoSerieSource(), Double.NEGATIVE_INFINITY);
         }
 
         double altFeet = Double.NEGATIVE_INFINITY;

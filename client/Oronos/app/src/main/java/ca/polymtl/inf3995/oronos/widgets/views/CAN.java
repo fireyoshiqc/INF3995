@@ -11,7 +11,7 @@ import org.parceler.Parcels;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
-import ca.polymtl.inf3995.oronos.utils.ModuleType;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
 /**
@@ -204,16 +204,12 @@ public class CAN implements ContainableWidget {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(id);
         if (specificSource != null) {
-            try {
-                int enumValue = ModuleType.valueOf(specificSource).getNumVal();
-                intentFilter.addCategory(ModuleType.getValue(enumValue).name());
-            } catch (IllegalArgumentException e) {
-                Timber.e("Error in CAN: Incorrect sourceModule value for CAN ID : %s", id);
-            }
-
+            intentFilter.addCategory(specificSource);
         } else {
-            for (ModuleType type : ModuleType.values()) {
-                intentFilter.addCategory(type.name());
+            if (GlobalParameters.canModuleTypes != null) {
+                for (String key : GlobalParameters.canModuleTypes.keySet()) {
+                    intentFilter.addCategory(key);
+                }
             }
         }
         if (serialNb != null) {

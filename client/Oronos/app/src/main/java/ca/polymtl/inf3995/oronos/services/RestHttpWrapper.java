@@ -33,7 +33,7 @@ import timber.log.Timber;
 public class RestHttpWrapper {
 
 
-    static final String SERVER_IP = "10.200.25.120"; //has to change according to user input
+    static final String SERVER_IP = "10.200.8.113"; //has to change according to user input
     static final int SERVER_PORT = 80;
     static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
     static final String DEVICE_NAME = Build.MODEL;
@@ -216,6 +216,15 @@ public class RestHttpWrapper {
 
     public void getConfigCanMsgDataTypes(Response.Listener<JSONObject> resListener) {
         getJSON("config/canMsgDataTypes", resListener, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                volleyOnErrorResponse(error);
+            }
+        });
+    }
+
+    public void getConfigCanModuleTypes(Response.Listener<JSONObject> resListener) {
+        getJSON("config/canModuleTypes", resListener, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 volleyOnErrorResponse(error);
