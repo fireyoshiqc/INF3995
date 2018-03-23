@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Gravity;
@@ -40,14 +41,21 @@ public class ModuleStatus extends OronosView {
         setOrientation(LinearLayout.VERTICAL);
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         addView(gridView);
-
-
-
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        enableModuleUpdates();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        disableModuleUpdates();
+    }
+
+    private void enableModuleUpdates() {
         if (GlobalParameters.canModuleTypes != null) {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
@@ -65,13 +73,19 @@ public class ModuleStatus extends OronosView {
                 intentFilter.addAction(key);
             }
             LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
-        }
+        } else {
+            final Handler handler = new Handler();
 
+            // Retry enabling updates
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    enableModuleUpdates();
+                }
+            }, 1000);
+        }
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    private void disableModuleUpdates() {
         if (broadcastReceiver != null) {
             LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
             broadcastReceiver = null;

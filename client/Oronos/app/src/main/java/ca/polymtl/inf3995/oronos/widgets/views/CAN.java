@@ -4,10 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.parceler.Parcels;
+
+import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
@@ -56,7 +59,7 @@ public class CAN implements ContainableWidget {
         this.customUpdateParam = customUpdateParam;
         this.updateEach = updateEach;
         this.customAcceptable = customAcceptable;
-        dataToDisplay = "";
+        dataToDisplay = "-";
         if (display != null) {
             String[] dataSplit = this.display.split(" ");
             if (dataSplit.length == 2) {
@@ -126,100 +129,120 @@ public class CAN implements ContainableWidget {
         return broadcastReceiver != null;
     }
 
-    public void enableDataDisplayerUpdates(Context context) {
+    public void enableDataDisplayerUpdates(final Context context) {
 
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
+        if (GlobalParameters.canModuleTypes != null) {
 
-                BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-                double newData = 0.0;
-                String formattedData = "";
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(final Context context, final Intent intent) {
 
-                if (customUpdate != null) {
+                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                    double newData = 0.0;
+                    String formattedData;
 
-                    newData = msg.getData1().doubleValue();
-                    String[] dataAndUnit;
-                    String updated;
+                    if (customUpdate != null) {
 
-                    if (customUpdateParam != null) {
-                        updated = CANCustomUpdate.updateWithParam(customUpdate, customUpdateParam, msg);
-                    } else {
-                        updated = CANCustomUpdate.update(customUpdate, msg);
-                    }
-                    if (updated != null) {
-                        dataAndUnit = updated.split(" ");
-                        formattedData = dataAndUnit[0];
-                        if (dataAndUnit.length == 2) {
-                            unit = dataAndUnit[1];
-                        }
-                    } else {
-                        formattedData = dataToDisplay;
-                    }
-
-                }
-                else if (display != null) {
-                    if (display.startsWith("__DATA1__")) {
                         newData = msg.getData1().doubleValue();
-                    } else if (display.startsWith("__DATA2__")) {
-                        newData = msg.getData2().doubleValue();
-                    }
+                        String[] dataAndUnit;
+                        String updated;
 
-                    if (chiffresSign != null) {
-                        String signFormat = "%." + chiffresSign + "f";
-                        formattedData = String.format(signFormat, newData);
+                        if (customUpdateParam != null) {
+                            updated = CANCustomUpdate.updateWithParam(customUpdate, customUpdateParam, msg);
+                        } else {
+                            updated = CANCustomUpdate.update(customUpdate, msg);
+                        }
+                        if (updated != null) {
+                            dataAndUnit = updated.split(" ");
+                            formattedData = dataAndUnit[0];
+                            if (dataAndUnit.length == 2) {
+                                unit = dataAndUnit[1];
+                            }
+                        } else {
+                            formattedData = dataToDisplay;
+                        }
+
+                    } else if (display != null) {
+                        if (display.startsWith("__DATA1__")) {
+                            newData = msg.getData1().doubleValue();
+                        } else if (display.startsWith("__DATA2__")) {
+                            newData = msg.getData2().doubleValue();
+                        }
+
+                        if (chiffresSign != null) {
+                            String signFormat = "%." + chiffresSign + "f";
+                            formattedData = String.format(signFormat, newData);
+                        } else {
+                            formattedData = String.format("%f", newData);
+                        }
+
                     } else {
-                        formattedData = String.format("%f", newData);
+                        formattedData = "N/A";
                     }
 
-                } else {
-                    formattedData = "N/A";
-                }
+                    if (!formattedData.equals(dataToDisplay)) {
+                        dataToDisplay = formattedData;
+                        hasChanged = true;
+                    }
 
-                if (!formattedData.equals(dataToDisplay)) {
-                    dataToDisplay = formattedData;
-                    hasChanged = true;
-                }
-
-                try {
-                    if (customAcceptable != null) {
-                        if (!CANCustomUpdate.acceptable(customAcceptable, msg)) {
+                    try {
+                        if (customAcceptable != null) {
+                            if (!CANCustomUpdate.acceptable(customAcceptable, msg)) {
+                                state = DisplayState.RED;
+                            } else {
+                                state = DisplayState.GREEN;
+                            }
+                        } else if ((minAcceptable != null && newData < Double.parseDouble(minAcceptable))
+                                || (maxAcceptable != null && newData > Double.parseDouble(maxAcceptable))) {
                             state = DisplayState.RED;
                         } else {
                             state = DisplayState.GREEN;
                         }
-                    } else if ((minAcceptable != null && newData < Double.parseDouble(minAcceptable))
-                            || (maxAcceptable != null && newData > Double.parseDouble(maxAcceptable))) {
-                        state = DisplayState.RED;
-                    } else {
-                        state = DisplayState.GREEN;
+
+                    } catch (NumberFormatException e) {
+                        Timber.e("Error: Could not update CAN tag state due to NumberFormatException.");
                     }
-
-                } catch (NumberFormatException e) {
-                    Timber.e("Error: Could not update CAN tag state due to NumberFormatException.");
                 }
-            }
-        };
+            };
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(id);
-        if (specificSource != null) {
-            intentFilter.addCategory(specificSource);
-        } else {
-            if (GlobalParameters.canModuleTypes != null) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(id);
+            if (specificSource != null) {
+
+                Integer moduleValue = GlobalParameters.canModuleTypes.get(specificSource);
+                for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
+                    if (entry.getValue().equals(moduleValue)) {
+                        intentFilter.addCategory(entry.getKey());
+                    }
+                }
+
+            } else {
+
                 for (String key : GlobalParameters.canModuleTypes.keySet()) {
                     intentFilter.addCategory(key);
                 }
+
             }
-        }
-        if (serialNb != null) {
-            intentFilter.addCategory(serialNb);
+            if (serialNb != null) {
+                intentFilter.addCategory(serialNb);
+            } else {
+                for (int i = 0; i < 16; i++) {
+                    intentFilter.addCategory(String.format("%d", i));
+                }
+            }
+            LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
         } else {
-            for (int i = 0; i < 16; i++) {
-                intentFilter.addCategory(String.format("%d", i));
-            }
+            final Handler handler = new Handler();
+
+            // Retry enabling updates
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    enableDataDisplayerUpdates(context);
+                }
+            }, 1000);
+
+
         }
-        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
     }
 
