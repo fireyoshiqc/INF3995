@@ -15,24 +15,13 @@ import android.widget.LinearLayout;
 import org.parceler.Parcels;
 
 import ca.polymtl.inf3995.oronos.services.ModuleMessage;
-import ca.polymtl.inf3995.oronos.utils.ModuleType;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.adapters.ModuleStatusAdapter;
 
 public class ModuleStatus extends OronosView {
     private ModuleStatusAdapter adapter;
     private GridView gridView;
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ModuleMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-            ModuleType module = msg.getModuleSource();
-            Integer noSerie = msg.getNoSerieSource();
-            Integer counter = msg.getCounter();
-
-            receiveItem(module.toString(), noSerie, counter);
-        }
-    };
-
+    private BroadcastReceiver broadcastReceiver;
     public ModuleStatus(Context context, int nGrid, int nColumns) {
         super(context);
         gridView = new GridView(context);
@@ -51,12 +40,41 @@ public class ModuleStatus extends OronosView {
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         addView(gridView);
 
-        IntentFilter intentFilter = new IntentFilter();
-        for (int i = 0; i < ModuleType.values().length; i++) {
-            intentFilter.addAction(ModuleType.values()[i].toString());
-        }
-        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
 
+
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (GlobalParameters.canModuleTypes != null) {
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    ModuleMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                    String module = msg.getModuleSource();
+                    Integer noSerie = msg.getNoSerieSource();
+                    Integer counter = msg.getCounter();
+
+                    receiveItem(module, noSerie, counter);
+                }
+            };
+            IntentFilter intentFilter = new IntentFilter();
+            for (String key : GlobalParameters.canModuleTypes.keySet()) {
+                intentFilter.addCategory(key);
+            }
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
+        }
+
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (broadcastReceiver != null) {
+            LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
+            broadcastReceiver = null;
+        }
     }
 
     public int getCount() {

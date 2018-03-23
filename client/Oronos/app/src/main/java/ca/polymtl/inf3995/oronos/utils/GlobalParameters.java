@@ -31,6 +31,7 @@ public class GlobalParameters {
     public static Map<Integer, String> canSid;
     public static Map<String, String> canDataTypes;
     public static Map<String, List<String>> canMsgDataTypes;
+    public static Map<String, Integer> canModuleTypes;
     GlobalParameters() {
     }
 

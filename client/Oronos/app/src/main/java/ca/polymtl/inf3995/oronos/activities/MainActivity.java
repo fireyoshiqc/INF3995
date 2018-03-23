@@ -162,7 +162,7 @@ public class MainActivity extends DrawerActivity {
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
         try {
-            InputStream fis = getAssets().open("11_valkyrieM2.xml");
+            InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
 
             viewsContainer = new ArrayList<>();
@@ -289,7 +289,7 @@ public class MainActivity extends DrawerActivity {
                 try {
                     canSid = JsonHelper.toMap(response);
                 } catch (JSONException e) {
-                    Timber.v(e.getMessage());
+                    Timber.e(e.getMessage());
                 }
 
                 if (canSid != null) {
@@ -301,7 +301,7 @@ public class MainActivity extends DrawerActivity {
                     GlobalParameters.canSid = inverseMap;
 
                 } else {
-                    Timber.v("Error");
+                    Timber.e("Error");
                 }
 
             }
@@ -315,7 +315,7 @@ public class MainActivity extends DrawerActivity {
                 try {
                     canDataTypes = JsonHelper.toMap(response);
                 } catch (JSONException e) {
-                    Timber.v(e.getMessage());
+                    Timber.e(e.getMessage());
                 }
 
                 if (canDataTypes != null) {
@@ -327,7 +327,7 @@ public class MainActivity extends DrawerActivity {
                     GlobalParameters.canDataTypes = map;
 
                 } else {
-                    Timber.v("Error");
+                    Timber.e("Error");
                 }
 
             }
@@ -341,7 +341,7 @@ public class MainActivity extends DrawerActivity {
                 try {
                     canMsgDataTypes = JsonHelper.toMap(response);
                 } catch (JSONException e) {
-                    Timber.v(e.getMessage());
+                    Timber.e(e.getMessage());
                 }
 
 
@@ -354,9 +354,35 @@ public class MainActivity extends DrawerActivity {
                     GlobalParameters.canMsgDataTypes = map;
 
                 } else {
-                    Timber.v("Error");
+                    Timber.e("Error");
                 }
 
+            }
+        });
+
+        RestHttpWrapper.getInstance().getConfigCanModuleTypes(new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Map<String, Object> canModuleTypes = null;
+
+                try {
+                    canModuleTypes = JsonHelper.toMap(response);
+                } catch (JSONException e) {
+                    Timber.e(e.getMessage());
+                }
+
+                if (canModuleTypes != null) {
+
+                    Map<String, Integer> map = new HashMap<>();
+                    for (Map.Entry<String, Object> entry : canModuleTypes.entrySet()) {
+                        map.put(entry.getKey(), (Integer) entry.getValue());
+                    }
+
+                    GlobalParameters.canModuleTypes = map;
+
+                } else {
+                    Timber.e("Error");
+                }
             }
         });
     }

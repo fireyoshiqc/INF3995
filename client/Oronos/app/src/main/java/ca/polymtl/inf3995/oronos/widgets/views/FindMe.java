@@ -15,11 +15,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +34,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.utils.ModuleType;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
@@ -287,8 +287,10 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                 intentFilter.addAction("GPS1_ALT_MSL");
 
                 // Listen for all categories, since it depends on the rocket
-                for (ModuleType type : ModuleType.values()) {
-                    intentFilter.addCategory(type.name());
+                if (GlobalParameters.canModuleTypes != null) {
+                    for (String key : GlobalParameters.canModuleTypes.keySet()) {
+                        intentFilter.addCategory(key);
+                    }
                 }
                 for (int i = 0; i < 16; i++) {
                     intentFilter.addCategory(String.format("%d", i));

@@ -10,14 +10,12 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -30,12 +28,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
-import ca.polymtl.inf3995.oronos.utils.DataPlot;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.utils.DataPlot;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
-import timber.log.Timber;
 
 
 /**
@@ -72,8 +69,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     private TextView timeSecondsView;
     private LineChart chart;
     private SeekBar slider;
-
-
+    private BroadcastReceiver broadcastReceiver;
 
     public Plot(Context context, String name, String unit, String axis, List<CAN> list) {
 
@@ -92,13 +88,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         setGenericPlotSettings();
 
         initializeViews();
-
-        IntentFilter intentFilter = new IntentFilter();
-        for (CAN can : list) {
-            intentFilter.addAction(can.getId());
-        }
-        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
-
         run();
 
     }
@@ -108,10 +97,10 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         final Handler handler = new Handler();
 
 
-        handler.postDelayed(new Runnable(){
-            public void run(){
+        handler.postDelayed(new Runnable() {
+            public void run() {
 
-               refreshPlot();
+                refreshPlot();
                 handler.postDelayed(this, REFRESH_DELAY);
             }
         }, REFRESH_DELAY);
@@ -120,24 +109,48 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     private void initializeDataList() {
         dataMap = new HashMap<>();
-        for(CAN can : this.canList){
+        for (CAN can : this.canList) {
             DataPlot dataPlot = new DataPlot(MAXIMUM_ENTRIES);
             String canID = can.getId();
             dataMap.put(canID, dataPlot);
         }
     }
 
-
-
     private void refreshPlot() {
-        int[] colors = {Color.RED,Color.GREEN,Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
+        if (broadcastReceiver == null && GlobalParameters.canSid != null && GlobalParameters.canModuleTypes != null) {
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) { //Gets execute each time a can msg is received
+                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                    dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
+                }
+            };
+
+            IntentFilter intentFilter = new IntentFilter();
+            for (CAN can : list) {
+                intentFilter.addAction(can.getId());
+            }
+
+            for (String key : GlobalParameters.canModuleTypes.keySet()) {
+                intentFilter.addCategory(key);
+            }
+
+            for (int i = 0; i < 16; i++) {
+                intentFilter.addCategory(String.format("%d", i));
+            }
+
+            LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
+        }
+
+
+        int[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
         LineData lineData = new LineData();
         List<ILineDataSet> lines = new ArrayList<ILineDataSet>();
         int colorCount = 0;
-        for (CAN can : this.canList){
+        for (CAN can : this.canList) {
             DataPlot dataPlot = dataMap.get(can.getId());
             List<Entry> listEntry = dataPlot.retrieveEntries(this.seconds);
-            if(!listEntry.isEmpty()){
+            if (!listEntry.isEmpty()) {
                 LineDataSet line = new LineDataSet(listEntry, can.getId());
                 line.setColor(colors[colorCount]);
                 line.setCircleColor(colors[colorCount]);
@@ -150,8 +163,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart.invalidate(); // refresh
     }
 
-
-
     private void setGenericPlotSettings() {
         //no interaction
         this.chart.setTouchEnabled(false);
@@ -163,24 +174,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart.setDescription(desc);
 
     }
-
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) { //Gets execute each time a can msg is received
-            BroadcastMessage msg = (BroadcastMessage) Parcels.unwrap(intent.getParcelableExtra("data"));
-            msg.getCanSid();
-
-            dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
-
-            //Timber.v("can sid: " + msg.getCanSid());
-            //Timber.v("data1: " + msg.getData1().intValue());
-            //Timber.v("data2: " + msg.getData1().doubleValue());
-            //Timber.v("");
-
-
-        }
-    };
-
 
     private void createAxisText() {
 
@@ -214,35 +207,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
     }
 
-    //Slider
-    private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
-        private int timeSelected;
-
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            int minuteInSeconds = 60;
-            timeSelected = i + minuteInSeconds;
-            int minutesShow = timeSelected / minuteInSeconds;
-            int secondsShow = timeSelected % minuteInSeconds;
-            String appendSecondStr = " seconds";
-            if (secondsShow < 10) {
-                appendSecondStr = "   seconds";
-            }
-            timeSecondsView.setText(Integer.toString(minutesShow) + " minutes " + Integer.toString(secondsShow) + appendSecondStr);
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            seconds = timeSelected;
-            refreshPlot();
-        }
-    }
-
     private void createSlider() {
         timeSecondsView = new TextView(context);
         timeSecondsView.setText(1 + " minute");
@@ -250,7 +214,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
         );
-        timeViewParams.weight = (float)3.5;
+        timeViewParams.weight = (float) 3.5;
         timeSecondsView.setLayoutParams(timeViewParams);
         timeSecondsView.setGravity(Gravity.CENTER_VERTICAL);
 
@@ -315,7 +279,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         addView(this.containerLayout);
     }
 
-
     private int convertDpToPx(int dp, DisplayMetrics displayMetrics) {
         float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, displayMetrics);
         return Math.round(pixels);
@@ -333,4 +296,32 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         return axis;
     }
 
+    //Slider
+    private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
+        private int timeSelected;
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            int minuteInSeconds = 60;
+            timeSelected = i + minuteInSeconds;
+            int minutesShow = timeSelected / minuteInSeconds;
+            int secondsShow = timeSelected % minuteInSeconds;
+            String appendSecondStr = " seconds";
+            if (secondsShow < 10) {
+                appendSecondStr = "   seconds";
+            }
+            timeSecondsView.setText(Integer.toString(minutesShow) + " minutes " + Integer.toString(secondsShow) + appendSecondStr);
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            seconds = timeSelected;
+            refreshPlot();
+        }
+    }
 }
