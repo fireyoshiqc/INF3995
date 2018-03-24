@@ -67,6 +67,7 @@ public class ModuleStatusAdapter extends BaseAdapter {
         int position = findPositionOfPCB(PCBname, noSerial, noMsg);
         if (position < getCount()) {
             PCBPair pcb = PCBList.get(position);
+            StatusOfPCB oldStatus = pcb.getStatus();
             if (pcb.getLastNoMsg() != noMsg) {
                 pcb.setLastNoMsg(noMsg);
                 pcb.setLastTimeSeen(DateTime.now());
@@ -81,6 +82,9 @@ public class ModuleStatusAdapter extends BaseAdapter {
                 } else {
                     pcb.setStatus(StatusOfPCB.OFFLINE);
                 }
+            }
+            if (oldStatus != pcb.getStatus()) {
+                this.notifyDataSetChanged();
             }
         }
     }
@@ -124,7 +128,8 @@ public class ModuleStatusAdapter extends BaseAdapter {
     private int findPositionOfPCB(String PCBname, int noSerial, int noMsg) {
         int index;
         for (index = 0; index < PCBList.size(); index++) {
-            if (PCBList.get(index).getNoSerial() == noSerial) {
+            if (PCBList.get(index).getNoSerial() == noSerial
+                    && PCBList.get(index).getPCBName().equals(PCBname)) {
                 break;
             }
         }
