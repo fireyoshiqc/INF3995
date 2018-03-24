@@ -34,20 +34,15 @@ class USBReaderTask(AbstractTaskNode):
 		super(USBReaderTask, self).__init__(is_queued_input_data = False,
 											buffer_size = 1024)
 		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
-		self.stream = serial.Serial(serial_port, baudrate,
+		try:
+			self.stream = serial.Serial(serial_port, baudrate,
 									timeout=0,
 									stopbits=serial.STOPBITS_ONE,
 									parity=serial.PARITY_NONE)
-		# TODO Fix crash when connector file doesn't exist
-		# try:
-		# 	self.stream = serial.Serial(serial_port, baudrate,
-		# 							timeout=0,
-		# 							stopbits=serial.STOPBITS_ONE,
-		# 							parity=serial.PARITY_NONE)
-		# except serial.serialutil.SerialException as e:
-		# 	print(__name__ + ': ' + str(e))
-		# 	inf3995.core.ApplicationManager().exit(0)
-		# 	return
+		except serial.serialutil.SerialException as e:
+			print(__name__ + ': ' + str(e))
+			inf3995.core.ApplicationManager().exit(1)
+			return
 
 	def init(self):
 		pass
