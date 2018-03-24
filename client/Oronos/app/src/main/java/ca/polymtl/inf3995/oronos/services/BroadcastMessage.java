@@ -12,19 +12,19 @@ public class BroadcastMessage {
     private String canSid;
     private Number data1;
     private Number data2;
-    private String moduleSource;
-    private Integer noSerieSource;
+    private String sourceModule;
+    private Integer serialNb;
     private Integer counter;
 
     public BroadcastMessage() {
     }
 
-    public BroadcastMessage(String canSid, Number data1, Number data2, String moduleSource, Integer noSerieSource, Integer counter) {
+    public BroadcastMessage(String canSid, Number data1, Number data2, String sourceModule, Integer serialNb, Integer counter) {
         this.canSid = canSid;
         this.data1 = data1;
         this.data2 = data2;
-        this.moduleSource = moduleSource;
-        this.noSerieSource = noSerieSource;
+        this.sourceModule = sourceModule;
+        this.serialNb = serialNb;
         this.counter = counter;
     }
 
@@ -40,12 +40,12 @@ public class BroadcastMessage {
         return data2;
     }
 
-    public String getModuleSource() {
-        return moduleSource;
+    public String getSourceModule() {
+        return sourceModule;
     }
 
-    public Integer getNoSerieSource() {
-        return noSerieSource;
+    public Integer getSerialNb() {
+        return serialNb;
     }
 
     public Integer getCounter() {

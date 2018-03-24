@@ -24,7 +24,7 @@ public class DataDispatcher {
         DataDispatcher.context = context.getApplicationContext();
     }
 
-    public static void dataToDispatch(List<Object> data, boolean isModulePing) {
+    public static void dataToDispatch(List<Object> data) {
 
         if (GlobalParameters.canSid == null
                 || GlobalParameters.canDataTypes == null
@@ -33,34 +33,57 @@ public class DataDispatcher {
             return;
         }
 
-        for (int i = 0; i < data.size(); i += (isModulePing ? 3 : 6)) {
-            String canSid = isModulePing ? null : GlobalParameters.canSid.get((Integer) data.get(i));
-            Number data1 = isModulePing ? null : (Number) data.get(i + 1);
-            Number data2 = isModulePing ? null : (Number) data.get(i + 2);
-            String moduleSource = "";
+        for (int i = 0; i < data.size(); i += 6) {
+            String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
+            Number data1 = (Number) data.get(i + 1);
+            Number data2 = (Number) data.get(i + 2);
+            String srcModule = "";
             for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
-                if (entry.getValue() == (isModulePing ? data.get(i) : data.get(i + 3))) {
-                    moduleSource = entry.getKey();
+                if (entry.getValue() == data.get(i + 3)) {
+                    srcModule = entry.getKey();
                     break;
                 }
             }
-            Integer noSerieSource = isModulePing ? (Integer) data.get(i + 1) : (Integer) data.get(i + 4);
-            Integer counter = isModulePing ? (Integer) data.get(i + 2) : (Integer) data.get(i + 5);
+            Integer serialNb = (Integer) data.get(i + 4);
+            Integer counter = (Integer) data.get(i + 5);
 
-            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
+            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, srcModule, serialNb, counter);
 
-            Intent intent;
-            if (!isModulePing) {
-                intent = new Intent(canSid);
-                intent.addCategory(moduleSource);
-                intent.addCategory(noSerieSource.toString());
-
-            } else {
-                intent = new Intent(moduleSource);
-            }
+            Intent intent = new Intent(canSid);
+            intent.addCategory(srcModule);
+            intent.addCategory(serialNb.toString());
             intent.putExtra("data", Parcels.wrap(broadcastMessage));
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
     }
+
+    public static void moduleToDispatch(List<Object> data) {
+
+        if (GlobalParameters.canModuleTypes == null) {
+            return;
+        }
+
+
+        for (int i = 0; i < data.size(); i += 2) {
+            String srcModule = "";
+            for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
+                if (entry.getValue() == ((Integer)data.get(i) >> 16)) {
+                    srcModule = entry.getKey();
+                    break;
+                }
+            }
+            Integer serialNb = (Integer) data.get(i) & 0x0000FFFF;
+            Integer counter = (Integer) data.get(i + 1);
+
+            ModuleMessage moduleMessage = new ModuleMessage(srcModule, serialNb, counter);
+
+            Intent intent = new Intent(srcModule);
+            intent.putExtra("data", Parcels.wrap(moduleMessage));
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+
+
+    }
+
 }
