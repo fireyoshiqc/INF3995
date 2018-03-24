@@ -23,7 +23,13 @@ class CSVReaderTask(AbstractTaskNode):
 	def __init__(self, log_file):
 		super(CSVReaderTask, self).__init__(is_queued_input_data = False, buffer_size = 1024)
 		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
-		self.csv_file = open(log_file, 'r', encoding='utf-8')
+		try:
+			self.csv_file = open(log_file, 'r', encoding='utf-8')
+		except FileNotFoundError as e:
+			# Print statement used because logger task hasn't started yet
+			print(__name__ + ': ' + str(e))
+			inf3995.core.ApplicationManager().exit(1)
+			return
 		self.csv_reader = csv.reader(self.csv_file, delimiter=';')
 		self.next_line = ''
 		self.start_time = time.clock()
