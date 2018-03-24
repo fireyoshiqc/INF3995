@@ -12,19 +12,19 @@ class ModulesMsgElem(AbstractOscMsgDataElem):
 	def __init__(self, can_rx_data):
 		self.module_type = can_rx_data.src_type
 		self.module_serial_no = can_rx_data.src_serial
+		self.identifier = (self.module_type << 16) | self.module_serial_no
 		self.counter = 0
 	
 	@property
 	def key(self):
-		return self.module_type
+		return self.identifier
 	
 	@property
 	def type_tag(self):
-		return "iii"
+		return "ii"
 	
 	def encode(self):
-		return encode_osc_data("i", int(self.module_type)) + \
-		       encode_osc_data("i", int(self.module_serial_no)) + \
+		return encode_osc_data("i", int(self.identifier)) + \
 		       encode_osc_data("i", int(self.counter))
 	
 	def update(self, other):
