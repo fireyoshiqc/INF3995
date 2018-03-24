@@ -80,6 +80,9 @@ class USBReaderTask(AbstractTaskNode):
 			return
 
 		# Discard all messages with invalid CAN serial ID
+		# and skip messages we are not interested in
+		# Messages will not be in CAN Sid info if we are not
+		# interested in them
 		try:
 			sid = int(msg_bitfield[0:11])
 			can_sid_info = CANSidParser.can_sid_info[sid]
@@ -88,6 +91,10 @@ class USBReaderTask(AbstractTaskNode):
 			self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 			return
 		except ValueError:
+			return
+
+		# Skip Emergency Event Data messages
+		if int(sid) <= CANSidParser.MAX_EMERGENCY_EVENT_SID:
 			return
 
 		# Discard all messages with invalid destination types

@@ -17,6 +17,8 @@ class CANSidParser:
 	# comment associated with an SID numerical value
 	can_sid_info = {}
 
+	MAX_EMERGENCY_EVENT_SID = 256
+
 	def __init__(self):
 		# Check that specified CAN Sid file exists
 		can_sid_file = Path(CAN_SID_FILE)
@@ -35,14 +37,24 @@ class CANSidParser:
 					# Empty line or section title
 					continue
 
-				# Store SID info
+				# Skip messages we are not interested in
+				# Skip 'MOTOR' messages
 				sid_name = values[0]
+				if 'MOTOR' in sid_name:
+					continue
+
+				# Skip '(To the rocket)' messages
+				comment = values[3]
+				if '(To the rocket)' in comment:
+					continue
+
+				# Store SID info
 				sid = CANSid[sid_name]
 				CANSidParser.can_sid_info[sid] = {
-											'sid_name': values[0],
+											'sid_name': sid_name,
 											'data1_type':values[1],
 											'data2_type':values[2],
-											'comment': values[3]}
+											'comment': comment}
 
 				#print(values)  # Uncomment to print parsed SID info
 			# print(self.can_sid_info)

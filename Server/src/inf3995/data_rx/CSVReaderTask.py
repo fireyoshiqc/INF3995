@@ -6,6 +6,7 @@ from enum import Enum
 
 from inf3995.settings.CANSid import CANSid
 from inf3995.settings.ModuleTypes import ModuleType, ALL_SERIAL_NBS
+from inf3995.settings.CANSidParser import *
 from inf3995.core.AbstractTaskNode import *
 # from inf3995.core.ApplicationManager import *
 import inf3995.core
@@ -94,6 +95,18 @@ class CSVReaderTask(AbstractTaskNode):
 				sid = CANSid[sid_name]
 			except KeyError as e:
 				self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
+				continue
+
+			# Skip Emergency Event Data messages
+			if int(sid) <= CANSidParser.MAX_EMERGENCY_EVENT_SID:
+				continue
+
+			# Skip other messages we are not interested in
+			# Messages will not be in CAN Sid info if we are not
+			# interested in them
+			try:
+				CANSidParser.can_sid_info[sid]
+			except KeyError:
 				continue
 
 			# Skip log messages with invalid source or destination type
