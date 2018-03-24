@@ -7,6 +7,9 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,26 +25,21 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.ModuleStatusAdapter;
 import timber.log.Timber;
 
 public class ModuleStatus extends OronosView {
-    private ModuleStatusAdapter adapter;
-    private GridView gridView;
+    private RecyclerView recycler;
     private BroadcastReceiver broadcastReceiver;
     public ModuleStatus(Context context, int nGrid, int nColumns) {
         super(context);
-        gridView = new GridView(context);
-        gridView.setNumColumns(nColumns);
-        gridView.setBackgroundColor(Color.TRANSPARENT);
-        gridView.setVerticalSpacing(10);
-        gridView.setHorizontalSpacing(10);
-        gridView.setGravity(Gravity.CENTER);
-        gridView.setLayoutParams(new GridView.LayoutParams(
-                GridView.LayoutParams.MATCH_PARENT,
-                GridView.LayoutParams.MATCH_PARENT
-        ));
-        adapter = new ModuleStatusAdapter(context, nGrid, nColumns);
-        gridView.setAdapter(adapter);
-        setOrientation(LinearLayout.VERTICAL);
-        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        addView(gridView);
+
+        recycler = new RecyclerView(context);
+        ModuleStatusAdapter adapter = new ModuleStatusAdapter(context, nGrid, nColumns);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, nGrid/nColumns);
+        recycler.setLayoutManager(gridLayoutManager);
+        recycler.getItemAnimator().setChangeDuration(100);
+        recycler.getItemAnimator().setAddDuration(250);
+        recycler.setAdapter(adapter);
+        recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
+        recycler.setNestedScrollingEnabled(false);
+        addView(recycler);
     }
 
     @Override
@@ -66,12 +64,7 @@ public class ModuleStatus extends OronosView {
                     Integer noSerie = msg.getSerialNb();
                     Integer counter = msg.getCounter();
 
-                    // Debug purpose
-                    if(!(noSerie == 7 && module.equals("AGRUM")) && !(noSerie == 2 && module.equals("MCD"))) {
-                        Timber.v("RECU UN SPECIAL SNOWFLAKE");
-                    }
-
-                    receiveItem(module, noSerie, counter);
+                    ((ModuleStatusAdapter)recycler.getAdapter()).receiveItem(module, noSerie, counter);
                 }
             };
             IntentFilter intentFilter = new IntentFilter();
@@ -98,20 +91,8 @@ public class ModuleStatus extends OronosView {
         }
     }
 
-    public int getCount() {
-        return adapter.getCount();
-    }
-
-    public void receiveItem(String PCBname, int noSerial, int noMsg) {
-        adapter.receiveItem(PCBname, noSerial, noMsg);
-    }
-
-    public View getLocalView(int position, View convertView, ViewGroup parent) {
-        return adapter.getView(position, convertView, parent);
-    }
-
-    public GridView getGlobalView() {
-        return this.gridView;
+    public RecyclerView getGlobalView() {
+        return this.recycler;
     }
 
 }
