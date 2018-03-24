@@ -122,6 +122,7 @@ public class ModuleStatusAdapter extends BaseAdapter {
         if (PCBList.size() < getCount()) {
             PCBPair pcbPair = new PCBPair(PCBname, noSerial, noMsg);
             PCBList.add(pcbPair);
+            this.notifyDataSetChanged();
         }
     }
 
