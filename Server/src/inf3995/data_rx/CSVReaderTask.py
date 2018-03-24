@@ -46,9 +46,8 @@ class CSVReaderTask(AbstractTaskNode):
 			return
 
 		csv_log_format = ';'.join(self.next_line)
-		# TODO : Throw an exception if CSV file is bad
 		if csv_log_format != CSV_LOG_FORMAT:
-			self.__event_logger.log_error(__name__ + ": Bad of CSV file.")
+			self.__event_logger.log_error(__name__ + ": Bad CSV file.")
 			# If we don't do this, we shall slumber for a hundred years
 			self.csv_file.close()
 			inf3995.core.ApplicationManager().exit(1)
