@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import ca.polymtl.inf3995.oronos.widgets.adapters.CANAdapter;
+import ca.polymtl.inf3995.oronos.widgets.adapters.DataDisplayerAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 /**
@@ -31,7 +31,7 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
     public DataDisplayer(Context context, List<CAN> list, DataLayout layout) {
         super(context, list);
         recycler = new RecyclerView(context);
-        CANAdapter adapter = null;
+        DataDisplayerAdapter adapter = null;
         GridLayoutManager gridLayoutManager = null;
         DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
         int width = metrics.widthPixels;
@@ -42,15 +42,15 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
 
         switch (layout) {
             case HORIZONTAL:
-                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
+                adapter = new DataDisplayerAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
                 gridLayoutManager = new GridLayoutManager(context, (int) (FULL_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
             case VERTICAL:
-                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
+                adapter = new DataDisplayerAdapter(context, list, (int) (MAX_LARGE_DATA / 2 * (screenInches / TARGET_SCREEN_SIZE)));
                 gridLayoutManager = new GridLayoutManager(context, (int) (HALF_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
             case FULL:
-                adapter = new CANAdapter(context, list, (int) (MAX_LARGE_DATA * (screenInches / TARGET_SCREEN_SIZE)));
+                adapter = new DataDisplayerAdapter(context, list, (int) (MAX_LARGE_DATA * (screenInches / TARGET_SCREEN_SIZE)));
                 gridLayoutManager = new GridLayoutManager(context, (int) (FULL_SPAN * (screenInches / TARGET_SCREEN_SIZE)));
                 break;
         }
