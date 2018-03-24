@@ -17,31 +17,31 @@ import ca.polymtl.inf3995.oronos.widgets.views.CAN;
  * Created by Felix on 07/mars/2018.
  */
 
-public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
+public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdapter.DataContainer> {
 
     private final int maxLargeItems;
     private Context context;
     private List<CAN> canTags;
 
-    public CANAdapter(Context context, List<CAN> canTags, int maxLargeItems) {
+    public DataDisplayerAdapter(Context context, List<CAN> canTags, int maxLargeItems) {
         this.context = context;
         this.canTags = canTags;
         this.maxLargeItems = maxLargeItems;
     }
 
     @Override
-    public CANContainer onCreateViewHolder(ViewGroup parent, int viewType) {
+    public DataContainer onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView;
         if (this.getItemCount() > maxLargeItems) {
             itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.can_data_small, parent, false);
         } else {
             itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.can_data_large, parent, false);
         }
-        return new CANContainer(itemView);
+        return new DataContainer(itemView);
     }
 
     @Override
-    public void onBindViewHolder(CANContainer holder, int position) {
+    public void onBindViewHolder(DataContainer holder, int position) {
         CAN can = canTags.get(position);
         holder.name.setText(can.getName());
         holder.canid.setText(can.getId());
@@ -62,7 +62,7 @@ public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
     }
 
     @Override
-    public void onViewRecycled(CANContainer holder) {
+    public void onViewRecycled(DataContainer holder) {
         super.onViewRecycled(holder);
         holder.itemView.setBackgroundResource(R.drawable.can_data_large_border_black);
         holder.data.setTextColor(Color.BLACK);
@@ -73,13 +73,13 @@ public class CANAdapter extends RecyclerView.Adapter<CANAdapter.CANContainer> {
         return canTags.size();
     }
 
-    class CANContainer extends RecyclerView.ViewHolder {
+    class DataContainer extends RecyclerView.ViewHolder {
         private TextView name;
         private TextView canid;
         private TextView data;
         private TextView unit;
 
-        CANContainer(final View view) {
+        DataContainer(final View view) {
             super(view);
             name = view.findViewById(R.id.name);
             canid = view.findViewById(R.id.canid);
