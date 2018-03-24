@@ -19,6 +19,7 @@ import org.parceler.Parcels;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.adapters.ModuleStatusAdapter;
+import timber.log.Timber;
 
 public class ModuleStatus extends OronosView {
     private ModuleStatusAdapter adapter;
@@ -64,6 +65,11 @@ public class ModuleStatus extends OronosView {
                     String module = msg.getModuleSource();
                     Integer noSerie = msg.getNoSerieSource();
                     Integer counter = msg.getCounter();
+
+                    // Debug purpose
+                    if(!(noSerie == 7 && module.equals("AGRUM")) && !(noSerie == 2 && module.equals("MCD"))) {
+                        Timber.v("RECU UN SPECIAL SNOWFLAKE");
+                    }
 
                     receiveItem(module, noSerie, counter);
                 }

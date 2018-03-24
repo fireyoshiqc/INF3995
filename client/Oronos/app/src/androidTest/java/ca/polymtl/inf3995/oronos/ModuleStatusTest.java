@@ -171,7 +171,7 @@ public class ModuleStatusTest {
 
         //First Transition
         try {
-            Thread.sleep(60000);
+            Thread.sleep(GlobalParameters.ONLINE_TO_DELAY / 2);
         } catch(InterruptedException e) {
             System.out.println("First sleep got interrupted!");
         }
@@ -179,7 +179,7 @@ public class ModuleStatusTest {
         moduleStatusObj.receiveItem("PCB 2",  2,  0);
         moduleStatusObj.receiveItem("PCB 3",  3,  0);
         try {
-            Thread.sleep(60500);
+            Thread.sleep(GlobalParameters.ONLINE_TO_DELAY / 2 + 20);
         } catch(InterruptedException e) {
             System.out.println("Second sleep got interrupted!");
         }
@@ -197,7 +197,7 @@ public class ModuleStatusTest {
 
         //Second Transition
         try {
-            Thread.sleep(120020);
+            Thread.sleep(GlobalParameters.ONLINE_TO_DELAY + 20);
         } catch(InterruptedException e) {
             System.out.println("Third sleep got interrupted!");
         }

@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class GlobalParameters {
     // ModuleStatus
-    public final static int ONLINE_TO_DELAY = 120000; // in milliseconds.
-    public final static int DELAY_TO_OFFLINE = 240000; // in milliseconds.
+    public final static int ONLINE_TO_DELAY  = 2000; // in milliseconds.
+    public final static int DELAY_TO_OFFLINE = 4000; // in milliseconds.
     public final static int GREEN_STATUS = Color.rgb(
             Integer.parseInt("43", 16),
             Integer.parseInt("a0", 16),
