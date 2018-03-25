@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
@@ -29,8 +28,6 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     private DisplayLogAdapter adapter;
     private List<MSGPair> lastMsgsReceived;
     private Context context;
-    private int nNextUpdates;
-    private int nNextShortUpdates;
 
     /**
      * MSGPair stocks all necessary data to distinguish 2 logs and register the newest.
@@ -64,12 +61,10 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         recycler = new RecyclerView(context);
         adapter = new DisplayLogAdapter(context);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-        linearLayoutManager.setStackFromEnd(true);
-        linearLayoutManager.setReverseLayout(true);
         recycler.setLayoutManager(linearLayoutManager);
-        recycler.setItemAnimator(new DefaultItemAnimator());
         recycler.setAdapter(adapter);
-        recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
+        recycler.setLayoutParams(new RecyclerView.LayoutParams(
+                RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         recycler.setNestedScrollingEnabled(false);
         addView(recycler);
         setUpBroadcast();
@@ -90,11 +85,6 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         String     noSerie  = Integer.toString(msg.getSerialNb());
         adapter.addCSVMsg(
                 module + ";" + noSerie + ";" + canSID + ";" + newData1 + ";" + newData2 + ";\n");
-        if (!isAttachedToWindow()) {
-            nNextUpdates += 1;
-        } else {
-            nNextShortUpdates += 1;
-        }
     }
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -146,10 +136,6 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (nNextUpdates != 0) {
-            UpdateTask(nNextUpdates);
-            nNextUpdates = 0;
-        }
         startUpdateTask();
     }
 
@@ -167,10 +153,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
                 ((Activity) getContext()).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (nNextShortUpdates != 0) {
-                            UpdateTask(nNextShortUpdates);
-                            nNextShortUpdates = 0;
-                        }
+                        adapter.notifyDataSetChanged();
                     }
                 });
             }
@@ -185,18 +168,6 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         if (listUpdater != null) {
             listUpdater.cancel();
             listUpdater.purge();
-        }
-    }
-
-    private void UpdateTask(int nUpdates) {
-        // The adapter is full; discard old logs and add new ones.
-        if (adapter.getItemCount() == GlobalParameters.LIMIT_OF_N_MSG) {
-            if (nUpdates >= GlobalParameters.LIMIT_OF_N_MSG) {
-                adapter.notifyDataSetChanged();
-            } else {
-                adapter.notifyItemRangeRemoved(0, nUpdates);
-                adapter.notifyItemRangeInserted(GlobalParameters.LIMIT_OF_N_MSG - nUpdates, nUpdates);
-            }
         }
     }
 }
