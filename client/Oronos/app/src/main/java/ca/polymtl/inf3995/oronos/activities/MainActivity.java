@@ -18,6 +18,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -59,17 +61,6 @@ public class MainActivity extends DrawerActivity {
 
         setUpUtilities();
         setContentView(R.layout.activity_main);
-
-        // login to receive UDP
-        //RestHttpWrapper.getInstance().postUsersLogin(new Response.Listener<JSONObject>() {
-        //    @Override
-        //    public void onResponse(JSONObject response) {
-        //        Timber.v("REST logged in");
-        //        // get config
-        //        getCanConfig();
-        //    }
-        //});
-
 
         fillViewsContainer();
         setUpToolbar();
@@ -154,7 +145,8 @@ public class MainActivity extends DrawerActivity {
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
         try {
-            InputStream fis = getAssets().open("10_polaris.xml");
+            //InputStream fis = getAssets().open("10_polaris.xml");
+            InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
 
             viewsContainer = new ArrayList<>();

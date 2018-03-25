@@ -22,6 +22,12 @@ import com.android.volley.VolleyError;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.util.HashMap;
@@ -126,6 +132,41 @@ public class HomeScreenActivity extends AppCompatActivity {
         @Override
         public void onResponse ( String result ) {
             // TODO: Pass the XML content to the XML parser.
+            File cacheFile = new File(this.parent.getCacheDir(), GlobalParameters.layoutName);
+            try {
+                cacheFile.delete();
+                boolean ok = cacheFile.createNewFile();
+                if ( !ok ) {
+                    this.parent.dialog.dismiss();
+                    this.parent.showInSnackbar("Could not create file '" + GlobalParameters.layoutName + "' " +
+                                               "in application cache");
+                }
+            }
+            catch ( IOException e ) { }
+
+            try {
+                OutputStream outStrm = new FileOutputStream(cacheFile);
+                outStrm.write(result.getBytes("UTF-8"));
+                outStrm.flush();
+            }
+            catch (FileNotFoundException e) {
+                this.parent.dialog.dismiss();
+                this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
+                                           "ERROR : FileNotFoundException");
+                return;
+            }
+            catch (UnsupportedEncodingException e) {
+                this.parent.dialog.dismiss();
+                this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
+                                           "ERROR : UnsupportedEncodingException");
+                return;
+            }
+            catch (IOException e) {
+                this.parent.dialog.dismiss();
+                this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
+                                           "ERROR : IOException");
+                return;
+            }
 
             this.parent.dialog.setMessage("Sending CAN SID enum request...");
             GetConfigCanSidListener nextListener = new GetConfigCanSidListener(this.parent);
@@ -256,8 +297,9 @@ public class HomeScreenActivity extends AppCompatActivity {
                 Timber.e("Error");
             }
 
+            this.parent.dialog.setTitle("All Good!");
+            this.parent.dialog.setMessage("Switching to main activity...");
             this.parent.switchToMainActivity();
-            this.parent.dialog.dismiss();
         }
     }
 
