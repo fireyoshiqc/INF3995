@@ -69,14 +69,14 @@ public class MainActivity extends DrawerActivity {
         setContentView(R.layout.activity_main);
 
         // login to receive UDP
-        RestHttpWrapper.getInstance().postUserLogin(new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Timber.v("REST logged in");
-                // get config
-                getCanConfig();
-            }
-        });
+        //RestHttpWrapper.getInstance().postUsersLogin(new Response.Listener<JSONObject>() {
+        //    @Override
+        //    public void onResponse(JSONObject response) {
+        //        Timber.v("REST logged in");
+        //        // get config
+        //        getCanConfig();
+        //    }
+        //});
 
 
         fillViewsContainer();
@@ -100,11 +100,11 @@ public class MainActivity extends DrawerActivity {
      * Utilities for the client
      */
     private void setUpUtilities() {
-        CookieHandler.setDefault(new CookieManager());
+        //CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
         SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
         DataDispatcher.setContext(getApplicationContext());
-        RestHttpWrapper.getInstance().setup(getApplicationContext());
+        //RestHttpWrapper.getInstance().setup(getApplicationContext());
     }
 
 

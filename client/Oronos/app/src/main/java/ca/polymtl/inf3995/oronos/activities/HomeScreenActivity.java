@@ -1,24 +1,34 @@
 package ca.polymtl.inf3995.oronos.activities;
 
-import android.content.Context;
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.Response;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+
+import java.net.CookieHandler;
+import java.net.CookieManager;
+
 import ca.polymtl.inf3995.oronos.R;
+import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
+import timber.log.Timber;
 
 
 class HomeScreenInputs {
-    public String serverAddress = "";
-    public String username = "";
-    public String password = "";
+    String serverAddress = "";
+    String username = "";
+    String password = "";
 }
 
 class StartBtnListener implements View.OnClickListener {
@@ -35,47 +45,53 @@ class StartBtnListener implements View.OnClickListener {
 }
 
 public class HomeScreenActivity extends AppCompatActivity {
-    private EditText editAddr = null;
-    private EditText editUser = null;
-    private EditText editPassword = null;
+    private EditText    editAddr = null;
+    private EditText    editUser = null;
+    private EditText    editPassword = null;
+    private AlertDialog dialog = null;
 
-    private enum LoginRequestResult {
-        OK,
-        UNAUTHORIZED,
-        CONNECTION_ERROR
+    private static class LoginListener implements Response.Listener<Void>, Response.ErrorListener {
+        private HomeScreenActivity parent;
+
+        LoginListener ( HomeScreenActivity parent ) {
+            this.parent = parent;
+        }
+
+        @Override
+        public void onResponse ( Void result ) {
+            this.parent.dialog.dismiss();
+            this.parent.showInSnackbar("Awww yeah!");
+            this.parent.saveInputs(this.parent.getTextInputs());
+        }
+
+        @Override
+        public void onErrorResponse ( VolleyError error ) {
+            this.parent.dialog.dismiss();
+
+            if ( error instanceof TimeoutError || error instanceof NoConnectionError ) {
+                //This indicates that the request has either time out or there is no connection
+                this.parent.showInSnackbar("ERROR : TimeoutError or NoConnectionError");
+                Timber.v("TimeoutError or NoConnectionError");
+            }
+            else if ( error instanceof NetworkError ) {
+                //Indicates that there was network error while performing the request
+                this.parent.showInSnackbar("ERROR : NetworkError");
+                Timber.v("NetworkError");
+            }
+            else {
+                this.parent.showInSnackbar("ERROR : HTTP " + error.networkResponse.statusCode);
+            }
+        }
     }
 
     public void handleLogin ( ) {
         HomeScreenInputs inputs = this.getTextInputs();
 
-        LoginRequestResult loginResult = this.sendLoginRequest(inputs);
-
-        switch ( loginResult ) {
-            case OK : {
-                // TODO: Switch to main activity.
-                this.showInSnackbar("All good!");
-
-                this.saveInputs(inputs);
-
-                break;
-            }
-            case UNAUTHORIZED : {
-                // TODO: Proper error highlighting of the username and password fields.
-                this.showInSnackbar("ERROR: Incorrect username or password");
-
-                break;
-            }
-            case CONNECTION_ERROR : {
-                // TODO: Proper error highlighting of the IP field.
-                this.showInSnackbar("ERROR: Unable to connect to server at IP " + inputs.serverAddress);
-
-                break;
-            }
-        }
+        this.sendLoginRequest(inputs);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate ( Bundle savedInstanceState ) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
@@ -88,30 +104,26 @@ public class HomeScreenActivity extends AppCompatActivity {
         // TODO: Setup the UI.
         Button btnStart = (Button)findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new StartBtnListener(this));
-        btnStart.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange ( View view, boolean hasFocus ) {
-                if ( hasFocus ) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
-                }
-            }
-        });
+
+        CookieHandler.setDefault(new CookieManager());
+        RestHttpWrapper.getInstance().setup(this.getApplicationContext());
 
         HomeScreenInputs cachedInputs = this.loadCachedInputs();
         this.setTextInputs(cachedInputs);
     }
 
-    private LoginRequestResult sendLoginRequest ( HomeScreenInputs inputs ) {
-        // TODO: Try connecting to the server
+    private void sendLoginRequest ( HomeScreenInputs inputs ) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
+        this.dialog = builder.create();
+        this.dialog.setCancelable(false);
+        this.dialog.setTitle("Connecting to server");
+        this.dialog.setMessage("Sending login request...");
+        this.dialog.show();
 
-        if ( !inputs.serverAddress.equals("127.0.0.1") )
-            return LoginRequestResult.CONNECTION_ERROR;
-
-        if ( !inputs.username.equals("foo") || !inputs.password.equals("password1234") )
-            return LoginRequestResult.UNAUTHORIZED;
-
-        return LoginRequestResult.OK;
+        RestHttpWrapper restWrapper = RestHttpWrapper.getInstance();
+        restWrapper.setLoginInfo(inputs.serverAddress, 80, inputs.username, inputs.password);
+        LoginListener listener = new LoginListener(this);
+        restWrapper.postUsersLogin(listener, listener);
     }
 
     private HomeScreenInputs loadCachedInputs ( ) {
@@ -133,7 +145,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         editor.putString("serverAddress", inputs.serverAddress);
         editor.putString("username", inputs.username);
         editor.putString("password", inputs.password);
-        editor.commit();
+        editor.apply();
     }
 
     private void setTextInputs ( HomeScreenInputs inputs ) {

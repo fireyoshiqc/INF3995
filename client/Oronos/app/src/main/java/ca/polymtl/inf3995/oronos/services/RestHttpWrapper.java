@@ -7,44 +7,46 @@ package ca.polymtl.inf3995.oronos.services;
 
 import android.content.Context;
 import android.os.Build;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkError;
 import com.android.volley.NetworkResponse;
-import com.android.volley.NoConnectionError;
-import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.ServerError;
-import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 
 import ca.polymtl.inf3995.oronos.utils.VolleySingleton;
 import timber.log.Timber;
 
 
 public class RestHttpWrapper {
-
-
-    static final String SERVER_IP = "192.168.0.111"; //has to change according to user input
-    static final int SERVER_PORT = 80;
-    static final String SERVER_URL = "http://" + SERVER_IP + ":" + SERVER_PORT + "/";
-    static final String DEVICE_NAME = Build.MODEL;
     private static RestHttpWrapper instance;
-    Context appContext;
-    private RequestQueue volleyQueue;
-    private String username = "foo"; //has to change according to user input
-    private String password = "password1234"; //has to change according to user input
 
-    private RestHttpWrapper() {
+    private RequestQueue volleyQueue;
+    private String       serverUrl = "";
+    private String       username = "";
+    private String       password = "";
+
+    private static class JSONPostRequestVoidResponse extends JsonRequest<Void> {
+
+        JSONPostRequestVoidResponse(String url, JSONObject jsonRequest, Response.Listener<Void> listener,
+                                    Response.ErrorListener errorListener) {
+            super(Request.Method.POST, url, (jsonRequest == null) ? null : jsonRequest.toString(), listener, errorListener);
+        }
+
+        @Override
+        protected Response<Void> parseNetworkResponse(NetworkResponse response) {
+            return Response.success(null, HttpHeaderParser.parseCacheHeaders(response));
+        }
     }
+
+    private RestHttpWrapper() { }
 
     public static RestHttpWrapper getInstance() {
         if (instance == null) {
@@ -54,89 +56,59 @@ public class RestHttpWrapper {
     }
 
     public void setup(Context appContext) {
-        if (this.appContext == null) {
-            // Important for avoiding memory leaks.
-            this.appContext = appContext.getApplicationContext();
-            volleyQueue = VolleySingleton.getInstance(appContext).getRequestQueue();
-        } else {
+        if (this.volleyQueue == null) {
+            //this.appContext = appContext;
+            this.volleyQueue = VolleySingleton.getInstance(appContext).getRequestQueue();
+        }
+        else {
             Timber.e("Error: RestHttpWrapper has already been set up, this method should only be called once.");
         }
     }
 
-    public void postUserLogin(Response.Listener<JSONObject> resListener) {
-        String URLSubfix = "users/login";
-
-        JSONObject json = new JSONObject();
-        try {
-            json.put("username", username);
-            json.put("password", password);
-            json.put("device", DEVICE_NAME);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        JsonObjectRequest POSTRequest = new JsonObjectRequest(
-                Request.Method.POST,
-                SERVER_URL + URLSubfix,
-                json,
-                resListener,
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        volleyOnErrorResponse(error);
-                    }
-                }
-        ) {
-            @Override
-            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("statusCode", response.statusCode);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
-            }
-        };
-
-        volleyQueue.add(POSTRequest);
+    public void setLoginInfo(String serverIp, int port, String username, String password) {
+        this.serverUrl = "http://" + serverIp + ":" + port;
+        this.username = username;
+        this.password = password;
     }
 
-    public void postUserLogout(Response.Listener<JSONObject> resListener) {
-
-        String URLSubfix = "users/logout";
+    public void postUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+        String fullUrl = this.serverUrl + "/users/login";
 
         JSONObject json = new JSONObject();
         try {
-            json.put("username", username);
+            json.put("username", this.username);
+            json.put("password", this.password);
+            json.put("device", this.getDeviceName());
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        JsonObjectRequest POSTRequest = new JsonObjectRequest(
-                Request.Method.POST,
-                SERVER_URL + URLSubfix,
-                json,
-                resListener,
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        volleyOnErrorResponse(error);
-                    }
-                }
-        ) {
-            @Override
-            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("statusCode", response.statusCode);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                return Response.success(jsonObject, HttpHeaderParser.parseCacheHeaders(response));
-            }
-        };
 
-        volleyQueue.add(POSTRequest);
+        JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
+                                                                              json,
+                                                                              resListen,
+                                                                              errListen);
+
+        request.setShouldCache(false);
+        volleyQueue.add(request);
+    }
+
+    public void postUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+        String fullUrl = this.serverUrl + "/users/logout";
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("username", this.username);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
+                                                                              json,
+                                                                              resListen,
+                                                                              errListen);
+
+        request.setShouldCache(false);
+        volleyQueue.add(request);
     }
 
     public void getConfigRockets(Response.Listener<JSONObject> resListener) {
@@ -188,7 +160,7 @@ public class RestHttpWrapper {
 
         JsonObjectRequest JSONRequest = new JsonObjectRequest(
                 Request.Method.GET,
-                SERVER_URL + URLSubfix,
+                this.serverUrl,
                 null,
                 resListener,
                 errListener
@@ -236,30 +208,10 @@ public class RestHttpWrapper {
     //Peut être utilisé dans errListener
     private void volleyOnErrorResponse(VolleyError error) {
 
-        //TODO: ajouter les logs
+    }
 
-        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-            //This indicates that the request has either time out or there is no connection
-            Toast.makeText(this.appContext, "TimeoutError or NoConnectionError", Toast.LENGTH_SHORT).show();
-            Timber.v("TimeoutError or NoConnectionError");
-        } else if (error instanceof AuthFailureError) {
-            // Error indicating that there was an Authentication Failure while performing the request
-            Toast.makeText(this.appContext, "AuthFailureError", Toast.LENGTH_SHORT).show();
-            Timber.v("AuthFailureError");
-        } else if (error instanceof ServerError) {
-            //Indicates that the server responded with a error response
-            String statusCode = String.valueOf(error.networkResponse.statusCode);
-            Toast.makeText(this.appContext, statusCode, Toast.LENGTH_SHORT).show();
-            Timber.v(statusCode);
-        } else if (error instanceof NetworkError) {
-            //Indicates that there was network error while performing the request
-            Toast.makeText(this.appContext, "NetworkError", Toast.LENGTH_SHORT).show();
-            Timber.v("NetworkError");
-        } else if (error instanceof ParseError) {
-            // Indicates that the server response could not be parsed
-            Toast.makeText(this.appContext, "ParseError", Toast.LENGTH_SHORT).show();
-            Timber.v("ParseError");
-        }
+    private String getDeviceName() {
+        return Build.MODEL;
     }
 
 }
