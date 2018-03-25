@@ -7,6 +7,16 @@ import java.util.Map;
 
 
 public class GlobalParameters {
+    GlobalParameters() {}
+
+    // SocketClient
+    public static String CLIENT_ADDRESS = "0.0.0.0";
+    public static int CLIENT_PORT = 5005;
+    public static Map<Integer, String> canSid;
+    public static Map<String, String> canDataTypes;
+    public static Map<String, List<String>> canMsgDataTypes;
+    public static Map<String, Integer> canModuleTypes;
+
     // ModuleStatus
     public final static int ONLINE_TO_DELAY  = 2000; // in milliseconds.
     public final static int DELAY_TO_OFFLINE = 4000; // in milliseconds.
@@ -25,14 +35,9 @@ public class GlobalParameters {
             Integer.parseInt("2f", 16),
             Integer.parseInt("2f", 16)
     );
-    // SocketClient
-    public static String CLIENT_ADDRESS = "0.0.0.0";
-    public static int CLIENT_PORT = 5005;
-    public static Map<Integer, String> canSid;
-    public static Map<String, String> canDataTypes;
-    public static Map<String, List<String>> canMsgDataTypes;
-    public static Map<String, Integer> canModuleTypes;
-    GlobalParameters() {
-    }
 
+    // DisplayLogWidget
+    public final static int LIMIT_OF_N_MSG = 2000;
+    public final static int DATA_UPDATE_PERIOD = 1000;
+    public final static String CATEGORY_FOR_DISPATCH = "DISPLAY_LOG_WIDGET";
 }
