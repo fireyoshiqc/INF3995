@@ -15,7 +15,7 @@ class OscSender(object):
 	def __init__(self, can_data_osc_address, modules_osc_address, udp_port):
 		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.__socket.setblocking(False)
+		self.__socket.setblocking(True)
 		self.__udp_port = udp_port
 		self.__targets = {}
 		self.__targets_mutex = threading.Lock()

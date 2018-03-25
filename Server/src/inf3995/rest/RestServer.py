@@ -103,7 +103,12 @@ class RestServer(object):
 		else:
 			file_path = "/".join([rockets_dir] + list(url))
 			if os.path.isfile(file_path):
-				cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
+				# cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
+				# There seems to be some trouble with the file serving by
+				# Cherrypy, so we return the content as XML directly.
+				content_type = "application/xml; charset=utf-8"
+				cherrypy.response.headers["Content-Type"] = content_type
+				return open(file_path, "rb").read()
 			else:
 				RestServer._raise_http_error(404)
 	
