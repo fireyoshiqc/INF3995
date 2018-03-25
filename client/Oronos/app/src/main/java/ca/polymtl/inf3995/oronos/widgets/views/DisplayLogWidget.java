@@ -21,7 +21,6 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.DisplayLogAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.utils.ModuleType;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget {
@@ -30,6 +29,8 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     private DisplayLogAdapter adapter;
     private List<MSGPair> lastMsgsReceived;
     private Context context;
+    private int nNextUpdates;
+    private int nNextShortUpdates;
 
     /**
      * MSGPair stocks all necessary data to distinguish 2 logs and register the newest.
@@ -63,7 +64,8 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         recycler = new RecyclerView(context);
         adapter = new DisplayLogAdapter(context);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-
+        linearLayoutManager.setStackFromEnd(true);
+        linearLayoutManager.setReverseLayout(true);
         recycler.setLayoutManager(linearLayoutManager);
         recycler.setItemAnimator(new DefaultItemAnimator());
         recycler.setAdapter(adapter);
@@ -87,7 +89,12 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         String     module   = msg.getSourceModule();
         String     noSerie  = Integer.toString(msg.getSerialNb());
         adapter.addCSVMsg(
-                module + ";" + noSerie + ";" + canSID + ";" + newData1 + ";" + newData2 + ";");
+                module + ";" + noSerie + ";" + canSID + ";" + newData1 + ";" + newData2 + ";\n");
+        if (!isAttachedToWindow()) {
+            nNextUpdates += 1;
+        } else {
+            nNextShortUpdates += 1;
+        }
     }
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -101,7 +108,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
             boolean isDesiredCanMsg = false;
 
             for (CAN can : list) {
-                if (canSID == can.getId()) {
+                if (canSID.equals(can.getId())) {
                     isDesiredCanMsg = true;
                 }
             }
@@ -112,9 +119,9 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
                 Boolean isNewMsgReceived = true;
 
                 for (MSGPair msgPair : lastMsgsReceived) {
-                    if (canSID == msgPair.getCansid()
-                            && module == msgPair.getModuleType()
-                            && noSerie == msgPair.getNoSerial()) {
+                    if (canSID.equals(msgPair.getCansid())
+                            && module.equals(msgPair.getModuleType())
+                            && noSerie.equals(msgPair.getNoSerial())) {
                         isNewMsgReceived = false;
                         if (counter != msgPair.getLastNoMsg()) {
                             msgPair.setLastNoMsg(counter);
@@ -139,6 +146,10 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (nNextUpdates != 0) {
+            UpdateTask(nNextUpdates);
+            nNextUpdates = 0;
+        }
         startUpdateTask();
     }
 
@@ -156,8 +167,9 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
                 ((Activity) getContext()).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        for (int i = 0; i < adapter.getItemCount(); i++) {
-                            recycler.getAdapter().notifyItemChanged(i);
+                        if (nNextShortUpdates != 0) {
+                            UpdateTask(nNextShortUpdates);
+                            nNextShortUpdates = 0;
                         }
                     }
                 });
@@ -173,6 +185,18 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         if (listUpdater != null) {
             listUpdater.cancel();
             listUpdater.purge();
+        }
+    }
+
+    private void UpdateTask(int nUpdates) {
+        // The adapter is full; discard old logs and add new ones.
+        if (adapter.getItemCount() == GlobalParameters.LIMIT_OF_N_MSG) {
+            if (nUpdates >= GlobalParameters.LIMIT_OF_N_MSG) {
+                adapter.notifyDataSetChanged();
+            } else {
+                adapter.notifyItemRangeRemoved(0, nUpdates);
+                adapter.notifyItemRangeInserted(GlobalParameters.LIMIT_OF_N_MSG - nUpdates, nUpdates);
+            }
         }
     }
 }

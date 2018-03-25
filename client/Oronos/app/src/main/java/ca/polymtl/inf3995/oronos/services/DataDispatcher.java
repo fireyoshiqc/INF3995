@@ -70,11 +70,17 @@ public class DataDispatcher {
             String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
             Number data1 = (Number) data.get(i + 1);
             Number data2 = (Number) data.get(i + 2);
-            ModuleType moduleSource = ModuleType.getValue((Integer) data.get(i + 3));
+            String srcModule = "";
+            for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
+                if (entry.getValue() == data.get(i + 3)) {
+                    srcModule = entry.getKey();
+                    break;
+                }
+            }
             Integer noSerieSource = (Integer) data.get(i + 4);
             Integer counter = (Integer) data.get(i + 5);
 
-            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, moduleSource, noSerieSource, counter);
+            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, srcModule, noSerieSource, counter);
 
             Intent intent = new Intent(GlobalParameters.CATEGORY_FOR_DISPATCH);
             intent.addCategory(GlobalParameters.CATEGORY_FOR_DISPATCH);

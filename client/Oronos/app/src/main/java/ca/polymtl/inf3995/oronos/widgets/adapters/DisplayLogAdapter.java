@@ -16,20 +16,20 @@ public class DisplayLogAdapter extends RecyclerView.Adapter<DisplayLogAdapter.Vi
 
     private Context context;
     private List<String> csvMsgs;
-    private int beginningOfListIndex;
 
     public DisplayLogAdapter(Context context) {
         this.context = context;
         csvMsgs = new ArrayList<>();
-        beginningOfListIndex = 0;
     }
 
     public void addCSVMsg(String csvMsg) {
-        if (csvMsgs.size() < GlobalParameters.LIMIT_OF_N_MSG) {
+        if (csvMsgs.size() == GlobalParameters.LIMIT_OF_N_MSG) {
+            csvMsgs.remove(0);
             csvMsgs.add(csvMsg);
-        } else {
-            csvMsgs.set(beginningOfListIndex, csvMsg);
-            beginningOfListIndex = beginningOfListIndex + 1 % GlobalParameters.LIMIT_OF_N_MSG;
+        }
+        else {
+            csvMsgs.add(csvMsg);
+            this.notifyItemInserted(csvMsgs.size());
         }
     }
 
@@ -45,8 +45,7 @@ public class DisplayLogAdapter extends RecyclerView.Adapter<DisplayLogAdapter.Vi
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String text = csvMsgs.get(position + beginningOfListIndex % GlobalParameters.LIMIT_OF_N_MSG);
-        holder.setText(text);
+        holder.setText(csvMsgs.get(position));
     }
 
     @Override

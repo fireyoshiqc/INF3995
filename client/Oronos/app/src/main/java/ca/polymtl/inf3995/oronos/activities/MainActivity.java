@@ -1,14 +1,9 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
-import android.content.Intent;
-import android.os.Build;
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
@@ -16,7 +11,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 
@@ -165,16 +159,13 @@ public class MainActivity extends DrawerActivity {
             InputStream fis = getAssets().open("10_polaris.xml");
             Rocket rocket = parser.parse(fis);
 
+            //Afficher tout
             viewsContainer = new ArrayList<>();
             viewsContainer.addAll(rocket.getList());
+
             //Afficher seulement 1 tab container
             //TabContainer tabtest = (TabContainer) rocket.getList().get(0);
-            viewsContainer = new ArrayList<>();
             //viewsContainer.add(tabtest);
-
-            //Afficher tout
-            viewsContainer.addAll(rocket.getList());
-
 
             FindMe test = new FindMe(this);
             viewsContainer.add(test);
