@@ -1,14 +1,9 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
-import android.content.Intent;
-import android.os.Build;
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
@@ -16,7 +11,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 
@@ -26,8 +20,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +94,7 @@ public class MainActivity extends DrawerActivity {
     private void setUpUtilities() {
         //CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
-        SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.CLIENT_PORT);
+        SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
         DataDispatcher.setContext(getApplicationContext());
         //RestHttpWrapper.getInstance().setup(getApplicationContext());
     }
@@ -279,111 +271,4 @@ public class MainActivity extends DrawerActivity {
             currentDataViewState = nextView;
         }
     }
-
-    public void getCanConfig() {
-        RestHttpWrapper.getInstance().getConfigCanSid(new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Map<String, Object> canSid = null;
-
-                try {
-                    canSid = JsonHelper.toMap(response);
-                } catch (JSONException e) {
-                    Timber.e(e.getMessage());
-                }
-
-                if (canSid != null) {
-                    Map<Integer, String> inverseMap = new HashMap<>();
-                    for (Map.Entry<String, Object> entry : canSid.entrySet()) {
-                        inverseMap.put((Integer) entry.getValue(), entry.getKey());
-                    }
-
-                    GlobalParameters.canSid = inverseMap;
-
-                } else {
-                    Timber.e("Error");
-                }
-            }
-        });
-
-        RestHttpWrapper.getInstance().getConfigCanDataTypes(new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Map<String, Object> canDataTypes = null;
-
-                try {
-                    canDataTypes = JsonHelper.toMap(response);
-                } catch (JSONException e) {
-                    Timber.e(e.getMessage());
-                }
-
-                if (canDataTypes != null) {
-                    Map<String, String> map = new HashMap<>();
-                    for (Map.Entry<String, Object> entry : canDataTypes.entrySet()) {
-                        map.put(entry.getKey(), entry.getKey());
-                    }
-
-                    GlobalParameters.canDataTypes = map;
-
-                } else {
-                    Timber.e("Error");
-                }
-
-            }
-        });
-
-        RestHttpWrapper.getInstance().getConfigCanMsgDataTypes(new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Map<String, Object> canMsgDataTypes = null;
-
-                try {
-                    canMsgDataTypes = JsonHelper.toMap(response);
-                } catch (JSONException e) {
-                    Timber.e(e.getMessage());
-                }
-
-
-                if (canMsgDataTypes != null) {
-                    Map<String, List<String>> map = new HashMap<>();
-                    for (Map.Entry<String, Object> entry : canMsgDataTypes.entrySet()) {
-                        map.put(entry.getKey(), (List<String>) entry.getValue());
-                    }
-
-                    GlobalParameters.canMsgDataTypes = map;
-
-                } else {
-                    Timber.e("Error");
-                }
-
-            }
-        });
-
-        RestHttpWrapper.getInstance().getConfigCanModuleTypes(new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Map<String, Object> canModuleTypes = null;
-
-                try {
-                    canModuleTypes = JsonHelper.toMap(response);
-                } catch (JSONException e) {
-                    Timber.e(e.getMessage());
-                }
-
-                if (canModuleTypes != null) {
-
-                    Map<String, Integer> map = new HashMap<>();
-                    for (Map.Entry<String, Object> entry : canModuleTypes.entrySet()) {
-                        map.put(entry.getKey(), (Integer) entry.getValue());
-                    }
-
-                    GlobalParameters.canModuleTypes = map;
-
-                } else {
-                    Timber.e("Error");
-                }
-            }
-        });
-    }
-
 }

@@ -26,13 +26,14 @@ public class GlobalParameters {
             Integer.parseInt("2f", 16)
     );
     // SocketClient
-    public static String CLIENT_ADDRESS = "0.0.0.0";
-    public static int CLIENT_PORT = 5005;
-    public static Map<Integer, String> canSid;
-    public static Map<String, String> canDataTypes;
+    public static String                    CLIENT_ADDRESS = "0.0.0.0";
+    public static int                       udpPort = 5005;
+    public static Map<Integer, String>      canSid;
+    public static Map<String, String>       canDataTypes;
     public static Map<String, List<String>> canMsgDataTypes;
-    public static Map<String, Integer> canModuleTypes;
-    GlobalParameters() {
-    }
+    public static Map<String, Integer>      canModuleTypes;
+    public static String                    layoutName;
+    public static String                    mapName;
 
+    GlobalParameters() { }
 }

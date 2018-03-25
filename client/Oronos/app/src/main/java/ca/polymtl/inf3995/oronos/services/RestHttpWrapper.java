@@ -16,6 +16,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.StringRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,7 +72,7 @@ public class RestHttpWrapper {
         this.password = password;
     }
 
-    public void postUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+    public void sendPostUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/login";
 
         JSONObject json = new JSONObject();
@@ -92,7 +93,7 @@ public class RestHttpWrapper {
         volleyQueue.add(request);
     }
 
-    public void postUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+    public void sendPostUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/logout";
 
         JSONObject json = new JSONObject();
@@ -111,103 +112,54 @@ public class RestHttpWrapper {
         volleyQueue.add(request);
     }
 
-    public void getConfigRockets(Response.Listener<JSONObject> resListener) {
-        getJSON("config/rockets", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigBasic(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/basic", resListen, errListen);
     }
 
-    public void getRocket(String rocketName, Response.Listener<JSONObject> resListener) {
-        getJSON("config/rockets/" + rocketName, resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigRockets(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/rockets", resListen, errListen);
     }
 
-    public void getConfigMap(Response.Listener<JSONObject> resListener) {
-        getJSON("config/map", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigRockets(String rocket, Response.Listener<String> resListen, Response.ErrorListener errListen) {
+        this.sendStringGetRequest("/config/rockets/" + rocket, resListen, errListen);
     }
 
-    public void getConfigMiscFiles(Response.Listener<JSONObject> resListener) {
-        getJSON("config/miscFiles", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigCanSid(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/canSid", resListen, errListen);
     }
 
-    public void getMiscFile(String fileName, Response.Listener<JSONObject> resListener) {
-        getJSON("config/miscFiles/" + fileName, resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigCanDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/canDataTypes", resListen, errListen);
     }
 
-    private void getJSON(String URLSubfix, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
-
-        JsonObjectRequest JSONRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                this.serverUrl,
-                null,
-                resListener,
-                errListener
-        );
-        volleyQueue.add(JSONRequest);
+    public void sendGetConfigCanMsgDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/canMsgDataTypes", resListen, errListen);
     }
 
-    public void getConfigCanSid(Response.Listener<JSONObject> resListener) {
-        getJSON("config/canSid", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    public void sendGetConfigCanModuleTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/canModuleTypes", resListen, errListen);
     }
 
-    public void getConfigCanDataTypes(Response.Listener<JSONObject> resListener) {
-        getJSON("config/canDataTypes", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
+    // TODO: miscFiles
+
+    private void sendJsonGetRequest(String url, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,
+                                                          this.serverUrl + url,
+                                                          null,
+                                                          resListener,
+                                                          errListener);
+        request.setShouldCache(false);
+        this.volleyQueue.add(request);
     }
 
-    public void getConfigCanMsgDataTypes(Response.Listener<JSONObject> resListener) {
-        getJSON("config/canMsgDataTypes", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
-    }
-
-    public void getConfigCanModuleTypes(Response.Listener<JSONObject> resListener) {
-        getJSON("config/canModuleTypes", resListener, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                volleyOnErrorResponse(error);
-            }
-        });
-    }
-
-
-    //Peut être utilisé dans errListener
-    private void volleyOnErrorResponse(VolleyError error) {
-
+    private void sendStringGetRequest(String url, Response.Listener<String> resListener, Response.ErrorListener errListener) {
+        StringRequest request = new StringRequest(Request.Method.GET,
+                                                  this.serverUrl + url,
+                                                  resListener,
+                                                  errListener);
+        request.setShouldCache(false);
+        this.volleyQueue.add(request);
     }
 
     private String getDeviceName() {

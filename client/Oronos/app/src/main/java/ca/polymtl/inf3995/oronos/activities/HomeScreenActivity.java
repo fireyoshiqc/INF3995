@@ -1,8 +1,10 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,11 +19,19 @@ import com.android.volley.Response;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import timber.log.Timber;
 
 
@@ -31,58 +41,226 @@ class HomeScreenInputs {
     String password = "";
 }
 
-class StartBtnListener implements View.OnClickListener {
-    private HomeScreenActivity parentActivity = null;
-
-    StartBtnListener ( HomeScreenActivity parentActivity ) {
-        this.parentActivity = parentActivity;
-    }
-
-    @Override
-    public void onClick ( View view ) {
-        parentActivity.handleLogin();
-    }
-}
-
 public class HomeScreenActivity extends AppCompatActivity {
-    private EditText    editAddr = null;
-    private EditText    editUser = null;
-    private EditText    editPassword = null;
-    private AlertDialog dialog = null;
+    private EditText    editAddr;
+    private EditText    editUser;
+    private EditText    editPassword;
+    private AlertDialog dialog;
 
-    private static class LoginListener implements Response.Listener<Void>, Response.ErrorListener {
-        private HomeScreenActivity parent;
+    class StartBtnListener implements View.OnClickListener {
+        private HomeScreenActivity parentActivity = null;
 
-        LoginListener ( HomeScreenActivity parent ) {
-            this.parent = parent;
+        StartBtnListener ( HomeScreenActivity parentActivity ) {
+            this.parentActivity = parentActivity;
         }
 
         @Override
-        public void onResponse ( Void result ) {
-            this.parent.dialog.dismiss();
-            this.parent.showInSnackbar("Awww yeah!");
-            this.parent.saveInputs(this.parent.getTextInputs());
+        public void onClick ( View view ) {
+            parentActivity.handleLogin();
+        }
+    }
+
+    private static class BasicErrorListener implements Response.ErrorListener {
+        protected HomeScreenActivity parent;
+        protected String             name;
+
+        BasicErrorListener ( HomeScreenActivity parent, String name ) {
+            this.parent = parent;
+            this.name = name;
         }
 
         @Override
         public void onErrorResponse ( VolleyError error ) {
             this.parent.dialog.dismiss();
 
-            if ( error instanceof TimeoutError || error instanceof NoConnectionError ) {
-                //This indicates that the request has either time out or there is no connection
-                this.parent.showInSnackbar("ERROR : TimeoutError or NoConnectionError");
-                Timber.v("TimeoutError or NoConnectionError");
-            }
-            else if ( error instanceof NetworkError ) {
-                //Indicates that there was network error while performing the request
-                this.parent.showInSnackbar("ERROR : NetworkError");
-                Timber.v("NetworkError");
-            }
-            else {
-                this.parent.showInSnackbar("ERROR : HTTP " + error.networkResponse.statusCode);
-            }
+            String msg = this.parent.getErrorMsg(error);
+            this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + msg);
+            Timber.v(msg);
         }
     }
+
+    private static class PostUsersLoginListener extends BasicErrorListener implements Response.Listener<Void> {
+        PostUsersLoginListener ( HomeScreenActivity parent ) {
+            super(parent, "POST /users/login");
+        }
+
+        @Override
+        public void onResponse ( Void result ) {
+            this.parent.saveInputs(this.parent.getTextInputs());
+
+            this.parent.dialog.setMessage("Sending basic config request...");
+            GetConfigBasicListener nextListener = new GetConfigBasicListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigBasic(nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigBasicListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigBasicListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/basic");
+        }
+
+        @Override
+        public void onResponse ( JSONObject result ) {
+            try {
+                GlobalParameters.udpPort = result.getInt("otherPort");
+                GlobalParameters.layoutName = result.getString("layout");
+                GlobalParameters.mapName = result.getString("map");
+            }
+            catch ( JSONException e ) {
+                this.parent.dialog.dismiss();
+                this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + "Wrong JSON response");
+                return;
+            }
+
+            this.parent.dialog.setMessage("Sending rocket config request...");
+            GetConfigRocketsListener nextListener = new GetConfigRocketsListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigRockets(GlobalParameters.layoutName, nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigRocketsListener extends BasicErrorListener implements Response.Listener<String> {
+        GetConfigRocketsListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/rockets/" + GlobalParameters.layoutName);
+        }
+
+        @Override
+        public void onResponse ( String result ) {
+            // TODO: Pass the XML content to the XML parser.
+
+            this.parent.dialog.setMessage("Sending CAN SID enum request...");
+            GetConfigCanSidListener nextListener = new GetConfigCanSidListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigCanSid(nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigCanSidListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigCanSidListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/canSid");
+        }
+
+        @Override
+        public void onResponse ( JSONObject result ) {
+            Map<String, Object> canSid = null;
+
+            try {
+                canSid = JsonHelper.toMap(result);
+            } catch (JSONException e) {
+                Timber.e(e.getMessage());
+            }
+
+            if (canSid != null) {
+                Map<Integer, String> inverseMap = new HashMap<>();
+                for (Map.Entry<String, Object> entry : canSid.entrySet()) {
+                    inverseMap.put((Integer) entry.getValue(), entry.getKey());
+                }
+
+                GlobalParameters.canSid = inverseMap;
+
+            } else {
+                Timber.e("Error");
+            }
+
+            this.parent.dialog.setMessage("Sending CAN data types enum request...");
+            GetConfigCanDataTypesListener nextListener = new GetConfigCanDataTypesListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigCanDataTypes(nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigCanDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigCanDataTypesListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/canDataTypes");
+        }
+
+        @Override
+        public void onResponse ( JSONObject result ) {
+            Map<String, Object> canDataTypes = null;
+
+            try {
+                canDataTypes = JsonHelper.toMap(result);
+            } catch (JSONException e) {
+                Timber.e(e.getMessage());
+            }
+
+            if (canDataTypes != null) {
+                Map<String, String> map = new HashMap<>();
+                for (Map.Entry<String, Object> entry : canDataTypes.entrySet()) {
+                    map.put(entry.getKey(), entry.getKey());
+                }
+
+                GlobalParameters.canDataTypes = map;
+            } else {
+                Timber.e("Error");
+            }
+
+            this.parent.dialog.setMessage("Sending CAN message data types association request");
+            GetConfigCanMsgDataTypesListener nextListener = new GetConfigCanMsgDataTypesListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigCanMsgDataTypes(nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigCanMsgDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigCanMsgDataTypesListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/canMsgDataTypes");
+        }
+
+        @Override
+        public void onResponse ( JSONObject result ) {
+            Map<String, Object> canMsgDataTypes = null;
+
+            try {
+                canMsgDataTypes = JsonHelper.toMap(result);
+            } catch (JSONException e) {
+                Timber.e(e.getMessage());
+            }
+
+            if (canMsgDataTypes != null) {
+                Map<String, List<String>> map = new HashMap<>();
+                for (Map.Entry<String, Object> entry : canMsgDataTypes.entrySet()) {
+                    map.put(entry.getKey(), (List<String>)entry.getValue());
+                }
+
+                GlobalParameters.canMsgDataTypes = map;
+            } else {
+                Timber.e("Error");
+            }
+
+            this.parent.dialog.setMessage("Sending CAN module types enum request...");
+            GetConfigCanModuleTypesListener nextListener = new GetConfigCanModuleTypesListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigCanModuleTypes(nextListener, nextListener);
+        }
+    }
+
+    private static class GetConfigCanModuleTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigCanModuleTypesListener ( HomeScreenActivity parent ) {
+            super(parent, "GET /config/canModuleTypes");
+        }
+
+        @Override
+        public void onResponse ( JSONObject result ) {
+            Map<String, Object> canModuleTypes = null;
+
+            try {
+                canModuleTypes = JsonHelper.toMap(result);
+            } catch (JSONException e) {
+                Timber.e(e.getMessage());
+            }
+
+            if (canModuleTypes != null) {
+                Map<String, Integer> map = new HashMap<>();
+                for (Map.Entry<String, Object> entry : canModuleTypes.entrySet()) {
+                    map.put(entry.getKey(), (Integer) entry.getValue());
+                }
+
+                GlobalParameters.canModuleTypes = map;
+            } else {
+                Timber.e("Error");
+            }
+
+            this.parent.switchToMainActivity();
+            this.parent.dialog.dismiss();
+        }
+    }
+
 
     public void handleLogin ( ) {
         HomeScreenInputs inputs = this.getTextInputs();
@@ -116,14 +294,31 @@ public class HomeScreenActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
         this.dialog = builder.create();
         this.dialog.setCancelable(false);
-        this.dialog.setTitle("Connecting to server");
+        this.dialog.setTitle("Authentication and Configuration from Server");
         this.dialog.setMessage("Sending login request...");
         this.dialog.show();
 
         RestHttpWrapper restWrapper = RestHttpWrapper.getInstance();
         restWrapper.setLoginInfo(inputs.serverAddress, 80, inputs.username, inputs.password);
-        LoginListener listener = new LoginListener(this);
-        restWrapper.postUsersLogin(listener, listener);
+        PostUsersLoginListener listener = new PostUsersLoginListener(this);
+        restWrapper.sendPostUsersLogin(listener, listener);
+    }
+
+    private String getErrorMsg ( VolleyError error ) {
+        if ( error instanceof TimeoutError || error instanceof NoConnectionError ) {
+            //This indicates that the request has either time out or there is no connection
+            return "ERROR : TimeoutError or NoConnectionError";
+        }
+        else if ( error instanceof NetworkError ) {
+            //Indicates that there was network error while performing the request
+            return "ERROR : NetworkError";
+        }
+        else if ( error.networkResponse != null ) {
+            return "ERROR : HTTP " + error.networkResponse.statusCode;
+        }
+        else {
+            return "ERROR : N/A";
+        }
     }
 
     private HomeScreenInputs loadCachedInputs ( ) {
@@ -169,5 +364,10 @@ public class HomeScreenActivity extends AppCompatActivity {
         snackbarTextView.setMaxLines(3);
         snackbarTextView.setTextSize(16);
         bar.show();
+    }
+
+    private void switchToMainActivity ( ) {
+        Intent intent = new Intent(this, MainActivity.class);
+        this.startActivity(intent);
     }
 }
