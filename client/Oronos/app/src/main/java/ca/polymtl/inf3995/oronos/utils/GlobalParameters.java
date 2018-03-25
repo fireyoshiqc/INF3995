@@ -26,6 +26,7 @@ public class GlobalParameters {
             Integer.parseInt("2f", 16)
     );
     // SocketClient
+    public static boolean                   hasRetardedErrorMessages = true;
     public static String                    CLIENT_ADDRESS = "0.0.0.0";
     public static int                       udpPort = 5005;
     public static Map<Integer, String>      canSid;

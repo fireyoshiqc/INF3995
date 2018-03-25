@@ -33,6 +33,7 @@ import java.net.CookieManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
@@ -48,10 +49,21 @@ class HomeScreenInputs {
 }
 
 public class HomeScreenActivity extends AppCompatActivity {
+    private static String[] retardedMessages = {"Ooopsie doopsie!",
+                                                "Oh no! Mama mia!",
+                                                "We'we vewy sowwy, please twy again.",
+                                                "Holy matrimony Batman!",
+                                                "Please forward your complaints to /dev/null",
+                                                "It's the lizard people's fault!",
+                                                "Yeah, whatever, it's not working, I dunno.",
+                                                "It's not a bug, it's a feature, ok!",
+                                                "Server machine broke"};
+
     private EditText    editAddr;
     private EditText    editUser;
     private EditText    editPassword;
     private AlertDialog dialog;
+    private Random      rng = new Random();
 
     class StartBtnListener implements View.OnClickListener {
         private HomeScreenActivity parentActivity = null;
@@ -80,7 +92,12 @@ public class HomeScreenActivity extends AppCompatActivity {
             this.parent.dialog.dismiss();
 
             String msg = this.parent.getErrorMsg(error);
-            this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + msg);
+            if ( !GlobalParameters.hasRetardedErrorMessages ) {
+                this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + msg);
+            }
+            else {
+                this.parent.showInSnackbar(this.parent.getRetardedErrorMsg());
+            }
             Timber.v(msg);
         }
     }
@@ -361,6 +378,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         else {
             return "ERROR : N/A";
         }
+    }
+
+    private String getRetardedErrorMsg ( ) {
+        int index = this.rng.nextInt(retardedMessages.length);
+        return retardedMessages[index];
     }
 
     private HomeScreenInputs loadCachedInputs ( ) {
