@@ -15,8 +15,9 @@
 
         <ImageView
             android:id="@+id/imgOronosLogo"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
@@ -41,7 +42,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                app:errorEnabled="true">
 
                 <android.support.design.widget.TextInputEditText
                     android:id="@+id/editAddr"
@@ -51,7 +53,8 @@
                     android:hint="Server IP Address"
                     android:imeOptions="actionNext"
                     android:inputType="number"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:selectAllOnFocus="true" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -60,7 +63,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                app:errorEnabled="true">
 
                 <android.support.design.widget.TextInputEditText
                     android:id="@+id/editUser"
@@ -69,7 +73,8 @@
                     android:hint="Username"
                     android:imeOptions="actionNext"
                     android:inputType="text"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:selectAllOnFocus="true" />
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -77,7 +82,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                app:errorEnabled="true">
 
                 <android.support.design.widget.TextInputEditText
                     android:id="@+id/editPassword"
@@ -86,7 +92,8 @@
                     android:hint="Password"
                     android:imeOptions="actionDone"
                     android:inputType="textPassword"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:selectAllOnFocus="true" />
             </android.support.design.widget.TextInputLayout>
 
             <CheckBox

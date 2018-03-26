@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
@@ -15,6 +16,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -322,8 +324,30 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     public void handleLogin ( ) {
         HomeScreenInputs inputs = this.getTextInputs();
-
-        this.sendLoginRequest(inputs);
+        boolean valid = true;
+        if (inputs.username.equalsIgnoreCase("")) {
+            ((TextInputLayout)findViewById(R.id.userField)).setError("Username is required !");
+            valid = false;
+        } else {
+            ((TextInputLayout)findViewById(R.id.userField)).setError(null);
+        }
+        if (inputs.password.equalsIgnoreCase("")) {
+            ((TextInputLayout)findViewById(R.id.passwordField)).setError("Password is required !");
+            valid = false;
+        } else {
+            ((TextInputLayout)findViewById(R.id.passwordField)).setError(null);
+        }
+        if (inputs.serverAddress.equalsIgnoreCase("")) {
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address is required !"));
+            valid = false;
+        } else if (!inputs.serverAddress.matches("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$")) {
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address format is invalid !"));
+        } else {
+            ((TextInputLayout)findViewById(R.id.addrField)).setError(null);
+        }
+        if (valid) {
+            this.sendLoginRequest(inputs);
+        }
     }
 
     @Override
@@ -345,6 +369,16 @@ public class HomeScreenActivity extends AppCompatActivity {
 
         Button btnStart = findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new StartBtnListener(this));
+
+        saveUserAddr.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                savePassword.setEnabled(b);
+                if (!b) {
+                    savePassword.setChecked(false);
+                }
+            }
+        });
 
         CookieHandler.setDefault(new CookieManager());
         RestHttpWrapper.getInstance().setup(this.getApplicationContext());
@@ -405,6 +439,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         result.password = prefs.getString("password", "");
         this.saveUserAddr.setChecked(prefs.getBoolean("userAddrChecked", false));
         this.savePassword.setChecked(prefs.getBoolean("passwordChecked", false));
+        this.savePassword.setEnabled(this.saveUserAddr.isChecked());
 
         return result;
     }
