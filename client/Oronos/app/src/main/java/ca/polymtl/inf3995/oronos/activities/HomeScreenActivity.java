@@ -342,6 +342,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             valid = false;
         } else if (!inputs.serverAddress.matches("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$")) {
             ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address format is invalid !"));
+            valid = false;
         } else {
             ((TextInputLayout)findViewById(R.id.addrField)).setError(null);
         }
@@ -483,8 +484,8 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private void showInSnackbar ( String msg ) {
-        View thisView = findViewById(android.R.id.content);
-        Snackbar bar = Snackbar.make(thisView, msg, Snackbar.LENGTH_LONG);
+        View thisView = findViewById(R.id.coordinatorLayout);
+        Snackbar bar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
         TextView snackbarTextView = bar.getView().findViewById(R.id.snackbar_text);
         snackbarTextView.setMaxLines(3);
         snackbarTextView.setTextSize(16);
