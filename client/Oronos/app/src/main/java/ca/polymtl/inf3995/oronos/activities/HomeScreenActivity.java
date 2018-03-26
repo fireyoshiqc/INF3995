@@ -363,6 +363,14 @@ public class HomeScreenActivity extends AppCompatActivity {
         restWrapper.sendPostUsersLogin(listener, listener);
     }
 
+    @Override
+    protected void onResume ( ) {
+        super.onResume();
+
+        if ( this.dialog != null && this.dialog.isShowing() )
+            this.dialog.dismiss();
+    }
+
     private String getErrorMsg ( VolleyError error ) {
         if ( error instanceof TimeoutError || error instanceof NoConnectionError ) {
             //This indicates that the request has either time out or there is no connection

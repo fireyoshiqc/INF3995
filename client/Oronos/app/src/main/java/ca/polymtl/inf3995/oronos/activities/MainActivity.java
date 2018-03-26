@@ -79,6 +79,13 @@ public class MainActivity extends DrawerActivity {
         Timber.v("Main Activity : Creation Done.");
     }
 
+    @Override
+    protected void onDestroy ( ) {
+        super.onDestroy();
+
+        RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
+    }
+
     /**
      * Utilities for the client
      */
