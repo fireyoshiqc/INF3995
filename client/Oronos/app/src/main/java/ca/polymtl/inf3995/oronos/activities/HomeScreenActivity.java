@@ -41,13 +41,6 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import timber.log.Timber;
 
-
-class HomeScreenInputs {
-    String serverAddress = "";
-    String username = "";
-    String password = "";
-}
-
 public class HomeScreenActivity extends AppCompatActivity {
     private static String[] retardedMessages = {"Ooopsie doopsie!",
                                                 "Oh no! Mama mia!",
@@ -148,12 +141,10 @@ public class HomeScreenActivity extends AppCompatActivity {
 
         @Override
         public void onResponse ( String result ) {
-            // TODO: Pass the XML content to the XML parser.
             File cacheFile = new File(this.parent.getCacheDir(), GlobalParameters.layoutName);
             try {
                 cacheFile.delete();
-                boolean ok = cacheFile.createNewFile();
-                if ( !ok ) {
+                if (!cacheFile.createNewFile()) {
                     this.parent.dialog.dismiss();
                     this.parent.showInSnackbar("Could not create file '" + GlobalParameters.layoutName + "' " +
                                                "in application cache");
@@ -331,15 +322,14 @@ public class HomeScreenActivity extends AppCompatActivity {
     protected void onCreate ( Bundle savedInstanceState ) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        this.editAddr = (EditText)findViewById(R.id.editAddr);
-        this.editUser = (EditText)findViewById(R.id.editUser);
-        this.editPassword = (EditText)findViewById(R.id.editPassword);
+        this.editAddr = findViewById(R.id.editAddr);
+        this.editUser = findViewById(R.id.editUser);
+        this.editPassword = findViewById(R.id.editPassword);
 
-        // TODO: Setup the UI.
-        Button btnStart = (Button)findViewById(R.id.btnStart);
+        Button btnStart = findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new StartBtnListener(this));
 
         CookieHandler.setDefault(new CookieManager());
@@ -432,7 +422,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     private void showInSnackbar ( String msg ) {
         View thisView = findViewById(android.R.id.content);
         Snackbar bar = Snackbar.make(thisView, msg, Snackbar.LENGTH_LONG);
-        TextView snackbarTextView = (TextView)bar.getView().findViewById(R.id.snackbar_text);
+        TextView snackbarTextView = bar.getView().findViewById(R.id.snackbar_text);
         snackbarTextView.setMaxLines(3);
         snackbarTextView.setTextSize(16);
         bar.show();
@@ -441,5 +431,11 @@ public class HomeScreenActivity extends AppCompatActivity {
     private void switchToMainActivity ( ) {
         Intent intent = new Intent(this, MainActivity.class);
         this.startActivity(intent);
+    }
+
+    class HomeScreenInputs {
+        String serverAddress = "";
+        String username = "";
+        String password = "";
     }
 }
