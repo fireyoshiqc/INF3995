@@ -1,16 +1,22 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.NetworkError;
@@ -55,6 +61,8 @@ public class HomeScreenActivity extends AppCompatActivity {
     private EditText    editAddr;
     private EditText    editUser;
     private EditText    editPassword;
+    private CheckBox    saveUserAddr;
+    private CheckBox    savePassword;
     private AlertDialog dialog;
     private Random      rng = new Random();
 
@@ -328,6 +336,12 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.editAddr = findViewById(R.id.editAddr);
         this.editUser = findViewById(R.id.editUser);
         this.editPassword = findViewById(R.id.editPassword);
+        this.saveUserAddr = findViewById(R.id.userAddrCheckbox);
+        this.savePassword = findViewById(R.id.passwordCheckbox);
+
+        if (GlobalParameters.hasRetardedErrorMessages) {
+            ((ImageView)findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
+        }
 
         Button btnStart = findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new StartBtnListener(this));
@@ -385,13 +399,12 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     private HomeScreenInputs loadCachedInputs ( ) {
         HomeScreenInputs result = new HomeScreenInputs();
-
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
-        if ( prefs.contains("serverAddress") ) {
-            result.serverAddress = prefs.getString("serverAddress", "");
-            result.username = prefs.getString("username", "");
-            result.password = prefs.getString("password", "");
-        }
+        result.serverAddress = prefs.getString("serverAddress", "");
+        result.username = prefs.getString("username", "");
+        result.password = prefs.getString("password", "");
+        this.saveUserAddr.setChecked(prefs.getBoolean("userAddrChecked", false));
+        this.savePassword.setChecked(prefs.getBoolean("passwordChecked", false));
 
         return result;
     }
@@ -399,9 +412,24 @@ public class HomeScreenActivity extends AppCompatActivity {
     private void saveInputs ( HomeScreenInputs inputs ) {
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("serverAddress", inputs.serverAddress);
-        editor.putString("username", inputs.username);
-        editor.putString("password", inputs.password);
+        if (this.saveUserAddr.isChecked()) {
+            editor.putString("serverAddress", inputs.serverAddress);
+            editor.putString("username", inputs.username);
+        } else {
+            if (prefs.contains("serverAddress") && prefs.contains("username")) {
+                editor.remove("serverAddress");
+                editor.remove("username");
+            }
+        }
+        if (this.savePassword.isChecked()) {
+            editor.putString("password", inputs.password);
+        } else {
+            if (prefs.contains("password")) {
+                editor.remove("password");
+            }
+        }
+        editor.putBoolean("userAddrChecked", this.saveUserAddr.isChecked());
+        editor.putBoolean("passwordChecked", this.savePassword.isChecked());
         editor.apply();
     }
 
