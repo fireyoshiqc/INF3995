@@ -152,6 +152,7 @@ class SyncRcuRingBufferQReader(AbstractSyncRcuRingBufferReader):
 			if data.publish_count > self._current_publish_count + 1:
 				self._n_overflows += 1
 				self._circular_buffer_index += self._n_frames_to_skip_on_overflow
+				self._circular_buffer_index %= self._rcu.get_buffer_size()
 			self._current_publish_count = data.publish_count
 			return data.value
 		else:
