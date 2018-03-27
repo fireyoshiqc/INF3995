@@ -52,7 +52,16 @@ class USBReaderTask(AbstractTaskNode):
 		pass
 
 	def handle_data(self):
-		line = self.stream.readline()
+		try:
+			line = self.stream.readline()
+		except serial.serialutil.SerialException as e:
+			self.__event_logger.log_error(__name__
+				+ ": serial.serialutil.SerialException :" + str(e))
+			self.__event_logger.log_error(__name__
+				+ ": PCB disconnected?")
+			# TODO: Support reconnecting the PCB instead of exiting the server
+			inf3995.core.ApplicationManager().exit(1)
+			return
 		if len(line) != ENCODED_MSG_LEN:
 			return
 		# For debugging: Print encoded message
