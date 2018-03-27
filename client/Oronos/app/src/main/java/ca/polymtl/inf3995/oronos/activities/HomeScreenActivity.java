@@ -66,6 +66,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     private CheckBox    saveUserAddr;
     private CheckBox    savePassword;
     private AlertDialog dialog;
+    private Snackbar    snackbar;
     private Random      rng = new Random();
 
     class StartBtnListener implements View.OnClickListener {
@@ -112,6 +113,8 @@ public class HomeScreenActivity extends AppCompatActivity {
 
         @Override
         public void onResponse ( Void result ) {
+            if ( this.parent.snackbar != null )
+                this.parent.snackbar.dismiss();
             this.parent.saveInputs(this.parent.getTextInputs());
 
             this.parent.dialog.setMessage("Sending basic config request...");
@@ -485,11 +488,11 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     private void showInSnackbar ( String msg ) {
         View thisView = findViewById(R.id.coordinatorLayout);
-        Snackbar bar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
-        TextView snackbarTextView = bar.getView().findViewById(R.id.snackbar_text);
+        this.snackbar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
+        TextView snackbarTextView = this.snackbar.getView().findViewById(R.id.snackbar_text);
         snackbarTextView.setMaxLines(3);
         snackbarTextView.setTextSize(16);
-        bar.show();
+        this.snackbar.show();
     }
 
     private void switchToMainActivity ( ) {
