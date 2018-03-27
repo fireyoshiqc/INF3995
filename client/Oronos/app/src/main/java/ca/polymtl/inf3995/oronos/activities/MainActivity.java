@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.GridView;
 import android.widget.RelativeLayout;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -45,7 +44,6 @@ public class MainActivity extends DrawerActivity {
     private boolean isMenuActive;
 
     private List<OronosView> viewsContainer;
-    private GridView gridView;
     private RelativeLayout dataLayout;
 
     private RecyclerView recycler;
@@ -77,7 +75,7 @@ public class MainActivity extends DrawerActivity {
     @Override
     protected void onDestroy ( ) {
         super.onDestroy();
-
+        SocketClient.getInstance().disconnect();
         RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
     }
 
@@ -85,11 +83,9 @@ public class MainActivity extends DrawerActivity {
      * Utilities for the client
      */
     private void setUpUtilities() {
-        //CookieHandler.setDefault(new CookieManager());
         Timber.plant(new LogTree());
-        SocketClient.getInstance().setup(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
+        SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
         DataDispatcher.setContext(getApplicationContext());
-        //RestHttpWrapper.getInstance().setup(getApplicationContext());
     }
 
 

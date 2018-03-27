@@ -55,7 +55,7 @@ public class SocketClient {
         return numOfMessageReceived += num;
     }
 
-    public void setup(String hostname, int port) {
+    public void connect(String hostname, int port) {
         if (host == null) {
             try {
                 this.host = new InetSocketAddress(hostname, port);
@@ -105,6 +105,12 @@ public class SocketClient {
         }
 
     }
+
+    public void disconnect() {
+        asyncDatagramSocket = null;
+        host = null;
+    }
+
 
     private OSCMessage getOSCMessage(byte[] bytesReceived) {
         return (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);

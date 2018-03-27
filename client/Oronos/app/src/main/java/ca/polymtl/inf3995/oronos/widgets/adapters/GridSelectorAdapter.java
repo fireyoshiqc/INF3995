@@ -19,14 +19,6 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
     private Context mContext;
     private List<OronosViewCardContents> gridNames;
 
-    /**
-     * Adapter that can display small images in the Grid View for the MainActivity menu.
-     * <p>
-     * Eventually, we will be able to adapt this to take View instead of ImageView, and thus display
-     * miniatures of all the data received by the client.
-     *
-     * @param c Context of the app.
-     */
     public GridSelectorAdapter(Context c, List<OronosViewCardContents> gridNames) {
         mContext = c;
         this.gridNames = gridNames;
