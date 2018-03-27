@@ -3,6 +3,7 @@
 
 import serial
 import base64
+import binascii
 from struct import unpack
 from Bitfield import Bitfield
 from enum import Enum
@@ -61,6 +62,9 @@ class USBReaderTask(AbstractTaskNode):
 			msg_decoded = base64.b64decode(line)
 		except TypeError as e:
 			self.__event_logger.log_error(__name__ + ": TypeError: " + str(e))
+			return
+		except binascii.Error as e:
+			self.__event_logger.log_error(__name__ + ": binascii.Error: " + str(e))
 			return
 		# Represent serialized message as an integer (from little endian)
 		msg_int = int.from_bytes(msg_decoded, byteorder='little',
