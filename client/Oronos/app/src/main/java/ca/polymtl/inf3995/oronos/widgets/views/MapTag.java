@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -25,8 +26,14 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 public class MapTag extends OronosView {
 
+    private final int REFRESH_DELAY = 1000; // milliseconds
+
     private MapView mapView;
+
     private GeoPoint rocketLocation;
+    private Marker rocketMarker;
+
+    private String mapName;
 
     public MapTag(Context context) {
         super(context);
@@ -35,9 +42,17 @@ public class MapTag extends OronosView {
 
         mapView = new MapView(context);
         rocketLocation = new GeoPoint(0.0, 0.0, 0.0);
+        rocketMarker = new Marker(mapView);
+
+        rocketMarker.setPosition(rocketLocation);
+        rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        rocketMarker.setTitle("Rocket");
+        mapView.getOverlays().add(rocketMarker);
 
         setupMapView();
         addView(mapView);
+
+        run();
     }
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -71,24 +86,27 @@ public class MapTag extends OronosView {
     }
 
     private void register() {
-        if (GlobalParameters.canModuleTypes != null) {
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction("GPS1_LATITUDE");
-            intentFilter.addAction("GPS1_LONGITUDE");
-            intentFilter.addAction("GPS1_ALT_MSL");
-
-            // Listen for all categories, since it depends on the rocket
-
-            for (String key : GlobalParameters.canModuleTypes.keySet()) {
-                intentFilter.addCategory(key);
-            }
-
-            for (int i = 0; i < 16; i++) {
-                intentFilter.addCategory(String.valueOf(i));
-            }
-
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
+        if (GlobalParameters.canModuleTypes == null) {
+            return;
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("GPS1_LATITUDE");
+        intentFilter.addAction("GPS1_LONGITUDE");
+        intentFilter.addAction("GPS1_ALT_MSL");
+
+        // Listen for all categories, since it depends on the rocket
+
+        for (String key : GlobalParameters.canModuleTypes.keySet()) {
+            intentFilter.addCategory(key);
+        }
+
+        for (int i = 0; i < 16; i++) {
+            intentFilter.addCategory(String.valueOf(i));
+        }
+
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
+
     }
 
     private void unregister() {
@@ -101,27 +119,65 @@ public class MapTag extends OronosView {
         mapView.setMultiTouchControls(true);
         mapView.setMaxZoomLevel(15.0);
         mapView.setMinZoomLevel(1.0);
+        mapView.setBuiltInZoomControls(false);
 
+        if (GlobalParameters.mapName == null) {
+            return;
+        }
 
-        ITileSource iTileSource = new XYTileSource("map", 0, 15, 256, ".jpg", new String[]{"empty"});
+        ITileSource iTileSource = new XYTileSource("map", 0, 15, 256, ".jpg", null);
         mapView.setTileSource(iTileSource);
 
         IMapController mapController = mapView.getController();
-        mapController.setZoom(13.0);
-        GeoPoint startPoint = new GeoPoint(32.9401475, -106.9193209);
-        mapController.setCenter(startPoint);
 
-
-        GeoPoint spaceport_america = new GeoPoint(32.9401475, -106.9193209);
-        GeoPoint motel_6 = new GeoPoint(32.3417429, -106.7628682);
-        GeoPoint convention_center = new GeoPoint(32.2799304, -106.7468314);
-        GeoPoint st_pie_de_guire = new GeoPoint(46.0035479, -72.7311097);
-
+        GeoPoint serverLocation = new GeoPoint(0.0, 0.0);
         Marker serverMarker = new Marker(mapView);
-        serverMarker.setPosition(startPoint);
+        serverMarker.setTitle("Server");
+
+        switch (GlobalParameters.mapName) {
+            case "spaceport_america":
+                GeoPoint SPACEPORT_AMERICA = new GeoPoint(32.9401475, -106.9193209);
+                serverLocation = SPACEPORT_AMERICA;
+                break;
+            case "motel_6":
+                GeoPoint MOTEL_6 = new GeoPoint(32.3417429, -106.7628682);
+                serverLocation = MOTEL_6;
+                break;
+            case "convention_center":
+                GeoPoint CONVENTION_CENTER = new GeoPoint(32.2799304, -106.7468314);
+                serverLocation = CONVENTION_CENTER;
+                break;
+            case "st_pie_de_guide":
+                GeoPoint ST_PIE_DE_GUIRE = new GeoPoint(46.0035479, -72.7311097);
+                serverLocation = ST_PIE_DE_GUIRE;
+                break;
+        }
+
+        serverMarker.setPosition(serverLocation);
         serverMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         mapView.getOverlays().add(serverMarker);
 
+        mapController.setZoom(13.0);
+        mapController.setCenter(serverLocation);
+
+    }
+
+    private void run() {
+        final Handler handler = new Handler();
+
+        handler.postDelayed(new Runnable() {
+            public void run() {
+
+                updateMarker();
+                handler.postDelayed(this, REFRESH_DELAY);
+            }
+        }, REFRESH_DELAY);
+
+    }
+
+    private void updateMarker() {
+        rocketMarker.setPosition(rocketLocation);
+        mapView.invalidate();
     }
 
 
