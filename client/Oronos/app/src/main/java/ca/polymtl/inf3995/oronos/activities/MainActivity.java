@@ -1,21 +1,17 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
 
-import com.android.volley.Response;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -23,9 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
@@ -33,9 +27,8 @@ import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.services.SocketClient;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
-import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import ca.polymtl.inf3995.oronos.utils.LogTree;
-import ca.polymtl.inf3995.oronos.widgets.adapters.ImageAdapter;
+import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
 import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
@@ -54,6 +47,8 @@ public class MainActivity extends DrawerActivity {
     private List<OronosView> viewsContainer;
     private GridView gridView;
     private RelativeLayout dataLayout;
+
+    private RecyclerView recycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,15 +101,8 @@ public class MainActivity extends DrawerActivity {
         toolbar.setTitle("ORONOS");
         setSupportActionBar(toolbar);
 
-        gridView = new GridView(this);
-        int gridPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-        gridView.setPadding(gridPadding, gridPadding, gridPadding, gridPadding);
-        gridView.setNumColumns(GridView.AUTO_FIT);
-        gridView.setVerticalSpacing(gridPadding);
-        gridView.setHorizontalSpacing(gridPadding);
-        gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-        gridView.setGravity(Gravity.CENTER);
-        ArrayList<ImageAdapter.OronosViewCardContents> names = new ArrayList<>();
+
+        ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
         for (OronosView view : viewsContainer) {
             String name = view.getClass().getSimpleName();
             ArrayList<String> subnames = new ArrayList<>();
@@ -130,19 +118,16 @@ public class MainActivity extends DrawerActivity {
 
                 }
             }
-            names.add(new ImageAdapter.OronosViewCardContents(name, subnames));
+            names.add(new GridSelectorAdapter.OronosViewCardContents(name, subnames));
         }
-        gridView.setAdapter(new ImageAdapter(this, names));
 
-        /*
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                changeStateOfDataLayout(position);
-            }
-        });
-        */
+        recycler = new RecyclerView(this);
+        GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        recycler.setLayoutManager(staggeredGridLayoutManager);
+        recycler.setAdapter(adapter);
+        recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
+        recycler.setNestedScrollingEnabled(false);
     }
 
     /**
@@ -152,21 +137,13 @@ public class MainActivity extends DrawerActivity {
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
         try {
-            //InputStream fis = getAssets().open("10_polaris.xml");
             InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
 
             viewsContainer = new ArrayList<>();
             viewsContainer.addAll(rocket.getList());
-            //Afficher seulement 1 tab container
-            //TabContainer tabtest = (TabContainer) rocket.getList().get(0);
-            viewsContainer = new ArrayList<>();
-            //viewsContainer.add(tabtest);
 
-            //Afficher tout
-            viewsContainer.addAll(rocket.getList());
-
-
+            // Add FindMe for testing
             FindMe test = new FindMe(this);
             viewsContainer.add(test);
 
@@ -254,15 +231,15 @@ public class MainActivity extends DrawerActivity {
     public void changeStateOfDataLayout(int nextView) {
         if (nextView == MENU_VIEW_ID) {
             if (isMenuActive) {
-                dataLayout.removeView(gridView);
+                dataLayout.removeView(recycler);
                 isMenuActive = false;
             } else {
-                dataLayout.addView(gridView);
+                dataLayout.addView(recycler);
                 isMenuActive = true;
             }
         } else {
             if (isMenuActive) {
-                dataLayout.removeView(gridView);
+                dataLayout.removeView(recycler);
                 isMenuActive = false;
             }
             dataLayout.removeView(viewsContainer.get(currentDataViewState));
