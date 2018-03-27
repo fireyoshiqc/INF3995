@@ -72,6 +72,8 @@ public class MainActivity extends DrawerActivity {
         Timber.v("Main Activity : Creation Done.");
     }
 
+
+
     @Override
     protected void onDestroy ( ) {
         super.onDestroy();
@@ -90,7 +92,7 @@ public class MainActivity extends DrawerActivity {
 
 
     /**
-     * This method declare the toolbar and its menu elements.
+     * This method declares the toolbar and its menu elements.
      */
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);

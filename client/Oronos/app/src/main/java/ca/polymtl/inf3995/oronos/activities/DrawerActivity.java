@@ -1,10 +1,15 @@
 package ca.polymtl.inf3995.oronos.activities;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -17,16 +22,25 @@ import timber.log.Timber;
  */
 
 public class DrawerActivity extends AppCompatActivity {
-    private final int dataIndex = 0;
-    private final int themeIndex = 1;
-    private final int pdfIndex = 2;
-    private final int disconnectionIndex = 3;
-    private DrawerLayout drawerLayout;
+     private final int dataIndex = 0;
+     private final int themeIndex = 1;
+     private final int pdfIndex = 2;
+     private final int disconnectionIndex = 3;
+     private int presentActID = -1;
+    static private DrawerLayout drawerLayout;
+
+    private Toolbar toolbar;
+    private NavigationView navigationView;
 
     protected void onCreateDrawer() {
         drawerLayout = findViewById(R.id.main_layout);
-        final NavigationView navigationView = findViewById(R.id.nav_view);
-        final Toolbar toolbar = findViewById(R.id.toolbar);
+        navigationView = findViewById(R.id.nav_view);
+        toolbar = findViewById(R.id.toolbar);
+
+        if (presentActID == -1){
+            presentActID = 0;
+        }
+
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -36,14 +50,23 @@ public class DrawerActivity extends AppCompatActivity {
                         // close drawer when item is tapped
                         drawerLayout.closeDrawers();
 
+                        presentActID = menuItem.getItemId();
+
                         if (menuItem == navigationView.getMenu().getItem(dataIndex)) {
                             toolbar.setTitle("ORONOS");
+                            switchToMainActivity();
                         } else if (menuItem == navigationView.getMenu().getItem(themeIndex)) {
                             toolbar.setTitle("Theme selection");
+
                         } else if (menuItem == navigationView.getMenu().getItem(pdfIndex)) {
                             toolbar.setTitle("PDF downloads");
+                            switchToPdfActivity();
                         } else {
-                            toolbar.setTitle("Disconnection");
+                            //toolbar.setTitle("Disconnection");
+                            disconnectionPopup();
+
+
+
                         }
                         return true;
                     }
@@ -63,6 +86,18 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void setContentView(@LayoutRes int layoutResID)
+    {
+        super.setContentView(layoutResID);
+        onCreateDrawer();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -70,5 +105,48 @@ public class DrawerActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void disconnectionPopup() {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //Yes button clicked
+                        switchToHomeScreenActivity();
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //No button clicked
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to disconnect?").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
+    }
+
+    private void switchToMainActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        this.startActivity(intent);
+    }
+
+    private void switchToThemeActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        this.startActivity(intent);
+    }
+
+    private void switchToPdfActivity() {
+        Intent intent = new Intent(this, PdfActivity.class);
+        this.startActivity(intent);
+    }
+
+    private void switchToHomeScreenActivity() {
+        Intent intent = new Intent(this, HomeScreenActivity.class);
+        finish();
+        this.startActivity(intent);
     }
 }
