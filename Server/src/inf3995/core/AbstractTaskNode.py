@@ -42,11 +42,13 @@ class AbstractTaskNode(BasicTaskNodeProducer):
 		
 		if not self.__is_finished:
 			if self._has_new_data():
-				if self.__is_queued_input_data and self.__data_reader is not None:
-					while self._has_new_data():
-						self.handle_data()
-				else:
-					self.handle_data()
+				# Somehow, this fucks up on the Zedboard (and only on the Zedboard)
+				# if self.__is_queued_input_data and self.__data_reader is not None:
+					# while self._has_new_data():
+						# self.handle_data()
+				# else:
+					# self.handle_data()
+				self.handle_data()
 		
 		self.__is_finished = self.__is_finishing
 	

@@ -25,6 +25,8 @@ class OscTxTask(AbstractTaskNode):
 	def handle_data(self):
 		while self._has_new_data():
 			data = self._get_source_data()
+			if data is None:
+				continue
 			self.__sender.update_value(data)
 		self.__sender.send_message()
 	
