@@ -449,11 +449,8 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
      */
     @Override
     public void onLocationChanged(Location location) {
-        long timeSinceLastLocation = lastLocationTime - System.currentTimeMillis();
-        if (location.getProvider().equals(LocationManager.GPS_PROVIDER)
-                || (location.getProvider().equals(LocationManager.NETWORK_PROVIDER) && (timeSinceLastLocation > 5000))) {
-            deviceLocation = location;
-        }
+        // Try to find better criteria for evaluating accuracy
+        deviceLocation = location;
         lastLocationTime = System.currentTimeMillis();
     }
 
