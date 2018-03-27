@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Process;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.ScrollView;
@@ -18,8 +17,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
@@ -33,55 +33,46 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     private ScrollView scrollView;
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(final Context context, final Intent intent) {
-            final Thread receiverThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-                    String canSID = msg.getCanSid();
-                    String module = msg.getSourceModule();
-                    Integer noSerie = msg.getSerialNb();
-                    Integer counter = msg.getCounter();
-                    boolean isDesiredCanMsg = false;
+        public void onReceive(Context context, Intent intent) {
+            BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+            String canSID = msg.getCanSid();
+            String module = msg.getSourceModule();
+            Integer noSerie = msg.getSerialNb();
+            Integer counter = msg.getCounter();
+            boolean isDesiredCanMsg = false;
 
-                    for (CAN can : list) {
-                        if (canSID.equals(can.getId())) {
-                            isDesiredCanMsg = true;
+            for (CAN can : list) {
+                if (canSID.equals(can.getId())) {
+                    isDesiredCanMsg = true;
+                    break;
+                }
+            }
+
+            if (list.isEmpty() || isDesiredCanMsg) {
+                boolean isNewMsgToLog = true;
+                boolean isNewMsgReceived = true;
+
+                for (MSGPair msgPair : lastMsgsReceived) {
+                    if (canSID.equals(msgPair.getCansid())
+                            && module.equals(msgPair.getModuleType())
+                            && noSerie.equals(msgPair.getNoSerial())) {
+                        isNewMsgReceived = false;
+                        if (counter != msgPair.getLastNoMsg()) {
+                            msgPair.setLastNoMsg(counter);
+                            break;
+                        } else {
+                            isNewMsgToLog = false;
                             break;
                         }
                     }
-
-                    if (list.isEmpty() || isDesiredCanMsg) {
-                        boolean isNewMsgToLog = true;
-                        boolean isNewMsgReceived = true;
-
-                        for (MSGPair msgPair : lastMsgsReceived) {
-                            if (canSID.equals(msgPair.getCansid())
-                                    && module.equals(msgPair.getModuleType())
-                                    && noSerie.equals(msgPair.getNoSerial())) {
-                                isNewMsgReceived = false;
-                                if (counter != msgPair.getLastNoMsg()) {
-                                    msgPair.setLastNoMsg(counter);
-                                    break;
-                                } else {
-                                    isNewMsgToLog = false;
-                                    break;
-                                }
-                            }
-                        }
-                        if (isNewMsgReceived) {
-                            lastMsgsReceived.add(new MSGPair(canSID, module, noSerie, counter));
-                        }
-                        if (isNewMsgToLog) {
-                            receiveMsgToLog(msg);
-                        }
-                    }
                 }
-            });
-            receiverThread.setDaemon(true);
-            receiverThread.start();
-
+                if (isNewMsgReceived) {
+                    lastMsgsReceived.add(new MSGPair(canSID, module, noSerie, counter));
+                }
+                if (isNewMsgToLog) {
+                    receiveMsgToLog(msg);
+                }
+            }
         }
     };
 
@@ -90,7 +81,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
 
         this.context = context;
         lastMsgsReceived = new ArrayList<>();
-        msgQueue = new ConcurrentLinkedQueue<>();
+        msgQueue = new LinkedBlockingQueue<>(GlobalParameters.LIMIT_OF_N_MSG);
         textView = new TextView(context);
         scrollView = new ScrollView(context);
         scrollView.addView(textView);
@@ -112,7 +103,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         String module = msg.getSourceModule();
         String noSerie = Integer.toString(msg.getSerialNb());
 
-        if (msgQueue.size() > GlobalParameters.LIMIT_OF_N_MSG) {
+        if (GlobalParameters.LIMIT_OF_N_MSG - msgQueue.size() == 0) {
             msgQueue.poll();
         }
         msgQueue.add(String.format("%s;%s;%s;%s;%s;", module, noSerie, canSID, newData1, newData2));

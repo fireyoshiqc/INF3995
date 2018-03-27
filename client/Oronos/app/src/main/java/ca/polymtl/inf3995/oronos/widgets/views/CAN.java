@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
-import android.os.Process;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -137,79 +136,72 @@ public class CAN implements ContainableWidget {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(final Context context, final Intent intent) {
-                    final Thread receiverThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                            BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-                            double newData = 0.0;
-                            String formattedData;
 
-                            if (customUpdate != null) {
+                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
+                    double newData = 0.0;
+                    String formattedData;
 
-                                newData = msg.getData1().doubleValue();
-                                String[] dataAndUnit;
-                                String updated;
+                    if (customUpdate != null) {
 
-                                if (customUpdateParam != null) {
-                                    updated = CANCustomUpdate.updateWithParam(customUpdate, customUpdateParam, msg);
-                                } else {
-                                    updated = CANCustomUpdate.update(customUpdate, msg);
-                                }
-                                if (updated != null) {
-                                    dataAndUnit = updated.split(" ");
-                                    formattedData = dataAndUnit[0];
-                                    if (dataAndUnit.length == 2) {
-                                        unit = dataAndUnit[1];
-                                    }
-                                } else {
-                                    formattedData = dataToDisplay;
-                                }
+                        newData = msg.getData1().doubleValue();
+                        String[] dataAndUnit;
+                        String updated;
 
-                            } else if (display != null) {
-                                if (display.startsWith("__DATA1__")) {
-                                    newData = msg.getData1().doubleValue();
-                                } else if (display.startsWith("__DATA2__")) {
-                                    newData = msg.getData2().doubleValue();
-                                }
-
-                                if (chiffresSign != null) {
-                                    String signFormat = "%." + chiffresSign + "f";
-                                    formattedData = String.format(signFormat, newData);
-                                } else {
-                                    formattedData = String.format("%f", newData);
-                                }
-
-                            } else {
-                                formattedData = "N/A";
-                            }
-
-                            if (!formattedData.equals(dataToDisplay)) {
-                                dataToDisplay = formattedData;
-                                hasChanged = true;
-                            }
-
-                            try {
-                                if (customAcceptable != null) {
-                                    if (!CANCustomUpdate.acceptable(customAcceptable, msg)) {
-                                        state = DisplayState.RED;
-                                    } else {
-                                        state = DisplayState.GREEN;
-                                    }
-                                } else if ((minAcceptable != null && newData < Double.parseDouble(minAcceptable))
-                                        || (maxAcceptable != null && newData > Double.parseDouble(maxAcceptable))) {
-                                    state = DisplayState.RED;
-                                } else {
-                                    state = DisplayState.GREEN;
-                                }
-
-                            } catch (NumberFormatException e) {
-                                Timber.e("Error: Could not update CAN tag state due to NumberFormatException.");
-                            }
+                        if (customUpdateParam != null) {
+                            updated = CANCustomUpdate.updateWithParam(customUpdate, customUpdateParam, msg);
+                        } else {
+                            updated = CANCustomUpdate.update(customUpdate, msg);
                         }
-                    });
-                    receiverThread.setDaemon(true);
-                    receiverThread.start();
+                        if (updated != null) {
+                            dataAndUnit = updated.split(" ");
+                            formattedData = dataAndUnit[0];
+                            if (dataAndUnit.length == 2) {
+                                unit = dataAndUnit[1];
+                            }
+                        } else {
+                            formattedData = dataToDisplay;
+                        }
+
+                    } else if (display != null) {
+                        if (display.startsWith("__DATA1__")) {
+                            newData = msg.getData1().doubleValue();
+                        } else if (display.startsWith("__DATA2__")) {
+                            newData = msg.getData2().doubleValue();
+                        }
+
+                        if (chiffresSign != null) {
+                            String signFormat = "%." + chiffresSign + "f";
+                            formattedData = String.format(signFormat, newData);
+                        } else {
+                            formattedData = String.format("%f", newData);
+                        }
+
+                    } else {
+                        formattedData = "N/A";
+                    }
+
+                    if (!formattedData.equals(dataToDisplay)) {
+                        dataToDisplay = formattedData;
+                        hasChanged = true;
+                    }
+
+                    try {
+                        if (customAcceptable != null) {
+                            if (!CANCustomUpdate.acceptable(customAcceptable, msg)) {
+                                state = DisplayState.RED;
+                            } else {
+                                state = DisplayState.GREEN;
+                            }
+                        } else if ((minAcceptable != null && newData < Double.parseDouble(minAcceptable))
+                                || (maxAcceptable != null && newData > Double.parseDouble(maxAcceptable))) {
+                            state = DisplayState.RED;
+                        } else {
+                            state = DisplayState.GREEN;
+                        }
+
+                    } catch (NumberFormatException e) {
+                        Timber.e("Error: Could not update CAN tag state due to NumberFormatException.");
+                    }
                 }
             };
 
