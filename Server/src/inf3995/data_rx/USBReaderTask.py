@@ -204,32 +204,6 @@ class USBReaderTask(AbstractTaskNode):
 					  data2=data2)
 		self._produce_data(data)
 
-		# # Oronos code for result comparison
-		# decodedSID = ((msg_decoded[1] & 0b00000111) << 8) | msg_decoded[0]
-		# decodedDestSerial = (msg_decoded[1] & 0b01111000) >> 3
-		# decodedDestID = ((msg_decoded[2] & 0b00001111) << 1) | ((msg_decoded[1] & 0b10000000) >> 7)
-		# decodedSrcSerial = (msg_decoded[2] & 0b11110000) >> 4
-		# decodedSrcID = msg_decoded[3] & 0b00011111
-		# print(decodedSID, decodedDestSerial, decodedDestID, decodedSrcSerial, decodedSrcID)
-		#
-		# # Interpréter correctement le data1
-		# if _DataType[data1_type] == _DataType.FLOAT:
-		# 	decodedData1 = unpack('f', msg_decoded[4:8])[0]
-		# else:
-		# 	decodedData1 = unpack('I', msg_decoded[4:8])[0]
-		#
-		# # Interpréter correctement le data2
-		# if _DataType[data2_type] == _DataType.FLOAT:
-		# 	decodedData2 = unpack('f', msg_decoded[8:12])[0]
-		# else:
-		# 	decodedData2 = unpack('I', msg_decoded[8:12])[0]
-		#
-		# #print(msg_decoded[4:8], msg_decoded[8:12])
-		# #print(hexlify(msg_decoded[4:8]), hexlify(msg_decoded[8:12]))
-		# #print(bin(int.from_bytes(msg_decoded[4:8], byteorder='little', signed=False)),
-		# #	  bin(int.from_bytes(msg_decoded[8:12], byteorder='little', signed=False)))
-		# print(decodedData1, decodedData2)
-
 	def cleanup(self):
 		self.__event_logger.log_error(__name__ + ': Cleanup')
 		# TODO Don't try and close stream that was never opened?
