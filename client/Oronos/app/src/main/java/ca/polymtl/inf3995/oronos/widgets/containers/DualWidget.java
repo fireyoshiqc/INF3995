@@ -1,11 +1,15 @@
 package ca.polymtl.inf3995.oronos.widgets.containers;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.text.Layout;
+import android.util.TypedValue;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.CleanableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.ContainableWidget;
@@ -31,8 +35,13 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
     private void buildContents() {
         for (OronosView widget : list) {
             LinearLayout container = new LinearLayout(getContext());
-            container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+            LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1);
+            Resources r = getResources();
+            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, r.getDisplayMetrics());
+            params.setMargins(px, px, px, px);
+            container.setLayoutParams(params);
             container.addView(widget);
+            container.setBackgroundResource(R.drawable.can_data_large_border_black);
             addView(container);
         }
     }
