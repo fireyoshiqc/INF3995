@@ -51,4 +51,5 @@ dependencies {
     compile 'org.parceler:parceler-api:1.1.9'
     annotationProcessor 'org.parceler:parceler:1.1.9'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+    compile 'org.osmdroid:osmdroid-android:6.0.1'
 }
