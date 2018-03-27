@@ -57,15 +57,17 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     private final CoordinatorLayout coordinator;
     private final LinearLayout content;
     private final WebView threeView;
-    private final TextView distanceHelper;
+    private final TextView statusText;
     private final float[] unitDistance = {0, -1, 0};
     private Timer sensorUpdater;
+    private Timer locationUpdater;
     private LocationManager locationManager;
     private Snackbar warningBar;
 
     private long lastLocationTime = 0;
-    private float lastLocationAccuracy = Float.POSITIVE_INFINITY;
+    //private float lastLocationAccuracy = Float.POSITIVE_INFINITY;
     private Location rocketLocation = new Location("");
+    private Location deviceLocation = new Location("");
     private BroadcastReceiver locationReceiver;
 
     /**
@@ -78,7 +80,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         coordinator = new CoordinatorLayout(getContext());
         content = new LinearLayout(getContext());
         threeView = new WebView(getContext());
-        distanceHelper = new TextView(getContext());
+        statusText = new TextView(getContext());
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -93,18 +95,22 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     @SuppressLint("SetJavaScriptEnabled")
     private void buildView() {
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
         content.setOrientation(LinearLayout.VERTICAL);
         content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        distanceHelper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        distanceHelper.setTextSize(24);
-        distanceHelper.setTextAlignment(TEXT_ALIGNMENT_CENTER);
+
+        statusText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        statusText.setTextSize(12);
+        statusText.setTextAlignment(TEXT_ALIGNMENT_CENTER);
         int textPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-        distanceHelper.setPadding(textPadding, textPadding, textPadding, textPadding);
-        content.addView(distanceHelper);
+        statusText.setPadding(textPadding, textPadding, textPadding, textPadding);
+        content.addView(statusText);
+
         threeView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         threeView.getSettings().setJavaScriptEnabled(true);
         threeView.addJavascriptInterface(this, "android");
         content.addView(threeView);
+
         coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         coordinator.addView(content);
         addView(coordinator);
@@ -165,6 +171,32 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         unregisterSensors();
         stopLocationUpdates();
         flushWebGLRenderer();
+    }
+
+    private void startLocationTask() {
+        locationUpdater = new Timer(true);
+        TimerTask locationTask = new TimerTask() {
+            @Override
+            public void run() {
+                ((Activity) getContext()).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateLocation();
+                    }
+                });
+            }
+        };
+        locationUpdater.scheduleAtFixedRate(locationTask, 0, LOCATION_REFRESH_TIME);
+    }
+
+    /**
+     * This method stops the task started by the method above.
+     */
+    private void stopLocationTask() {
+        if (locationUpdater != null) {
+            locationUpdater.cancel();
+            locationUpdater.purge();
+        }
     }
 
     /**
@@ -261,6 +293,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
 
                 if (lastLocation != null) {
                     this.onLocationChanged(lastLocation);
+                    updateLocation();
                 }
 
                 locationReceiver = new BroadcastReceiver() {
@@ -282,6 +315,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                 };
 
                 enableLocationReceiver();
+                startLocationTask();
 
             } catch (SecurityException e) {
                 Timber.e("FindMe: Error accessing location permissions.");
@@ -299,6 +333,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         if (locationReceiver != null) {
             disableLocationReceiver();
         }
+        stopLocationTask();
     }
 
     private void enableLocationReceiver() {
@@ -346,26 +381,28 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
 
     /**
      * This method updates the location unit vector from the device's location to the rocket's location.
-     *
-     * @param location The new device location.
      */
     @SuppressLint("DefaultLocale")
-    private void updateLocation(Location location) {
+    private void updateLocation() {
         float[] xDist = new float[1];
         float[] yDist = new float[1];
         float zDist;
-        float totalDist = location.distanceTo(rocketLocation);
+        float totalDist = deviceLocation.distanceTo(rocketLocation);
+        String deviceInfo = deviceLocation.getProvider() != "" ? String.format("Device - Lat : %.6f, Long : %.6f, Alt : %.2f m, Provider : %s",
+                deviceLocation.getLatitude(), deviceLocation.getLongitude(), deviceLocation.getAltitude(), deviceLocation.getProvider()) : "Device - NO LOCATION DATA AVAILABLE";
+        String rocketInfo = String.format("Rocket - Lat : %.6f, Long : %.6f, Alt : %.2f m",
+                rocketLocation.getLatitude(), rocketLocation.getLongitude(), rocketLocation.getAltitude());
         if (totalDist > 1000.0) {
-            distanceHelper.setText(String.format("Distance : %.2f km", totalDist / 1000));
+            statusText.setText(String.format("Distance : %.2f km\n%s\n%s", totalDist/1000.0, deviceInfo, rocketInfo));
         } else {
-            distanceHelper.setText(String.format("Distance : %.1f m", totalDist));
+            statusText.setText(String.format("Distance : %.1f m\n%s\n%s", totalDist, deviceInfo, rocketInfo));
         }
 
-        Location.distanceBetween(location.getLatitude(),
-                location.getLongitude(), rocketLocation.getLatitude(), location.getLongitude(), xDist);
-        Location.distanceBetween(location.getLatitude(),
-                location.getLongitude(), location.getLatitude(), rocketLocation.getLongitude(), yDist);
-        zDist = (float) (rocketLocation.getAltitude() - location.getAltitude());
+        Location.distanceBetween(deviceLocation.getLatitude(),
+                deviceLocation.getLongitude(), rocketLocation.getLatitude(), deviceLocation.getLongitude(), xDist);
+        Location.distanceBetween(deviceLocation.getLatitude(),
+                deviceLocation.getLongitude(), deviceLocation.getLatitude(), rocketLocation.getLongitude(), yDist);
+        zDist = (float) (rocketLocation.getAltitude() - deviceLocation.getAltitude());
         unitDistance[0] = xDist[0] / totalDist;
         unitDistance[1] = yDist[0] / totalDist;
         unitDistance[2] = zDist / totalDist;
@@ -414,12 +451,10 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     public void onLocationChanged(Location location) {
         long timeSinceLastLocation = lastLocationTime - System.currentTimeMillis();
         if (location.getProvider().equals(LocationManager.GPS_PROVIDER)
-                || (location.getProvider().equals(LocationManager.NETWORK_PROVIDER) && (timeSinceLastLocation > 10000 && location.getAccuracy() < (2 * lastLocationAccuracy)))
-                || timeSinceLastLocation > 60000) {
-            updateLocation(location);
+                || (location.getProvider().equals(LocationManager.NETWORK_PROVIDER) && (timeSinceLastLocation > 5000))) {
+            deviceLocation = location;
         }
         lastLocationTime = System.currentTimeMillis();
-        lastLocationAccuracy = location.getAccuracy();
     }
 
     /**
