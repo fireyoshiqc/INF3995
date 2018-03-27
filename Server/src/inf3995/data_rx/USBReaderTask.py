@@ -15,7 +15,7 @@ from inf3995.core.AbstractTaskNode import *
 from inf3995.data_rx.RxData import RxData
 from inf3995.settings.CANSidParser import *
 from inf3995.settings.CANSid import CANSid
-from inf3995.settings.ModuleTypes import ModuleType
+from inf3995.settings.ModuleTypes import ModuleType, ALL_SERIAL_NBS
 #import inf3995.core
 
 
@@ -99,20 +99,39 @@ class USBReaderTask(AbstractTaskNode):
 
 		# Discard all messages with invalid destination types
 		try:
-			dest_serial = int(msg_bitfield[11:15])
 			dest_type = ModuleType(int(msg_bitfield[15:20]))
-			src_serial = int(msg_bitfield[20:24])
 			src_type = ModuleType(int(msg_bitfield[24:29]))
-			# For debugging: Print fields in binary and then as
-			# integers
-			#print(bin(sid), bin(dest_serial), bin(dest_type),
-			#		bin(src_serial), bin(src_type))
-			#print(sid, dest_serial, dest_type, src_serial, src_type)
 		except KeyError as e:
 			self.__event_logger.log_error(__name__ + ": KeyError: " + str(e))
 			return
 		except ValueError:
 			return
+
+		# Skip messages with invalid PCB serial numbers
+		try:
+			dest_serial = int(msg_bitfield[11:15])
+			# Skip negative serial numbers?
+			# if dest_serial < 0:
+			# 	return
+		except ValueError as e:
+			self.__event_logger.log_error(__name__ + ": ValueError: " + str(e))
+			return
+
+		# Skip messages with invalid PCB serial numbers
+		try:
+			src_serial = int(msg_bitfield[20:24])
+			# Skip negative serial numbers?
+			# if src_serial < 0:
+			# 	return
+		except ValueError as e:
+			self.__event_logger.log_error(__name__ + ": ValueError: " + str(e))
+			return
+
+		# For debugging: Print fields in binary and then as
+		# integers
+		# print(bin(sid), bin(dest_serial), bin(dest_type),
+		#		bin(src_serial), bin(src_type))
+		#print(sid, dest_serial, dest_type, src_serial, src_type)
 
 		#TODO: Make function that returns casting type (int, float, unsigned?)
 		# Parse data 1
