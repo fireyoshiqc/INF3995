@@ -3,7 +3,7 @@
 import csv
 
 
-DEMO_DURATION_SECONDS = 50
+DEMO_DURATION_SECONDS = 40
 NEW_FILE_START = 110
 
 with open('../../working_dir/flight_logs/polaris_modified.csv', 'r', encoding='utf-8') as input_file, \
