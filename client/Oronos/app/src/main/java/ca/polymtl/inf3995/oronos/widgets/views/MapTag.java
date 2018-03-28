@@ -120,7 +120,7 @@ public class MapTag extends OronosView {
         mapView.setBuiltInZoomControls(false);
         mapView.setMultiTouchControls(true);
         //mapView.setMaxZoomLevel(15.0);
-        //mapView.setMinZoomLevel(0.0);
+        mapView.setMinZoomLevel(1.0);
 
         if (GlobalParameters.mapName == null) {
             return;
@@ -184,22 +184,12 @@ public class MapTag extends OronosView {
     private void updateMarker() {
         rocketMarker.setPosition(rocketLocation);
 
-        mapView.getController().animateTo(midPoint(rocketLocation, serverLocation));
-
-        BoundingBox bbMap = mapView.getBoundingBox();
-
         List<GeoPoint> geoPointList = new ArrayList<>();
         geoPointList.add(serverLocation);
         geoPointList.add(rocketLocation);
         BoundingBox bbMarkers = BoundingBox.fromGeoPoints(geoPointList);
 
-        if (mapView.getZoomLevelDouble() > 1 && (bbMarkers.getLatitudeSpan() > bbMap.getLatitudeSpan() || bbMarkers.getLongitudeSpan() > bbMap.getLongitudeSpan())) {
-            mapView.getController().zoomOut();
-        }
-
-        if (mapView.getZoomLevelDouble() < mapView.getMaxZoomLevel() && bbMarkers.getLatitudeSpan() * 2 <= bbMap.getLatitudeSpan() && bbMarkers.getLongitudeSpan() * 2 <= bbMap.getLongitudeSpan()) {
-            mapView.getController().zoomIn();
-        }
+        mapView.zoomToBoundingBox(bbMarkers, true, 60);
 
         mapView.invalidate();
     }
@@ -211,28 +201,6 @@ public class MapTag extends OronosView {
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
         mapView.getOverlays().add(rocketMarker);
-    }
-
-    private GeoPoint midPoint(GeoPoint point1, GeoPoint point2) {
-        double lat1 = point1.getLatitude();
-        double lon1 = point1.getLongitude();
-        double lat2 = point2.getLatitude();
-        double lon2 = point2.getLongitude();
-
-        double dLon = Math.toRadians(lon2 - lon1);
-
-        //convert to radians
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        lon1 = Math.toRadians(lon1);
-
-        double Bx = Math.cos(lat2) * Math.cos(dLon);
-        double By = Math.cos(lat2) * Math.sin(dLon);
-        double lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
-        double lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
-
-        //return in degrees
-        return new GeoPoint(Math.toDegrees(lat3), Math.toDegrees(lon3));
     }
 
 }
