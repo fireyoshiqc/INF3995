@@ -14,6 +14,11 @@ START_BAD_VOLTAGE = 20
 END_BAD_VOLTAGE = 25
 CLOSE_TO_LAUNCH = 30.0
 
+#END_AGRUM_TIMEOUT = 20
+#START_BAD_VOLTAGE = 20
+#END_BAD_VOLTAGE = 25
+#CLOSE_TO_LAUNCH = 20.0
+
 # TODO: Make sure data set allows all required custom updates
 with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8') as input_file, \
 	open('../../working_dir/flight_logs/test_flight_logs/split_ICM_ACCEL_X.csv', 'r', encoding='utf-8') as acc_x_input, \
@@ -28,6 +33,7 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 
 		csv_columns = input_reader.__next__()
 		output_file.write(';'.join(csv_columns) + '\n')
+		print(';'.join(csv_columns))
 
 		# Read lines until launch
 		next_line = input_reader.__next__()
@@ -49,6 +55,11 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 			# Maximum duration of test CSV is 5 minutes
 			if float(next_timestamp) >= DEMO_DURATION_SECONDS:
 				break
+
+			# Give Valkyrie DisplayLogWidget something to show
+			sid = next_line[6]
+			if 'LVDM_ARMING_STATUS' in sid:
+				next_line[6] = 'LVDM_EMERGENCY_KABOOM_CALLED'
 
 			# Get filler messages for planned AGRUM timeout
 			if float(next_timestamp) < END_AGRUM_TIMEOUT:
