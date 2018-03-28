@@ -14,10 +14,14 @@ import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.XYTileSource;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.parceler.Parcels;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
@@ -117,11 +121,10 @@ public class MapTag extends OronosView {
 
     private void setupMapView() {
         mapView.setUseDataConnection(false);
-        mapView.setBuiltInZoomControls(false);
-        mapView.setMultiTouchControls(false);
-        mapView.setBuiltInZoomControls(false);
-        mapView.setMaxZoomLevel(15.0);
-        mapView.setMinZoomLevel(0.0);
+        mapView.setBuiltInZoomControls(true);
+        mapView.setMultiTouchControls(true);
+        //mapView.setMaxZoomLevel(15.0);
+        //mapView.setMinZoomLevel(0.0);
 
         if (GlobalParameters.mapName == null) {
             return;
@@ -185,29 +188,22 @@ public class MapTag extends OronosView {
     private void updateMarker() {
         rocketMarker.setPosition(rocketLocation);
 
-//        BoundingBox boundingBox = mapView.getBoundingBox();
-//        boolean isRocketVisible = boundingBox.contains(rocketLocation);
-//        boolean isServerVisible = boundingBox.contains(serverLocation);
-//
-//        if (!isRocketVisible || !isServerVisible) {
-//            mapView.getController().zoomOut();
-//        } else {
-//            List<GeoPoint> geoPointList = new ArrayList<>();
-//            geoPointList.add(serverLocation);
-//            geoPointList.add(rocketLocation);
-//            BoundingBox bb = BoundingBox.fromGeoPoints(geoPointList);
-//        }
+        mapView.getController().animateTo(midPoint(rocketLocation, serverLocation));
 
+        BoundingBox bbMap = mapView.getBoundingBox();
 
-//        double latitudeSpan = Math.round(Math.abs(serverLocation.getLatitude() - rocketLocation.getLatitude()));
-//        double longitudeSpan = Math.round(Math.abs(rocketLocation.getLongitude() - rocketLocation.getLongitude()));
-//        double currentLatitudeSpan = mapView.getLatitudeSpanDouble();
-//        double currentLongitudeSpan = mapView.getLongitudeSpanDouble();
-//        double ratio = currentLongitudeSpan / currentLatitudeSpan;
-//        mapView.getController().zoomToSpan(latitudeSpan * 2, longitudeSpan * 2);
+        List<GeoPoint> geoPointList = new ArrayList<>();
+        geoPointList.add(serverLocation);
+        geoPointList.add(rocketLocation);
+        BoundingBox bbMarkers = BoundingBox.fromGeoPoints(geoPointList);
 
+        if (mapView.getZoomLevelDouble() > 1 && (bbMarkers.getLatitudeSpan() > bbMap.getLatitudeSpan() || bbMarkers.getLongitudeSpan() > bbMap.getLongitudeSpan())) {
+            mapView.getController().zoomOut();
+        }
 
-        zoomSpan(rocketLocation.getLatitude(), serverLocation.getLatitude(), rocketLocation.getLongitude(), serverLocation.getLongitude());
+        if (mapView.getZoomLevelDouble() < mapView.getMaxZoomLevel() && bbMarkers.getLatitudeSpan() * 2 <= bbMap.getLatitudeSpan() && bbMarkers.getLongitudeSpan() * 2 <= bbMap.getLongitudeSpan()) {
+            mapView.getController().zoomIn();
+        }
 
         mapView.invalidate();
     }
@@ -241,16 +237,40 @@ public class MapTag extends OronosView {
         double viewLatSpan = mapView.getLatitudeSpanDouble();
         double viewLonSpan = mapView.getLongitudeSpanDouble();
         boolean actionTaken = false;
+
         if (mapView.getZoomLevelDouble() > 1 && (latSpan > viewLatSpan || lonSpan > viewLonSpan)) {
             mapView.getController().zoomOut();
             actionTaken = true;
         }
+
         if (mapView.getZoomLevelDouble() < mapView.getMaxZoomLevel() && latSpan * 2 <= viewLatSpan && lonSpan * 2 <= viewLonSpan) {
             mapView.getController().zoomIn();
             actionTaken = true;
         }
 
         mapView.getController().animateTo((int) latCenter, (int) lonCenter);
+    }
+
+    private GeoPoint midPoint(GeoPoint point1, GeoPoint point2) {
+        double lat1 = point1.getLatitude();
+        double lon1 = point1.getLongitude();
+        double lat2 = point2.getLatitude();
+        double lon2 = point2.getLongitude();
+
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        //convert to radians
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
+        lon1 = Math.toRadians(lon1);
+
+        double Bx = Math.cos(lat2) * Math.cos(dLon);
+        double By = Math.cos(lat2) * Math.sin(dLon);
+        double lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
+        double lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
+
+        //return in degrees
+        return new GeoPoint(Math.toDegrees(lat3), Math.toDegrees(lon3));
     }
 
 }
