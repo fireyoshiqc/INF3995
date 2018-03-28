@@ -4,8 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -50,8 +48,6 @@ public class MapTag extends OronosView {
         handler = new Handler();
         mapView = new MapView(context);
 
-//        setupRocketMarker();
-//        setupMapView();
     }
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -121,7 +117,7 @@ public class MapTag extends OronosView {
 
     private void setupMapView() {
         mapView.setUseDataConnection(false);
-        mapView.setBuiltInZoomControls(true);
+        mapView.setBuiltInZoomControls(false);
         mapView.setMultiTouchControls(true);
         //mapView.setMaxZoomLevel(15.0);
         //mapView.setMinZoomLevel(0.0);
@@ -138,7 +134,7 @@ public class MapTag extends OronosView {
             case "convention_center":
                 iTileSource = new XYTileSource("map/usa", 0, 15, 256, ".jpg", null);
                 break;
-            case "st_pie_de_guide":
+            case "st_pie_de_guire":
                 iTileSource = new XYTileSource("map/canada", 2, 18, 256, ".png", null);
                 break;
             default:
@@ -163,7 +159,7 @@ public class MapTag extends OronosView {
             case "convention_center":
                 serverLocation = new GeoPoint(32.2799304, -106.7468314);
                 break;
-            case "st_pie_de_guide":
+            case "st_pie_de_guire":
                 serverLocation = new GeoPoint(46.0035479, -72.7311097);
                 break;
         }
@@ -215,40 +211,6 @@ public class MapTag extends OronosView {
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
         mapView.getOverlays().add(rocketMarker);
-    }
-
-    private boolean isMarkerVisible(Marker marker) {
-        Rect currentMapBoundsRect = new Rect();
-        Point currentDevicePosition = new Point();
-        GeoPoint deviceLocation = new GeoPoint(marker.getPosition().getLatitude() * 1000000.0, marker.getPosition().getLongitude() * 1000000.0);
-
-        mapView.getProjection().toPixels(deviceLocation, currentDevicePosition);
-        mapView.getDrawingRect(currentMapBoundsRect);
-
-        return currentMapBoundsRect.contains(currentDevicePosition.x, currentDevicePosition.y);
-    }
-
-    private void zoomSpan(double northernLat, double southernLat, double easternLon, double westernLon) {
-        double latSpan = northernLat - southernLat;
-        double lonSpan = easternLon - westernLon;
-        double latCenter = southernLat + latSpan / 2;
-        double lonCenter = westernLon + lonSpan / 2;
-
-        double viewLatSpan = mapView.getLatitudeSpanDouble();
-        double viewLonSpan = mapView.getLongitudeSpanDouble();
-        boolean actionTaken = false;
-
-        if (mapView.getZoomLevelDouble() > 1 && (latSpan > viewLatSpan || lonSpan > viewLonSpan)) {
-            mapView.getController().zoomOut();
-            actionTaken = true;
-        }
-
-        if (mapView.getZoomLevelDouble() < mapView.getMaxZoomLevel() && latSpan * 2 <= viewLatSpan && lonSpan * 2 <= viewLonSpan) {
-            mapView.getController().zoomIn();
-            actionTaken = true;
-        }
-
-        mapView.getController().animateTo((int) latCenter, (int) lonCenter);
     }
 
     private GeoPoint midPoint(GeoPoint point1, GeoPoint point2) {
