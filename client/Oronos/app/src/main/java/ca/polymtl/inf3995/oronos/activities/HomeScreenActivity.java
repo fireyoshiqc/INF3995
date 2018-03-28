@@ -1,19 +1,17 @@
 package ca.polymtl.inf3995.oronos.activities;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -47,59 +45,60 @@ import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
+import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
 public class HomeScreenActivity extends AppCompatActivity {
     private static String[] retardedMessages = {"Ooopsie doopsie!",
-                                                "Oh no! Mama mia!",
-                                                "We'we vewy sowwy, please twy again.",
-                                                "Holy matrimony Batman!",
-                                                "Please forward your complaints to /dev/null",
-                                                "It's the lizard people's fault!",
-                                                "Yeah, whatever, it's not working, I dunno.",
-                                                "It's not a bug, it's a feature, ok!",
-                                                "Server machine broke"};
+            "Oh no! Mama mia!",
+            "We'we vewy sowwy, please twy again.",
+            "Holy matrimony Batman!",
+            "Please forward your complaints to /dev/null",
+            "It's the lizard people's fault!",
+            "Yeah, whatever, it's not working, I dunno.",
+            "It's not a bug, it's a feature, ok!",
+            "Server machine broke"};
 
-    private EditText    editAddr;
-    private EditText    editUser;
-    private EditText    editPassword;
-    private CheckBox    saveUserAddr;
-    private CheckBox    savePassword;
+    private EditText editAddr;
+    private EditText editUser;
+    private EditText editPassword;
+    private CheckBox saveUserAddr;
+    private CheckBox savePassword;
     private AlertDialog dialog;
-    private Snackbar    snackbar;
-    private Random      rng = new Random();
+    private Snackbar snackbar;
+    private Random rng = new Random();
+    private Snackbar warningBar;
 
     class StartBtnListener implements View.OnClickListener {
         private HomeScreenActivity parentActivity = null;
 
-        StartBtnListener ( HomeScreenActivity parentActivity ) {
+        StartBtnListener(HomeScreenActivity parentActivity) {
             this.parentActivity = parentActivity;
         }
 
         @Override
-        public void onClick ( View view ) {
+        public void onClick(View view) {
             parentActivity.handleLogin();
         }
     }
 
     private static class BasicErrorListener implements Response.ErrorListener {
         protected HomeScreenActivity parent;
-        protected String             name;
+        protected String name;
 
-        BasicErrorListener ( HomeScreenActivity parent, String name ) {
+        BasicErrorListener(HomeScreenActivity parent, String name) {
             this.parent = parent;
             this.name = name;
         }
 
         @Override
-        public void onErrorResponse ( VolleyError error ) {
+        public void onErrorResponse(VolleyError error) {
             this.parent.dialog.dismiss();
 
             String msg = this.parent.getErrorMsg(error);
-            if ( !GlobalParameters.hasRetardedErrorMessages ) {
+            if (!GlobalParameters.hasRetardedErrorMessages) {
                 this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + msg);
-            }
-            else {
+            } else {
                 this.parent.showInSnackbar(this.parent.getRetardedErrorMsg());
             }
             Timber.v(msg);
@@ -107,13 +106,13 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class PostUsersLoginListener extends BasicErrorListener implements Response.Listener<Void> {
-        PostUsersLoginListener ( HomeScreenActivity parent ) {
+        PostUsersLoginListener(HomeScreenActivity parent) {
             super(parent, "POST /users/login");
         }
 
         @Override
-        public void onResponse ( Void result ) {
-            if ( this.parent.snackbar != null )
+        public void onResponse(Void result) {
+            if (this.parent.snackbar != null)
                 this.parent.snackbar.dismiss();
             this.parent.saveInputs(this.parent.getTextInputs());
 
@@ -124,18 +123,17 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigBasicListener extends BasicErrorListener implements Response.Listener<JSONObject> {
-        GetConfigBasicListener ( HomeScreenActivity parent ) {
+        GetConfigBasicListener(HomeScreenActivity parent) {
             super(parent, "GET /config/basic");
         }
 
         @Override
-        public void onResponse ( JSONObject result ) {
+        public void onResponse(JSONObject result) {
             try {
                 GlobalParameters.udpPort = result.getInt("otherPort");
                 GlobalParameters.layoutName = result.getString("layout");
                 GlobalParameters.mapName = result.getString("map");
-            }
-            catch ( JSONException e ) {
+            } catch (JSONException e) {
                 this.parent.dialog.dismiss();
                 this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" + "Wrong JSON response");
                 return;
@@ -148,44 +146,41 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigRocketsListener extends BasicErrorListener implements Response.Listener<String> {
-        GetConfigRocketsListener ( HomeScreenActivity parent ) {
+        GetConfigRocketsListener(HomeScreenActivity parent) {
             super(parent, "GET /config/rockets/" + GlobalParameters.layoutName);
         }
 
         @Override
-        public void onResponse ( String result ) {
+        public void onResponse(String result) {
             File cacheFile = new File(this.parent.getCacheDir(), GlobalParameters.layoutName);
             try {
                 cacheFile.delete();
                 if (!cacheFile.createNewFile()) {
                     this.parent.dialog.dismiss();
                     this.parent.showInSnackbar("Could not create file '" + GlobalParameters.layoutName + "' " +
-                                               "in application cache");
+                            "in application cache");
                 }
+            } catch (IOException e) {
             }
-            catch ( IOException e ) { }
 
             try {
                 OutputStream outStrm = new FileOutputStream(cacheFile);
                 outStrm.write(result.getBytes("UTF-8"));
                 outStrm.flush();
-            }
-            catch (FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 this.parent.dialog.dismiss();
                 this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
-                                           "ERROR : FileNotFoundException");
+                        "ERROR : FileNotFoundException");
                 return;
-            }
-            catch (UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException e) {
                 this.parent.dialog.dismiss();
                 this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
-                                           "ERROR : UnsupportedEncodingException");
+                        "ERROR : UnsupportedEncodingException");
                 return;
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 this.parent.dialog.dismiss();
                 this.parent.showInSnackbar("In '" + this.name + "' request" + "\n" +
-                                           "ERROR : IOException");
+                        "ERROR : IOException");
                 return;
             }
 
@@ -196,12 +191,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigCanSidListener extends BasicErrorListener implements Response.Listener<JSONObject> {
-        GetConfigCanSidListener ( HomeScreenActivity parent ) {
+        GetConfigCanSidListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canSid");
         }
 
         @Override
-        public void onResponse ( JSONObject result ) {
+        public void onResponse(JSONObject result) {
             Map<String, Object> canSid = null;
 
             try {
@@ -229,12 +224,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigCanDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
-        GetConfigCanDataTypesListener ( HomeScreenActivity parent ) {
+        GetConfigCanDataTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canDataTypes");
         }
 
         @Override
-        public void onResponse ( JSONObject result ) {
+        public void onResponse(JSONObject result) {
             Map<String, Object> canDataTypes = null;
 
             try {
@@ -261,12 +256,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigCanMsgDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
-        GetConfigCanMsgDataTypesListener ( HomeScreenActivity parent ) {
+        GetConfigCanMsgDataTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canMsgDataTypes");
         }
 
         @Override
-        public void onResponse ( JSONObject result ) {
+        public void onResponse(JSONObject result) {
             Map<String, Object> canMsgDataTypes = null;
 
             try {
@@ -278,7 +273,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             if (canMsgDataTypes != null) {
                 Map<String, List<String>> map = new HashMap<>();
                 for (Map.Entry<String, Object> entry : canMsgDataTypes.entrySet()) {
-                    map.put(entry.getKey(), (List<String>)entry.getValue());
+                    map.put(entry.getKey(), (List<String>) entry.getValue());
                 }
 
                 GlobalParameters.canMsgDataTypes = map;
@@ -293,12 +288,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     private static class GetConfigCanModuleTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
-        GetConfigCanModuleTypesListener ( HomeScreenActivity parent ) {
+        GetConfigCanModuleTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canModuleTypes");
         }
 
         @Override
-        public void onResponse ( JSONObject result ) {
+        public void onResponse(JSONObject result) {
             Map<String, Object> canModuleTypes = null;
 
             try {
@@ -325,20 +320,20 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
 
-    public void handleLogin ( ) {
+    public void handleLogin() {
         HomeScreenInputs inputs = this.getTextInputs();
         boolean valid = true;
         if (inputs.username.equalsIgnoreCase("")) {
-            ((TextInputLayout)findViewById(R.id.userField)).setError("Username is required !");
+            ((TextInputLayout) findViewById(R.id.userField)).setError("Username is required !");
             valid = false;
         } else {
-            ((TextInputLayout)findViewById(R.id.userField)).setError(null);
+            ((TextInputLayout) findViewById(R.id.userField)).setError(null);
         }
         if (inputs.password.equalsIgnoreCase("")) {
-            ((TextInputLayout)findViewById(R.id.passwordField)).setError("Password is required !");
+            ((TextInputLayout) findViewById(R.id.passwordField)).setError("Password is required !");
             valid = false;
         } else {
-            ((TextInputLayout)findViewById(R.id.passwordField)).setError(null);
+            ((TextInputLayout) findViewById(R.id.passwordField)).setError(null);
         }
         if (inputs.serverAddress.equalsIgnoreCase("")) {
             ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address is required !"));
@@ -347,7 +342,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address format is invalid !"));
             valid = false;
         } else {
-            ((TextInputLayout)findViewById(R.id.addrField)).setError(null);
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(null);
         }
         if (valid) {
             this.sendLoginRequest(inputs);
@@ -355,9 +350,22 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate ( Bundle savedInstanceState ) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
+
+        if (!PermissionsUtil.hasPermissions(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            warningBar = Snackbar.make(findViewById(android.R.id.content), "Write to external memory permission is required for using this app.", Snackbar.LENGTH_INDEFINITE);
+            warningBar.setAction("ENABLE", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ActivityCompat.requestPermissions((Activity) HomeScreenActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                }
+            }).show();
+        } else {
+            grantPermissions();
+        }
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -368,7 +376,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.savePassword = findViewById(R.id.passwordCheckbox);
 
         if (GlobalParameters.hasRetardedErrorMessages) {
-            ((ImageView)findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
+            ((ImageView) findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
         }
 
         Button btnStart = findViewById(R.id.btnStart);
@@ -391,7 +399,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.setTextInputs(cachedInputs);
     }
 
-    private void sendLoginRequest ( HomeScreenInputs inputs ) {
+    private void sendLoginRequest(HomeScreenInputs inputs) {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
         this.dialog = builder.create();
         this.dialog.setCancelable(false);
@@ -406,36 +414,33 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume ( ) {
+    protected void onResume() {
         super.onResume();
 
-        if ( this.dialog != null && this.dialog.isShowing() )
+        if (this.dialog != null && this.dialog.isShowing())
             this.dialog.dismiss();
     }
 
-    private String getErrorMsg ( VolleyError error ) {
-        if ( error instanceof TimeoutError || error instanceof NoConnectionError ) {
+    private String getErrorMsg(VolleyError error) {
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
             //This indicates that the request has either time out or there is no connection
             return "ERROR : TimeoutError or NoConnectionError";
-        }
-        else if ( error instanceof NetworkError ) {
+        } else if (error instanceof NetworkError) {
             //Indicates that there was network error while performing the request
             return "ERROR : NetworkError";
-        }
-        else if ( error.networkResponse != null ) {
+        } else if (error.networkResponse != null) {
             return "ERROR : HTTP " + error.networkResponse.statusCode;
-        }
-        else {
+        } else {
             return "ERROR : N/A";
         }
     }
 
-    private String getRetardedErrorMsg ( ) {
+    private String getRetardedErrorMsg() {
         int index = this.rng.nextInt(retardedMessages.length);
         return retardedMessages[index];
     }
 
-    private HomeScreenInputs loadCachedInputs ( ) {
+    private HomeScreenInputs loadCachedInputs() {
         HomeScreenInputs result = new HomeScreenInputs();
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
         result.serverAddress = prefs.getString("serverAddress", "");
@@ -448,7 +453,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         return result;
     }
 
-    private void saveInputs ( HomeScreenInputs inputs ) {
+    private void saveInputs(HomeScreenInputs inputs) {
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         if (this.saveUserAddr.isChecked()) {
@@ -472,13 +477,13 @@ public class HomeScreenActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void setTextInputs ( HomeScreenInputs inputs ) {
+    private void setTextInputs(HomeScreenInputs inputs) {
         this.editAddr.setText(inputs.serverAddress);
         this.editUser.setText(inputs.username);
         this.editPassword.setText(inputs.password);
     }
 
-    private HomeScreenInputs getTextInputs ( ) {
+    private HomeScreenInputs getTextInputs() {
         HomeScreenInputs result = new HomeScreenInputs();
         result.serverAddress = this.editAddr.getText().toString();
         result.username = this.editUser.getText().toString();
@@ -486,7 +491,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         return result;
     }
 
-    private void showInSnackbar ( String msg ) {
+    private void showInSnackbar(String msg) {
         View thisView = findViewById(R.id.coordinatorLayout);
         this.snackbar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
         TextView snackbarTextView = this.snackbar.getView().findViewById(R.id.snackbar_text);
@@ -495,7 +500,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.snackbar.show();
     }
 
-    private void switchToMainActivity ( ) {
+    private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         this.startActivity(intent);
     }
@@ -505,4 +510,20 @@ public class HomeScreenActivity extends AppCompatActivity {
         String username = "";
         String password = "";
     }
+
+    public void grantPermissions() {
+//        if (locationManager == null) {
+//            locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+//        }
+//        if (locationManager != null) {
+//            enableLocationUpdates();
+//            registerSensors();
+//            startSensorTask();
+//            setupWebGLRenderer();
+//        }
+        if (warningBar != null && warningBar.isShown()) {
+            warningBar.dismiss();
+        }
+    }
+
 }
