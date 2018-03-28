@@ -3,6 +3,8 @@ package ca.polymtl.inf3995.oronos.activities;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.TextView;
+
 import ca.polymtl.inf3995.oronos.R;
 
 /**
@@ -17,7 +19,9 @@ public class PdfActivity extends DrawerActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdf);
-        //onCreateDrawer();
+        changeToolbarTitle("PDF downloads");
+        TextView pdfTextViewTitle = findViewById(R.id.pdf_title);
+        pdfTextViewTitle.setText("List of PDFs available for download: ");
 
     }
 

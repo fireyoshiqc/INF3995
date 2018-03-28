@@ -38,6 +38,8 @@ public class DrawerActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
 
         if (presentActID == -1){
+            //default selected button
+            //navigationView.getMenu().getItem(0).setChecked(true);
             presentActID = 0;
         }
 
@@ -53,14 +55,14 @@ public class DrawerActivity extends AppCompatActivity {
                         presentActID = menuItem.getItemId();
 
                         if (menuItem == navigationView.getMenu().getItem(dataIndex)) {
-                            toolbar.setTitle("ORONOS");
                             switchToMainActivity();
+
                         } else if (menuItem == navigationView.getMenu().getItem(themeIndex)) {
-                            toolbar.setTitle("Theme selection");
+                            themeSelectionPopup();
 
                         } else if (menuItem == navigationView.getMenu().getItem(pdfIndex)) {
-                            toolbar.setTitle("PDF downloads");
                             switchToPdfActivity();
+
                         } else {
                             //toolbar.setTitle("Disconnection");
                             disconnectionPopup();
@@ -81,8 +83,7 @@ public class DrawerActivity extends AppCompatActivity {
             Timber.e("Error: Could not create action bar for DrawerActivity.");
         }
 
-        //default selected button
-        navigationView.getMenu().getItem(0).setChecked(true);
+
     }
 
     @Override
@@ -129,13 +130,33 @@ public class DrawerActivity extends AppCompatActivity {
                 .setNegativeButton("No", dialogClickListener).show();
     }
 
-    private void switchToMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        this.startActivity(intent);
+    private void themeSelectionPopup() {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //Light theme button clicked
+                        setThemeToLight();
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //Dark theme button clicked
+                        setThemeToDark();
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Select which theme you want: ").setPositiveButton("Light theme", dialogClickListener)
+                .setNegativeButton("Dark theme", dialogClickListener).show();
     }
 
-    private void switchToThemeActivity() {
+    private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        //toolbar.setTitle("ORONOS");
+        finish();
         this.startActivity(intent);
     }
 
@@ -148,5 +169,18 @@ public class DrawerActivity extends AppCompatActivity {
         Intent intent = new Intent(this, HomeScreenActivity.class);
         finish();
         this.startActivity(intent);
+    }
+
+    protected void changeToolbarTitle(String title){
+        toolbar.setTitle(title);
+        setSupportActionBar(toolbar);
+    }
+
+    private void setThemeToLight(){
+        //TODO
+    }
+
+    private void setThemeToDark(){
+        //TODO
     }
 }
