@@ -8,10 +8,12 @@ package ca.polymtl.inf3995.oronos.services;
 import android.content.Context;
 import android.os.Build;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -33,6 +35,7 @@ public class RestHttpWrapper {
     private String       serverUrl = "";
     private String       username = "";
     private String       password = "";
+    private RetryPolicy  retryPolicy;
 
     private static class JSONPostRequestVoidResponse extends JsonRequest<Void> {
 
@@ -47,7 +50,9 @@ public class RestHttpWrapper {
         }
     }
 
-    private RestHttpWrapper() { }
+    private RestHttpWrapper() {
+        this.retryPolicy = new DefaultRetryPolicy(5000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+    }
 
     public static RestHttpWrapper getInstance() {
         if (instance == null) {
@@ -88,7 +93,7 @@ public class RestHttpWrapper {
                                                                               json,
                                                                               resListen,
                                                                               errListen);
-
+        request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
     }
@@ -107,7 +112,7 @@ public class RestHttpWrapper {
                                                                               json,
                                                                               resListen,
                                                                               errListen);
-
+        request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
     }
@@ -149,6 +154,7 @@ public class RestHttpWrapper {
                                                           null,
                                                           resListener,
                                                           errListener);
+        request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
     }
@@ -158,6 +164,7 @@ public class RestHttpWrapper {
                                                   this.serverUrl + url,
                                                   resListener,
                                                   errListener);
+        request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
     }
@@ -165,5 +172,4 @@ public class RestHttpWrapper {
     private String getDeviceName() {
         return Build.MODEL;
     }
-
 }
