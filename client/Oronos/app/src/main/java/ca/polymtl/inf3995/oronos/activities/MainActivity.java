@@ -57,7 +57,6 @@ public class MainActivity extends DrawerActivity {
 
         fillViewsContainer();
         setUpToolbar();
-        super.onCreateDrawer();
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
         if (viewsContainer != null) {
