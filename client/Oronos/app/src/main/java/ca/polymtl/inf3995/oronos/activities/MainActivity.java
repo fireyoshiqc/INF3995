@@ -138,7 +138,7 @@ public class MainActivity extends DrawerActivity {
             InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
 
-            changeToolbarTitle(rocket.getName() + ":" + rocket.getRocketId());
+            changeToolbarTitle(rocket.getName() + " (#" + rocket.getRocketId() + ")");
 
             viewsContainer = new ArrayList<>();
             viewsContainer.addAll(rocket.getList());
