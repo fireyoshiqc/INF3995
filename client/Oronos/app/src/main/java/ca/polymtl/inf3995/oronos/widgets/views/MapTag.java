@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.osmdroid.api.IMapController;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -120,13 +122,15 @@ public class MapTag extends OronosView {
         mapView.setBuiltInZoomControls(false);
         mapView.setMultiTouchControls(true);
         //mapView.setMaxZoomLevel(15.0);
-        //mapView.setMinZoomLevel(0.0);
+        mapView.setMinZoomLevel(1.0);
 
         if (GlobalParameters.mapName == null) {
             return;
         }
 
         ITileSource iTileSource;
+
+        Timber.v(GlobalParameters.mapName);
 
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
@@ -138,14 +142,15 @@ public class MapTag extends OronosView {
                 iTileSource = new XYTileSource("map/canada", 2, 18, 256, ".png", null);
                 break;
             default:
+                // Default to USA
                 iTileSource = new XYTileSource("map/usa", 0, 15, 256, ".jpg", null);
+                Snackbar.make(getRootView(), "Unknown map. Default to Spaceport America.", Snackbar.LENGTH_LONG).show();
         }
 
         mapView.setTileSource(iTileSource);
 
         IMapController mapController = mapView.getController();
 
-        serverLocation = new GeoPoint(0.0, 0.0);
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
 
@@ -162,6 +167,9 @@ public class MapTag extends OronosView {
             case "st_pie_de_guire":
                 serverLocation = new GeoPoint(46.0035479, -72.7311097);
                 break;
+            default:
+                // Default to Spaceport America
+                serverLocation = new GeoPoint(32.9401475, -106.9193209);
         }
 
         serverMarker.setPosition(serverLocation);
@@ -184,22 +192,12 @@ public class MapTag extends OronosView {
     private void updateMarker() {
         rocketMarker.setPosition(rocketLocation);
 
-        mapView.getController().animateTo(midPoint(rocketLocation, serverLocation));
-
-        BoundingBox bbMap = mapView.getBoundingBox();
-
         List<GeoPoint> geoPointList = new ArrayList<>();
         geoPointList.add(serverLocation);
         geoPointList.add(rocketLocation);
         BoundingBox bbMarkers = BoundingBox.fromGeoPoints(geoPointList);
 
-        if (mapView.getZoomLevelDouble() > 1 && (bbMarkers.getLatitudeSpan() > bbMap.getLatitudeSpan() || bbMarkers.getLongitudeSpan() > bbMap.getLongitudeSpan())) {
-            mapView.getController().zoomOut();
-        }
-
-        if (mapView.getZoomLevelDouble() < mapView.getMaxZoomLevel() && bbMarkers.getLatitudeSpan() * 2 <= bbMap.getLatitudeSpan() && bbMarkers.getLongitudeSpan() * 2 <= bbMap.getLongitudeSpan()) {
-            mapView.getController().zoomIn();
-        }
+        mapView.zoomToBoundingBox(bbMarkers, true, 60);
 
         mapView.invalidate();
     }
@@ -211,28 +209,6 @@ public class MapTag extends OronosView {
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
         mapView.getOverlays().add(rocketMarker);
-    }
-
-    private GeoPoint midPoint(GeoPoint point1, GeoPoint point2) {
-        double lat1 = point1.getLatitude();
-        double lon1 = point1.getLongitude();
-        double lat2 = point2.getLatitude();
-        double lon2 = point2.getLongitude();
-
-        double dLon = Math.toRadians(lon2 - lon1);
-
-        //convert to radians
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        lon1 = Math.toRadians(lon1);
-
-        double Bx = Math.cos(lat2) * Math.cos(dLon);
-        double By = Math.cos(lat2) * Math.sin(dLon);
-        double lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
-        double lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
-
-        //return in degrees
-        return new GeoPoint(Math.toDegrees(lat3), Math.toDegrees(lon3));
     }
 
 }
