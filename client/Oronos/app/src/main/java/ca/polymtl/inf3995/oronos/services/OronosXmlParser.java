@@ -96,10 +96,36 @@ public class OronosXmlParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("TabContainer")) {
-                contents = readTabContainer(parser);
-            } else {
-                skip(parser);
+            switch (name) {
+                case "DataDisplayer":
+                    contents = readDataDisplayer(parser, DataDisplayer.DataLayout.FULL);
+                    break;
+                case "DisplayLogWidget":
+                    contents = readDisplayLogWidget(parser);
+                    break;
+                case "DualVWidget":
+                    contents = readDualVWidget(parser);
+                    break;
+                case "DualHWidget":
+                    contents = readDualHWidget(parser);
+                    break;
+                case "FindMe":
+                    contents = readFindMe(parser);
+                    break;
+                case "Map":
+                    contents = readMap(parser);
+                    break;
+                case "Modulestatus":
+                    contents = readModuleStatus(parser);
+                    break;
+                case "Plot":
+                    contents = readPlot(parser);
+                    break;
+                case "TabContainer":
+                    contents = readTabContainer(parser);
+                    break;
+                default:
+                    skip(parser);
             }
         }
         return contents;

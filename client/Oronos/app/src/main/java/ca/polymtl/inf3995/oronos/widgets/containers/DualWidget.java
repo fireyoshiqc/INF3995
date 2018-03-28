@@ -26,8 +26,10 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
         switch (orientation) {
             case HORIZONTAL:
                 setOrientation(LinearLayout.HORIZONTAL);
+                break;
             case VERTICAL:
                 setOrientation(LinearLayout.VERTICAL);
+                break;
         }
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
     }
