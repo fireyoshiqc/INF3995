@@ -7,11 +7,12 @@ import csv
 import random
 
 
-FIVE_MINUTES_IN_SECONDS = 300
+DEMO_DURATION_SECONDS = 50
 START_AGRUM_TIMEOUT = 5
 END_AGRUM_TIMEOUT = 10
-START_BAD_VOLTAGE = 15
-END_BAD_VOLTAGE = 30
+START_BAD_VOLTAGE = 10
+END_BAD_VOLTAGE = 15
+CLOSE_TO_LAUNCH = 30.0
 
 # TODO: Make sure data set allows all required custom updates
 with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8') as input_file, \
@@ -27,7 +28,13 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 
 		csv_columns = input_reader.__next__()
 		output_file.write(';'.join(csv_columns) + '\n')
-		print(';'.join(csv_columns))
+
+		# Read lines until launch
+		next_line = input_reader.__next__()
+		next_timestamp = next_line[0]
+		while float(next_timestamp) < CLOSE_TO_LAUNCH:
+			next_line = input_reader.__next__()
+			next_timestamp = next_line[0]
 
 		filler_msg = []
 
@@ -37,10 +44,10 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 
 			next_line = input_reader.__next__()
 
-			# Check timestamp
-			next_timestamp = next_line[0]
+			# Determine timestamp
+			next_timestamp = timestamp_reader.__next__()[0]
 			# Maximum duration of test CSV is 5 minutes
-			if float(next_timestamp) >= FIVE_MINUTES_IN_SECONDS:
+			if float(next_timestamp) >= DEMO_DURATION_SECONDS:
 				break
 
 			# Get filler messages for planned AGRUM timeout
@@ -63,26 +70,9 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 					# Replace good data with random negative number
 					next_line[7] = str(random.uniform(0,1) - 2)
 					#print(next_timestamp, sid_name)
-					print(next_line)
 			else:
-				# Replace x acceleration with actual rocket launch
-				sid_name = next_line[6]
-				if 'ICM_ACC_X' in sid_name:
-					new_acc = acc_x_reader.__next__()[1]
-					next_line[7] = new_acc
-
-					# Check what time the launch starts
-					if '10.' in str(new_acc):
-						print(new_acc, next_timestamp)
-
-				# TODO: Put more interesting GPS data?
-				# Might be easier that it actually adjusts to position
-				# if nothing is moving?
-				# Use Yohan's fusée data from ciel d'octobre
-
-				# if 'RPM_45V' in sid_name:
-				# 	print(next_timestamp, sid_name)
-				# 	v_count = v_count + 1
+				pass
 
 			#print(next_line)
+			next_line[0] = next_timestamp
 			output_file.write(';'.join(next_line) + '\n')
