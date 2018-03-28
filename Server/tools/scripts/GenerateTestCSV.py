@@ -8,10 +8,10 @@ import random
 
 
 DEMO_DURATION_SECONDS = 50
-START_AGRUM_TIMEOUT = 5
-END_AGRUM_TIMEOUT = 10
-START_BAD_VOLTAGE = 10
-END_BAD_VOLTAGE = 15
+START_AGRUM_TIMEOUT = 15
+END_AGRUM_TIMEOUT = 100
+START_BAD_VOLTAGE = 20
+END_BAD_VOLTAGE = 25
 CLOSE_TO_LAUNCH = 30.0
 
 # TODO: Make sure data set allows all required custom updates
@@ -63,7 +63,7 @@ with open('../../working_dir/flight_logs/valkyrie_ii.csv', 'r', encoding='utf-8'
 				if 'AGRUM' in module_type:
 					next_line = filler_msg
 			# Demonstrate bad value
-			elif (float(next_timestamp) > START_BAD_VOLTAGE) \
+			if (float(next_timestamp) > START_BAD_VOLTAGE) \
 					and (float(next_timestamp) < END_BAD_VOLTAGE):
 				sid_name = next_line[6]
 				if 'RPM_45V' in sid_name:
