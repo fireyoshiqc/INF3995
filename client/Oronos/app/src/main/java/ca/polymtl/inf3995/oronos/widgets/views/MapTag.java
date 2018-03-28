@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.osmdroid.api.IMapController;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -128,6 +130,8 @@ public class MapTag extends OronosView {
 
         ITileSource iTileSource;
 
+        Timber.v(GlobalParameters.mapName);
+
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
             case "motel_6":
@@ -138,14 +142,15 @@ public class MapTag extends OronosView {
                 iTileSource = new XYTileSource("map/canada", 2, 18, 256, ".png", null);
                 break;
             default:
+                // Default to USA
                 iTileSource = new XYTileSource("map/usa", 0, 15, 256, ".jpg", null);
+                Snackbar.make(getRootView(), "Unknown map. Default to Spaceport America.", Snackbar.LENGTH_LONG).show();
         }
 
         mapView.setTileSource(iTileSource);
 
         IMapController mapController = mapView.getController();
 
-        serverLocation = new GeoPoint(0.0, 0.0);
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
 
@@ -162,6 +167,9 @@ public class MapTag extends OronosView {
             case "st_pie_de_guire":
                 serverLocation = new GeoPoint(46.0035479, -72.7311097);
                 break;
+            default:
+                // Default to Spaceport America
+                serverLocation = new GeoPoint(32.9401475, -106.9193209);
         }
 
         serverMarker.setPosition(serverLocation);
