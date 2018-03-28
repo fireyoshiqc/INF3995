@@ -13,6 +13,7 @@ import android.widget.TextView;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Queue;
 import java.util.Timer;
@@ -106,7 +107,8 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         if (GlobalParameters.LIMIT_OF_N_MSG - msgQueue.size() == 0) {
             msgQueue.poll();
         }
-        msgQueue.add(String.format("%s;%s;%s;%s;%s;", module, noSerie, canSID, newData1, newData2));
+        String currentTime = Calendar.getInstance().getTime().toString();
+        msgQueue.add(String.format("%s;%s;%s;%s;%s;%s;",currentTime, module, noSerie, canSID, newData1, newData2));
     }
 
     @Override
