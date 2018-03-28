@@ -95,7 +95,8 @@ public class MainActivity extends DrawerActivity {
      */
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle("ORONOS");
+        //toolbar.setTitle("ORONOS");
+        // Title is set in parser
         setSupportActionBar(toolbar);
 
 
@@ -136,6 +137,8 @@ public class MainActivity extends DrawerActivity {
         try {
             InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
+
+            changeToolbarTitle(rocket.getName() + ":" + rocket.getRocketId());
 
             viewsContainer = new ArrayList<>();
             viewsContainer.addAll(rocket.getList());
