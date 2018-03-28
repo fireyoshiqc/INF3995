@@ -84,7 +84,6 @@ public class MainActivity extends DrawerActivity {
      * Utilities for the client
      */
     private void setUpUtilities() {
-        Timber.plant(new LogTree());
         SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
         DataDispatcher.setContext(getApplicationContext());
     }

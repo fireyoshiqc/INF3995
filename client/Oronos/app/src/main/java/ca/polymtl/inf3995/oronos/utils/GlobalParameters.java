@@ -7,6 +7,9 @@ import java.util.Map;
 
 
 public class GlobalParameters {
+    // LogTree
+    public final static String LOG_DIR_NAME = "OronosGGLogs";
+
     // ModuleStatus
     public final static int ONLINE_TO_DELAY  = 2000; // in milliseconds.
     public final static int DELAY_TO_OFFLINE = 4000; // in milliseconds.

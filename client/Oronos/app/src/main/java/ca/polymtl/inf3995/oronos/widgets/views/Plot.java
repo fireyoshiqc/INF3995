@@ -33,6 +33,7 @@ import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.DataPlot;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
+import timber.log.Timber;
 
 
 /**

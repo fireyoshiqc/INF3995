@@ -45,6 +45,7 @@ import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
+import ca.polymtl.inf3995.oronos.utils.LogTree;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
@@ -353,6 +354,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
+        Timber.plant(new LogTree(getApplicationContext()));
 
         if (!PermissionsUtil.hasPermissions(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             warningBar = Snackbar.make(findViewById(android.R.id.content), "Write to external memory permission is required for using this app.", Snackbar.LENGTH_INDEFINITE);

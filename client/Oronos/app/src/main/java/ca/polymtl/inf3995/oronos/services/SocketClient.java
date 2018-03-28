@@ -121,9 +121,11 @@ public class SocketClient {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
                 if (address.equals("/inf3995-03/can-data")) {
                     DataDispatcher.dataToDispatch(message.getArguments());
                     DataDispatcher.logToDispatch(message.getArguments());
+
                 } else if (address.equals("/inf3995-03/modules")) {
                     DataDispatcher.moduleToDispatch(message.getArguments());
                 }
