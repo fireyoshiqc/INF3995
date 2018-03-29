@@ -31,6 +31,8 @@ import android.widget.TextView;
 
 import org.parceler.Parcels;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,6 +45,9 @@ import timber.log.Timber;
  * FindMe class for the FindMe tag.
  */
 public class FindMe extends OronosView implements SensorEventListener, LocationListener {
+
+    //TODO: Refactor this horrible pattern
+    private static List<FindMe> instances = new ArrayList<>();
 
     public static final int GPS_PERMISSION = 1;
     private final SensorManager sensorManager;
@@ -77,6 +82,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
      */
     public FindMe(Context context) {
         super(context);
+        instances.add(this);
         coordinator = new CoordinatorLayout(getContext());
         content = new LinearLayout(getContext());
         threeView = new WebView(getContext());
@@ -85,6 +91,16 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         buildView();
+    }
+
+    public static List<FindMe> getInstances() {
+        return instances;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        instances.remove(this);
     }
 
     /**
@@ -394,7 +410,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         float[] yDist = new float[1];
         float zDist;
         float totalDist = deviceLocation.distanceTo(rocketLocation);
-        String deviceInfo = deviceLocation.getProvider() != "" ? String.format("Device - Lat : %.6f, Long : %.6f, Alt : %.2f m, Provider : %s",
+        String deviceInfo = !deviceLocation.getProvider().equals("") ? String.format("Device - Lat : %.6f, Long : %.6f, Alt : %.2f m, Provider : %s",
                 deviceLocation.getLatitude(), deviceLocation.getLongitude(), deviceLocation.getAltitude(), deviceLocation.getProvider()) : "Device - NO LOCATION DATA AVAILABLE";
         String rocketInfo = String.format("Rocket - Lat : %.6f, Long : %.6f, Alt : %.2f m",
                 rocketLocation.getLatitude(), rocketLocation.getLongitude(), rocketLocation.getAltitude());

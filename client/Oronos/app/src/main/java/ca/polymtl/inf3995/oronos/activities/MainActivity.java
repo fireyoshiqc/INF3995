@@ -195,11 +195,9 @@ public class MainActivity extends DrawerActivity {
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    // TODO: Use some kind of observer pattern to notify FindMe and Map elements
-                    for (View view : viewsContainer) {
-                        if (view instanceof FindMe) {
-                            ((FindMe) view).grantPermissions();
-                        }
+                    // TODO: REFACTOR THIS!
+                    for (FindMe findMe : FindMe.getInstances()) {
+                        findMe.grantPermissions();
                     }
 
 
@@ -207,11 +205,9 @@ public class MainActivity extends DrawerActivity {
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    // TODO: Use some kind of observer pattern to notify FindMe and Map elements
-                    for (View view : viewsContainer) {
-                        if (view instanceof FindMe) {
-                            ((FindMe) view).showPermissionWarning();
-                        }
+                    // TODO: REFACTOR THIS!
+                    for (FindMe findMe : FindMe.getInstances()) {
+                        findMe.showPermissionWarning();
                     }
                 }
             }
