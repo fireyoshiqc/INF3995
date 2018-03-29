@@ -22,6 +22,7 @@ import org.parceler.Parcels;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
@@ -153,6 +154,7 @@ public class MapTag extends OronosView {
 
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
+        serverMarker.setIcon(getResources().getDrawable(R.drawable.ic_home_black_24dp));
 
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
@@ -208,6 +210,7 @@ public class MapTag extends OronosView {
         rocketMarker.setPosition(rocketLocation);
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
+        rocketMarker.setIcon(getResources().getDrawable(R.drawable.ic_adjust_black_24dp));
         mapView.getOverlays().add(rocketMarker);
     }
 
