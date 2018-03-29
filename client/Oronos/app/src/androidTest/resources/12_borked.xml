@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Rocket name="Borked" id="12">
+	<GridContainer>
+		<Grid col="0" row="0">
+			<TabContainer>
+				<Tab name="Batteries, SD">
+					<DualVWidget>
+						<DataDisplayer>
+							<CAN name="1 - 45v" id="RPM_45V" display="__DATA1__ V" minAcceptable="0" maxAcceptable="5" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - 45v" id="RPM_45V" display="__DATA1__ V" minAcceptable="0" maxAcceptable="5" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - I_BAT" id="RPM_CURRENT" display="__DATA1__ A" minAcceptable="0.05" maxAcceptable="7.0" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - I_BAT" id="RPM_CURRENT" display="__DATA1__ A" minAcceptable="0.05" maxAcceptable="7.0" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - V_BAT" id="RPM_VOLTAGE" display="__DATA1__" minAcceptable="6.0" maxAcceptable="8.5" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - V_BAT" id="RPM_VOLTAGE" display="__DATA1__" minAcceptable="6.0" maxAcceptable="8.5" specificSource="MCD" serialNb="2"/>
+						</DataDisplayer>
+						<DataDisplayer>
+							<CAN name="1 - msg lost" id="SD_CARD_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - msg lost" id="SD_CARD_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - space left" id="SD_CARD_SPACE_LEFT" minAcceptable="1048576" customUpdate="SDSpaceLeft" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - space left" id="SD_CARD_SPACE_LEFT" minAcceptable="1048576" customUpdate="SDSpaceLeft"  specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - written" id="SD_TOTAL_BYTES_WRITTEN" minAcceptable="0" maxAcceptable="3500000000" customUpdate="SDBytesWritten" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - written" id="SD_TOTAL_BYTES_WRITTEN" minAcceptable="0" maxAcceptable="3500000000" customUpdate="SDBytesWritten"  specificSource="MCD" serialNb="2"/>
+							<CAN name="GS UART write error" id="GS_UART_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0"/>
+							<CAN name="GS UART read error" id="GS_UART_READ_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0"/>
+							<CAN name="1 - data queue full" id="ADIRM_DATA_QUEUE_FULL" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - data queue full" id="ADIRM_DATA_QUEUE_FULL" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+						</DataDisplayer>
+						<DataDisplayer>
+							<CAN name="1 - msg lost" id="SD_CARD_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - msg lost" id="SD_CARD_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - space left" id="SD_CARD_SPACE_LEFT" minAcceptable="1048576" customUpdate="SDSpaceLeft" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - space left" id="SD_CARD_SPACE_LEFT" minAcceptable="1048576" customUpdate="SDSpaceLeft"  specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - written" id="SD_TOTAL_BYTES_WRITTEN" minAcceptable="0" maxAcceptable="3500000000" customUpdate="SDBytesWritten" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - written" id="SD_TOTAL_BYTES_WRITTEN" minAcceptable="0" maxAcceptable="3500000000" customUpdate="SDBytesWritten"  specificSource="MCD" serialNb="2"/>
+							<CAN name="GS UART write error" id="GS_UART_WRITE_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0"/>
+							<CAN name="GS UART read error" id="GS_UART_READ_ERROR" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0"/>
+							<CAN name="1 - data queue full" id="ADIRM_DATA_QUEUE_FULL" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - data queue full" id="ADIRM_DATA_QUEUE_FULL" display="__DATA1__" minAcceptable="0" maxAcceptable="0" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+						</DataDisplayer>
+					</DualVWidget>
+				</Tab>
+				<Tab name="GPS and Temperature">
+					<DualVWidget>
+						<DataDisplayer>
+							<CAN name="1 - LAT" id="GPS1_LATITUDE" display="__DATA1__" minAcceptable="30" maxAcceptable="35" chiffresSign="6" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - LAT" id="GPS1_LATITUDE" display="__DATA1__" minAcceptable="30" maxAcceptable="35" chiffresSign="6" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - LONG" id="GPS1_LONGITUDE" display="__DATA1__" minAcceptable="100" maxAcceptable="110" chiffresSign="6" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - LONG" id="GPS1_LONGITUDE" display="__DATA1__" minAcceptable="100" maxAcceptable="110" chiffresSign="6" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - ALT" id="GPS1_ALT_MSL" display="__DATA1__ m" minAcceptable="1000" maxAcceptable="12000" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - ALT" id="GPS1_ALT_MSL" display="__DATA1__ m" minAcceptable="1000" maxAcceptable="12000" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - Gnd speed" id="GPS1_GND_SPEED" display="__DATA1__ km/h" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - Gnd speed" id="GPS1_GND_SPEED" display="__DATA1__ km/h" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - Nb sat" id="GPS1_NB_SAT" display="__DATA1__" minAcceptable="1" maxAcceptable="12" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - Nb sat" id="GPS1_NB_SAT" display="__DATA1__" minAcceptable="1" maxAcceptable="12" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - UTC" id="GPS1_DATE_TIME" display="__DATA1__" chiffresSign="0" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - UTC" id="GPS1_DATE_TIME" display="__DATA1__" chiffresSign="0" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - Horiz. precision" id="GPS1_FIX_QUAL" display="__DATA1__" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - Horiz. precision" id="GPS1_FIX_QUAL" display="__DATA1__" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+							<CAN name="1 - Course over Ground" id="GPS1_TRACK_ANG" display="__DATA1__ °" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="2 - Course over Ground" id="GPS1_TRACK_ANG" display="__DATA1__ °" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+						</DataDisplayer>
+						<DataDisplayer>
+							<CAN name="MCD 1 Temp ICM" id="TEMPERATURE" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="MCD 2 Temp ICM" id="TEMPERATURE" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+		
+							<CAN name="MCD 1 Temp Bar 1" id="BAR_TEMPERATURE1" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="MCD 2 Temp Bar 1" id="BAR_TEMPERATURE1" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+		
+							<CAN name="MCD 1 Temp Bar 2" id="BAR_TEMPERATURE2" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="1"/>
+							<CAN name="MCD 2 Temp Bar 2" id="BAR_TEMPERATURE2" display="__DATA1__ °C" minAcceptable="5" maxAcceptable="65" chiffresSign="2" specificSource="MCD" serialNb="2"/>
+						</DataDisplayer>
+					</DualVWidget>
+				</Tab>
+				<Tab name="Debug"><DebugOptions/></Tab>
+			</TabContainer>
+		</Grid>
+	</GridContainer>
+</Rocket>
