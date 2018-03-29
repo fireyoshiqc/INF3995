@@ -145,12 +145,14 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
 
         int[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
-        LineData lineData = new LineData();
         List<ILineDataSet> lines = new ArrayList<ILineDataSet>();
         int colorCount = 0;
         for (CAN can : this.canList) {
-            DataPlot dataPlot = dataMap.get(can.getId());
-            List<Entry> listEntry = dataPlot.retrieveEntries(this.seconds);
+            List<Entry> listEntry;
+            synchronized (dataMap) {
+                DataPlot dataPlot = dataMap.get(can.getId());
+                listEntry = dataPlot.retrieveEntries(this.seconds);
+            }
             if (!listEntry.isEmpty()) {
                 LineDataSet line = new LineDataSet(listEntry, can.getId());
                 line.setColor(colors[colorCount]);
