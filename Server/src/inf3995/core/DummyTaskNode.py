@@ -25,10 +25,11 @@ class DummyTaskNode(AbstractTaskNode):
 		self.__event_logger.log_debug(msg)
 	
 	def handle_data(self):
-		msg = "But the men of Sodom were wicked and sinners before the Lord exceedingly."
+		# msg = "But the men of Sodom were wicked and sinners before the Lord exceedingly."
 		# print(msg)
 		# sys.stdout.flush()
-		self.__event_logger.log_debug(msg)
+		# self.__event_logger.log_debug(msg)
+		pass
 	
 	def cleanup(self):
 		msg = "...Cain rose up against Abel his brother, and slew him."

@@ -166,7 +166,7 @@ class ApplicationManager(object):
 		event_logger_node.connect_to_source(log_viewer_node)
 
 		# TODO: Build the worker threads
-		# self.__build_thread([dummy_node], 0.5)
+		self.__build_thread([dummy_node], 0.5)
 		self.__build_thread([rest_node])
 		self.__build_thread([rx_node])
 		self.__build_thread([tx_node], 20.0)
