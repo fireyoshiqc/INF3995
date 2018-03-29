@@ -65,7 +65,7 @@ public class LogTree extends Timber.DebugTree {
                 messageStr = currentTime + " - WARNING - " + message;
                 break;
             case Log.ERROR:
-                messageStr = "ERROR";
+                messageStr = currentTime + " - ERROR - " + message;
                 break;
         }
         Log.println(priority, tag, messageStr);

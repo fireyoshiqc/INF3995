@@ -1,17 +1,15 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
-
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,12 +24,11 @@ import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.services.SocketClient;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
-import ca.polymtl.inf3995.oronos.utils.LogTree;
 import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
 import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
-import ca.polymtl.inf3995.oronos.widgets.containers.UnsupportedContainerWidgetException;
+import ca.polymtl.inf3995.oronos.widgets.views.ContainableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
@@ -59,10 +56,10 @@ public class MainActivity extends DrawerActivity {
         setUpToolbar();
         // Check if filling the viewsContainer worked;
         dataLayout = findViewById(R.id.data_layout);
-        if (viewsContainer != null) {
+        if (viewsContainer != null && !viewsContainer.isEmpty()) {
             dataLayout.addView(viewsContainer.get(0), -1);
         } else {
-            throw new NullPointerException("No view in viewOfGrid, cannot display any data.");
+            Timber.e("No view in viewOfGrid, cannot display any data.");
         }
 
         // Ready to start
@@ -72,9 +69,8 @@ public class MainActivity extends DrawerActivity {
     }
 
 
-
     @Override
-    protected void onDestroy ( ) {
+    protected void onDestroy() {
         super.onDestroy();
         SocketClient.getInstance().disconnect();
         RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
@@ -100,23 +96,28 @@ public class MainActivity extends DrawerActivity {
 
 
         ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
-        for (OronosView view : viewsContainer) {
-            String name = view.getClass().getSimpleName();
-            ArrayList<String> subnames = new ArrayList<>();
-            if (view instanceof AbstractWidgetContainer) {
-                for (Object sub : ((AbstractWidgetContainer) view).getList()) {
-                    if (sub instanceof Tab) {
-                        subnames.add("Tab - " + ((Tab) sub).getName());
-                    } else if (sub instanceof Plot) {
-                        subnames.add("Plot - " + ((Plot) sub).getName());
-                    } else {
-                        subnames.add(sub.getClass().getSimpleName());
-                    }
+        if (viewsContainer != null) {
+            for (OronosView view : viewsContainer) {
+                String name = view.getClass().getSimpleName();
+                ArrayList<String> subnames = new ArrayList<>();
+                if (view instanceof AbstractWidgetContainer) {
+                    for (Object sub : ((AbstractWidgetContainer) view).getList()) {
+                        if (sub instanceof Tab) {
+                            subnames.add("Tab - " + ((Tab) sub).getName());
+                        } else if (sub instanceof Plot) {
+                            subnames.add("Plot - " + ((Plot) sub).getName());
+                        } else {
+                            subnames.add(sub.getClass().getSimpleName());
+                        }
 
+                    }
                 }
+                names.add(new GridSelectorAdapter.OronosViewCardContents(name, subnames));
             }
-            names.add(new GridSelectorAdapter.OronosViewCardContents(name, subnames));
+        } else {
+            Timber.e("View container is empty, cannot create menu properly.");
         }
+
 
         recycler = new RecyclerView(this);
         GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
@@ -133,21 +134,20 @@ public class MainActivity extends DrawerActivity {
      */
     private void fillViewsContainer() {
         OronosXmlParser parser = new OronosXmlParser(this);
+        viewsContainer = new ArrayList<>();
         try {
             InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
+            if (rocket != null) {
+                changeToolbarTitle(rocket.getName() + " (#" + rocket.getRocketId() + ")");
+                viewsContainer.addAll(rocket.getList());
+            } else {
+                changeToolbarTitle("NO ROCKET");
+            }
 
-            changeToolbarTitle(rocket.getName() + " (#" + rocket.getRocketId() + ")");
-
-            viewsContainer = new ArrayList<>();
-            viewsContainer.addAll(rocket.getList());
-
-            // Add FindMe for testing
-            FindMe test = new FindMe(this);
-            viewsContainer.add(test);
-
-        } catch (IOException | XmlPullParserException | UnsupportedContainerWidgetException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            Timber.e("There was an issue while reading the XML file. Exception message :\n" +
+                    e.getMessage());
         }
     }
 

@@ -66,7 +66,6 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     private Snackbar warningBar;
 
     private long lastLocationTime = 0;
-    //private float lastLocationAccuracy = Float.POSITIVE_INFINITY;
     private Location rocketLocation = new Location("");
     private Location deviceLocation = new Location("");
     private BroadcastReceiver locationReceiver;
@@ -400,7 +399,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         String rocketInfo = String.format("Rocket - Lat : %.6f, Long : %.6f, Alt : %.2f m",
                 rocketLocation.getLatitude(), rocketLocation.getLongitude(), rocketLocation.getAltitude());
         if (totalDist > 1000.0) {
-            statusText.setText(String.format("Distance : %.2f km\n%s\n%s", totalDist/1000.0, deviceInfo, rocketInfo));
+            statusText.setText(String.format("Distance : %.2f km\n%s\n%s", totalDist / 1000.0, deviceInfo, rocketInfo));
         } else {
             statusText.setText(String.format("Distance : %.1f m\n%s\n%s", totalDist, deviceInfo, rocketInfo));
         }

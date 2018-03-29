@@ -25,6 +25,7 @@ import ca.polymtl.inf3995.oronos.widgets.views.ModuleStatus;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
 import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
+import timber.log.Timber;
 
 /**
  * Created by Felix on 15/févr./2018.
@@ -38,17 +39,37 @@ public class OronosXmlParser {
         this.context = context;
     }
 
-    public Rocket parse(InputStream in) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
+    public Rocket parse(InputStream in) {
+
+        XmlPullParser parser = Xml.newPullParser();
         try {
-            XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
             Rocket rocket = readRocket(parser);
+            if (rocket.getList() == null || rocket.getList().isEmpty()) {
+                Timber.e("XML file seems empty. Maybe you're missing a closing tag somewhere?");
+            }
             return rocket;
-        } finally {
-            in.close();
+        } catch (XmlPullParserException e) {
+            Timber.e("There is an issue with the XML file. Maybe you're missing a closing tag somewhere? Exception message :\n" +
+            e.getMessage());
+
+        } catch (IOException e) {
+            Timber.e("There was an issue while reading the XML file. Exception message :\n" +
+                    e.getMessage());
+
+        } catch (UnsupportedContainerWidgetException e) {
+            Timber.e(e.getMessage());
+        } finally  {
+            try {
+                in.close();
+            } catch (IOException e) {
+                Timber.e("There was an issue while reading the XML file. Exception message :\n" +
+                        e.getMessage());
+            }
         }
+        return null;
     }
 
     private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
@@ -65,6 +86,7 @@ public class OronosXmlParser {
             if (tag.equals("GridContainer")) {
                 entries.addAll(readGridContainer(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", tag));
                 skip(parser);
             }
         }
@@ -82,6 +104,7 @@ public class OronosXmlParser {
             if (name.equals("Grid")) {
                 list.add(readGrid(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                 skip(parser);
             }
         }
@@ -125,6 +148,7 @@ public class OronosXmlParser {
                     contents = readTabContainer(parser);
                     break;
                 default:
+                    Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                     skip(parser);
             }
         }
@@ -142,6 +166,7 @@ public class OronosXmlParser {
             if (name.equals("Tab")) {
                 list.add(readTab(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                 skip(parser);
             }
         }
@@ -186,6 +211,7 @@ public class OronosXmlParser {
                     contents = readTabContainer(parser);
                     break;
                 default:
+                    Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                     skip(parser);
             }
         }
@@ -203,6 +229,7 @@ public class OronosXmlParser {
             if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                 skip(parser);
             }
         }
@@ -220,6 +247,7 @@ public class OronosXmlParser {
             if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                 skip(parser);
             }
         }
@@ -236,6 +264,15 @@ public class OronosXmlParser {
             }
             String name = parser.getName();
             switch (name) {
+                case "TabContainer":
+                    list.add(readTabContainer(parser));
+                    break;
+                case "DualVWidget":
+                    list.add(readDualVWidget(parser));
+                    break;
+                case "DualHWidget":
+                    list.add(readDualHWidget(parser));
+                    break;
                 case "DataDisplayer":
                     list.add(readDataDisplayer(parser, DataDisplayer.DataLayout.HORIZONTAL));
                     break;
@@ -260,6 +297,7 @@ public class OronosXmlParser {
                     list.add(new UnsupportedWidget(context));
                     break;
                 default:
+                    Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                     skip(parser);
             }
         }
@@ -280,6 +318,15 @@ public class OronosXmlParser {
             }
             String name = parser.getName();
             switch (name) {
+                case "TabContainer":
+                    list.add(readTabContainer(parser));
+                    break;
+                case "DualVWidget":
+                    list.add(readDualVWidget(parser));
+                    break;
+                case "DualHWidget":
+                    list.add(readDualHWidget(parser));
+                    break;
                 case "DataDisplayer":
                     list.add(readDataDisplayer(parser, DataDisplayer.DataLayout.VERTICAL));
                     break;
@@ -304,6 +351,7 @@ public class OronosXmlParser {
                     list.add(readUnsupportedWidget(parser));
                     break;
                 default:
+                    Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                     skip(parser);
             }
         }
@@ -363,6 +411,7 @@ public class OronosXmlParser {
             if (name.equals("CAN")) {
                 list.add(readCAN(parser));
             } else {
+                Timber.w(String.format("Skipping unknown or misplaced tag '<%s>'. Did you forget a closing tag somewhere?", name));
                 skip(parser);
             }
         }
