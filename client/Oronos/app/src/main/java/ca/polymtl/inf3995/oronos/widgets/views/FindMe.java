@@ -32,9 +32,12 @@ import android.widget.TextView;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.WeakHashMap;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
@@ -46,8 +49,9 @@ import timber.log.Timber;
  */
 public class FindMe extends OronosView implements SensorEventListener, LocationListener {
 
-    //TODO: Refactor this horrible pattern
-    private static List<FindMe> instances = new ArrayList<>();
+    //TODO: Refactor this horrible pattern... even though a WeakHashMap shouldn't cause a memory leak.
+    private static Set<FindMe> instances = Collections.newSetFromMap(new WeakHashMap<FindMe, Boolean>());
+    //private static List<FindMe> instances = new ArrayList<>();
 
     public static final int GPS_PERMISSION = 1;
     private final SensorManager sensorManager;
@@ -93,7 +97,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         buildView();
     }
 
-    public static List<FindMe> getInstances() {
+    public static Set<FindMe> getInstances() {
         return instances;
     }
 
