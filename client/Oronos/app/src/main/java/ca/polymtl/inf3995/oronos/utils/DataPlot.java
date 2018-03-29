@@ -78,6 +78,12 @@ public class DataPlot {
         for (int i = nEntries - actualAmount; i < nEntries; i++){
             double entryd = entriesList.get(i);
             float entryf = (float)entryd;
+
+            // GROS HACK SALE DE LA MORT QUI TUE. JE RÉCITE 20 'JE VOUS SALUE MARIE' AVANT D'ALLER
+            // ME COUCHER À TOUS LES SOIRS TANT QUE CE BOUT DE CODE EXISTE!!!
+            if (Math.abs(entryf) < 1.0e-20)
+                entryf = 0.0f;
+
             formattedEntries.add(new Entry(index - actualAmount, entryf));
             index++;
         }
