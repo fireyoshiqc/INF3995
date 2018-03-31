@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,11 +30,17 @@ public class ModuleStatus extends OronosView implements DataDispatcher.ModuleDat
 
     @Override
     public void onModuleDataReceived(ModuleMessage msg) {
-        String module = msg.getSourceModule();
-        Integer noSerie = msg.getSerialNb();
-        Integer counter = msg.getCounter();
+        final String module = msg.getSourceModule();
+        final Integer noSerie = msg.getSerialNb();
+        final Integer counter = msg.getCounter();
 
-        ((ModuleStatusAdapter) recycler.getAdapter()).receiveItem(module, noSerie, counter);
+        ((Activity) getContext()).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((ModuleStatusAdapter) recycler.getAdapter()).receiveItem(module, noSerie, counter);
+            }
+        });
+
     }
 
     public RecyclerView getGlobalView() {

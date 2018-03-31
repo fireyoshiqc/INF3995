@@ -42,15 +42,15 @@ public class OronosXmlParser {
     public Rocket parse(InputStream in) {
 
         XmlPullParser parser = Xml.newPullParser();
+        Rocket rocket = null;
         try {
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
-            Rocket rocket = readRocket(parser);
+            rocket = readRocket(parser);
             if (rocket.getList() == null || rocket.getList().isEmpty()) {
                 Timber.e("XML file seems empty. Maybe you're missing a closing tag somewhere?");
             }
-            return rocket;
         } catch (XmlPullParserException e) {
             Timber.e("There is an issue with the XML file. Maybe you're missing a closing tag somewhere? Exception message :\n" +
             e.getMessage());
@@ -69,7 +69,7 @@ public class OronosXmlParser {
                         e.getMessage());
             }
         }
-        return null;
+        return rocket;
     }
 
     private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {

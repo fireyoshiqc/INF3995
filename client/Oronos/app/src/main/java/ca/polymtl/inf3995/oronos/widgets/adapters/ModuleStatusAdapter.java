@@ -1,6 +1,5 @@
 package ca.polymtl.inf3995.oronos.widgets.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.CardView;
@@ -91,37 +90,28 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
      * @param msgNb    int number of messages received from this PCB.
      */
     public void receiveItem(String PCBname, int serialNb, int msgNb) {
-        final int position = findPCBPosition(PCBname, serialNb, msgNb);
+        int position = findPCBPosition(PCBname, serialNb, msgNb);
         if (position < nGrid) {
-            if(PCBList.get(position) != null) {
-                PCBPair pcb = PCBList.get(position);
-                PCBStatus oldStatus = pcb.status;
-                if (pcb.lastMsgNb != msgNb) {
-                    pcb.lastMsgNb = msgNb;
-                    pcb.lastTimeSeen = DateTime.now();
+            PCBPair pcb = PCBList.get(position);
+            PCBStatus oldStatus = pcb.status;
+            if (pcb.lastMsgNb != msgNb) {
+                pcb.lastMsgNb = msgNb;
+                pcb.lastTimeSeen = DateTime.now();
+                pcb.status = PCBStatus.ONLINE;
+            } else {
+                if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
+                        < GlobalParameters.ONLINE_TO_DELAY) {
                     pcb.status = PCBStatus.ONLINE;
+                } else if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
+                        < GlobalParameters.DELAY_TO_OFFLINE) {
+                    pcb.status = PCBStatus.DELAY;
                 } else {
-                    if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
-                            < GlobalParameters.ONLINE_TO_DELAY) {
-                        pcb.status = PCBStatus.ONLINE;
-                    } else if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
-                            < GlobalParameters.DELAY_TO_OFFLINE) {
-                        pcb.status = PCBStatus.DELAY;
-                    } else {
-                        pcb.status = PCBStatus.OFFLINE;
-                    }
-                }
-                if (oldStatus != pcb.status) {
-                    ((Activity) mContext).runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            notifyItemChanged(position);
-                        }
-                    });
-
+                    pcb.status = PCBStatus.OFFLINE;
                 }
             }
-
+            if (oldStatus != pcb.status) {
+                this.notifyItemChanged(position);
+            }
         }
     }
 
@@ -129,13 +119,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         if (PCBList.size() < nGrid) {
             PCBPair pcbPair = new PCBPair(PCBname, noSerial, noMsg);
             PCBList.add(pcbPair);
-            ((Activity) mContext).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    notifyItemInserted(PCBList.size()-1);
-                }
-            });
-
+            this.notifyItemInserted(PCBList.size()-1);
         }
     }
 
