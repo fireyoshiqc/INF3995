@@ -124,7 +124,6 @@ public class SocketClient {
 
                 if (address.equals("/inf3995-03/can-data")) {
                     DataDispatcher.dataToDispatch(message.getArguments());
-                    DataDispatcher.logToDispatch(message.getArguments());
 
                 } else if (address.equals("/inf3995-03/modules")) {
                     DataDispatcher.moduleToDispatch(message.getArguments());

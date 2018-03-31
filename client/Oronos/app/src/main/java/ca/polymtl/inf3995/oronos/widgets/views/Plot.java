@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.DataPlot;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
@@ -40,7 +41,7 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class Plot extends AbstractWidgetContainer<CAN> {
+public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher.CANDataListener {
 
     //consts
     private final int REFRESH_DELAY = 1000; //milliseconds
@@ -60,17 +61,11 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     private Map<String, DataPlot> dataMap;
     private int seconds;
 
-    //Views, layouts...
-    private LinearLayout containerLayout;
-    private LinearLayout horizontalLayout;
-    private LinearLayout innerPlotVerticalLayout;
-    private LinearLayout timeSelectionLayout;
     private TextView titleView;
     private TextView axisView;
     private TextView timeSecondsView;
     private LineChart chart;
     private SeekBar slider;
-    private BroadcastReceiver broadcastReceiver;
 
     public Plot(Context context, String name, String unit, String axis, List<CAN> list) {
 
@@ -84,6 +79,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         this.chart = new LineChart(context);
 
         initializeDataList();
+        DataDispatcher.registerCANDataListener(this);
 
         refreshPlot();
         setGenericPlotSettings();
@@ -100,7 +96,6 @@ public class Plot extends AbstractWidgetContainer<CAN> {
 
         handler.postDelayed(new Runnable() {
             public void run() {
-
                 refreshPlot();
                 handler.postDelayed(this, REFRESH_DELAY);
             }
@@ -118,41 +113,15 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     }
 
     private void refreshPlot() {
-        if (broadcastReceiver == null && GlobalParameters.canSid != null && GlobalParameters.canModuleTypes != null) {
-            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) { //Gets execute each time a can msg is received
-                    BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-                    dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
-                }
-            };
-
-            IntentFilter intentFilter = new IntentFilter();
-            for (CAN can : list) {
-                intentFilter.addAction(can.getId());
-            }
-
-            for (String key : GlobalParameters.canModuleTypes.keySet()) {
-                intentFilter.addCategory(key);
-            }
-
-            for (int i = 0; i < 16; i++) {
-                intentFilter.addCategory(String.format("%d", i));
-            }
-
-            LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
-        }
-
 
         int[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
         List<ILineDataSet> lines = new ArrayList<ILineDataSet>();
         int colorCount = 0;
         for (CAN can : this.canList) {
             List<Entry> listEntry;
-            synchronized (dataMap) {
-                DataPlot dataPlot = dataMap.get(can.getId());
-                listEntry = dataPlot.retrieveEntries(this.seconds);
-            }
+            DataPlot dataPlot = dataMap.get(can.getId());
+            listEntry = dataPlot.retrieveEntries(this.seconds);
+
             if (!listEntry.isEmpty()) {
                 LineDataSet line = new LineDataSet(listEntry, can.getId());
                 line.setColor(colors[colorCount]);
@@ -181,7 +150,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
     private void createAxisText() {
 
         this.axisView = new TextView(context);
-        this.axisView.setText(axis + " (" + unit + ")");
+        this.axisView.setText(String.format("%s (%s)", axis, unit));
         this.axisView.setRotation(-90);
         this.axisView.setGravity(Gravity.CENTER_HORIZONTAL);
         this.axisView.setGravity(Gravity.CENTER_VERTICAL);
@@ -248,38 +217,38 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         );
 
         //main container
-        this.containerLayout = new LinearLayout(context);
-        this.containerLayout.setOrientation(LinearLayout.VERTICAL);
-        this.containerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        LinearLayout containerLayout = new LinearLayout(context);
+        containerLayout.setOrientation(LinearLayout.VERTICAL);
+        containerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
         //horizontal layout with axis and chart
-        this.horizontalLayout = new LinearLayout(context);
-        this.horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout horizontalLayout = new LinearLayout(context);
+        horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
         LayoutParams horizontalLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         horizontalLayoutParams.weight = 20;
-        this.horizontalLayout.setLayoutParams(horizontalLayoutParams);
+        horizontalLayout.setLayoutParams(horizontalLayoutParams);
 
-        this.innerPlotVerticalLayout = new LinearLayout(context);
-        this.innerPlotVerticalLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout innerPlotVerticalLayout = new LinearLayout(context);
+        innerPlotVerticalLayout.setOrientation(LinearLayout.VERTICAL);
 
-        this.horizontalLayout.addView(this.axisView);
-        this.horizontalLayout.addView(this.chart);
+        horizontalLayout.addView(this.axisView);
+        horizontalLayout.addView(this.chart);
 
         //second horizontal layout for time selection
-        this.timeSelectionLayout = new LinearLayout(context);
-        this.timeSelectionLayout.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout timeSelectionLayout = new LinearLayout(context);
+        timeSelectionLayout.setOrientation(LinearLayout.HORIZONTAL);
         LayoutParams timeSelectionLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         timeSelectionLayoutParams.weight = 1;
-        this.timeSelectionLayout.setLayoutParams(timeSelectionLayoutParams);
+        timeSelectionLayout.setLayoutParams(timeSelectionLayoutParams);
 
-        this.timeSelectionLayout.addView(slider);
-        this.timeSelectionLayout.addView(timeSecondsView);
+        timeSelectionLayout.addView(slider);
+        timeSelectionLayout.addView(timeSecondsView);
 
-        this.containerLayout.addView(this.titleView);
-        this.containerLayout.addView(this.horizontalLayout);
-        this.containerLayout.addView(this.timeSelectionLayout);
+        containerLayout.addView(this.titleView);
+        containerLayout.addView(horizontalLayout);
+        containerLayout.addView(timeSelectionLayout);
 
-        addView(this.containerLayout);
+        addView(containerLayout);
     }
 
     private int convertDpToPx(int dp, DisplayMetrics displayMetrics) {
@@ -299,6 +268,33 @@ public class Plot extends AbstractWidgetContainer<CAN> {
         return axis;
     }
 
+    @Override
+    public void onCANDataReceived(BroadcastMessage msg) {
+        dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
+    }
+
+    @Override
+    public List<String> getCANSidList() {
+        if (list.isEmpty()) {
+            return null;
+        }
+        ArrayList<String> sidList = new ArrayList<>();
+        for (CAN can : list) {
+            sidList.add(can.getId());
+        }
+        return sidList;
+    }
+
+    @Override
+    public String getSourceModule() {
+        return null;
+    }
+
+    @Override
+    public String getSerialNumber() {
+        return null;
+    }
+
     //Slider
     private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
         private int timeSelected;
@@ -313,7 +309,7 @@ public class Plot extends AbstractWidgetContainer<CAN> {
             if (secondsShow < 10) {
                 appendSecondStr = "   seconds";
             }
-            timeSecondsView.setText(Integer.toString(minutesShow) + " minutes " + Integer.toString(secondsShow) + appendSecondStr);
+            timeSecondsView.setText(String.format("%s minutes %s%s", Integer.toString(minutesShow), Integer.toString(secondsShow), appendSecondStr));
         }
 
         @Override

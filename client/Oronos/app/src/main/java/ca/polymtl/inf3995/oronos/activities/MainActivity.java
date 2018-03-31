@@ -2,6 +2,7 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -74,6 +75,7 @@ public class MainActivity extends DrawerActivity {
         super.onDestroy();
         SocketClient.getInstance().disconnect();
         RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
+        DataDispatcher.clearAllListeners();
     }
 
     /**
@@ -81,7 +83,6 @@ public class MainActivity extends DrawerActivity {
      */
     private void setUpUtilities() {
         SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
-        DataDispatcher.setContext(getApplicationContext());
     }
 
 
@@ -148,6 +149,9 @@ public class MainActivity extends DrawerActivity {
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +
                     e.getMessage());
+        } catch (NullPointerException e) {
+            Timber.e("Cache dir or layout name seems to be null for some reason. Retrying.");
+            fillViewsContainer();
         }
     }
 

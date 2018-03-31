@@ -24,7 +24,7 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
     private final int FULL_SPAN = 4;
     private final int MAX_LARGE_DATA = 32;
     private final int UI_CHANGE_ANIM_DURATION = 100;
-    private final int DATA_UPDATE_PERIOD = 500;
+    private final int DATA_UPDATE_PERIOD = 200;
     private RecyclerView recycler;
     private Timer listUpdater;
 
@@ -64,31 +64,15 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
 
     }
 
-    private void enableCANUpdates() {
-        for (CAN can : list) {
-            if (!can.updatesAreEnabled()) {
-                can.enableDataDisplayerUpdates(getContext());
-            }
-        }
-    }
-
-    private void disableCANUpdates() {
-        for (CAN can : list) {
-            can.disableDataDisplayerUpdates(getContext());
-        }
-    }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        enableCANUpdates();
         startUpdateTask();
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        disableCANUpdates();
         stopUpdateTask();
     }
 
@@ -97,17 +81,18 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         TimerTask sensorTask = new TimerTask() {
             @Override
             public void run() {
-                ((Activity) getContext()).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (int i = 0; i < list.size(); i++) {
-                            if (list.get(i).isChanged()) {
-                                recycler.getAdapter().notifyItemChanged(i);
-                                list.get(i).notifyReset();
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).isChanged()) {
+                        final int position = i;
+                        ((Activity) getContext()).runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                recycler.getAdapter().notifyItemChanged(position);
                             }
-                        }
+                        });
+                        list.get(i).notifyReset();
                     }
-                });
+                }
             }
         };
         listUpdater.scheduleAtFixedRate(sensorTask, 0, DATA_UPDATE_PERIOD);

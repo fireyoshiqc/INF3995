@@ -1,12 +1,9 @@
 package ca.polymtl.inf3995.oronos.services;
 
-import org.parceler.Parcel;
-
 /**
  * Created by prst on 2018-03-15.
  */
 
-@Parcel
 public class BroadcastMessage {
 
     private String canSid;

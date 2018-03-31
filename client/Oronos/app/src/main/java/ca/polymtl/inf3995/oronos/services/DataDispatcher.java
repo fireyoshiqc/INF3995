@@ -1,15 +1,12 @@
 package ca.polymtl.inf3995.oronos.services;
 
-import android.content.Context;
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
-
-import org.parceler.Parcels;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import timber.log.Timber;
 
 /**
  * Created by prst on 2018-03-01.
@@ -17,11 +14,37 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 public class DataDispatcher {
 
-    static private Context context;
+    static private List<CANDataListener> canDataListeners = new CopyOnWriteArrayList<>();
+    static private List<ModuleDataListener> moduleDataListeners = new CopyOnWriteArrayList<>();
 
-    public static void setContext(Context context) {
-        // Important for avoiding memory leaks
-        DataDispatcher.context = context.getApplicationContext();
+    public static void registerCANDataListener(CANDataListener listener) {
+        if (!canDataListeners.contains(listener)) {
+            canDataListeners.add(listener);
+        } else {
+            Timber.w("Trying to add the same listener twice to DataDispatcher.");
+        }
+
+    }
+
+    public static void unregisterCANDataListener(CANDataListener listener) {
+        canDataListeners.remove(listener);
+    }
+
+    public static void registerModuleDataListener(ModuleDataListener listener) {
+        if (!moduleDataListeners.contains(listener)) {
+            moduleDataListeners.add(listener);
+        } else {
+            Timber.w("Trying to add the same listener twice to DataDispatcher.");
+        }
+    }
+
+    public static void unregisterModuleDataListener(ModuleDataListener listener) {
+        moduleDataListeners.remove(listener);
+    }
+
+    public static void clearAllListeners() {
+        canDataListeners.clear();
+        moduleDataListeners.clear();
     }
 
     public static void dataToDispatch(List<Object> data) {
@@ -48,46 +71,16 @@ public class DataDispatcher {
             Integer counter = (Integer) data.get(i + 5);
 
             BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, srcModule, serialNb, counter);
-
-            Intent intent = new Intent(canSid);
-            intent.addCategory(srcModule);
-            intent.addCategory(serialNb.toString());
-            intent.putExtra("data", Parcels.wrap(broadcastMessage));
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-        }
-
-    }
-
-    public static void logToDispatch(List<Object> data) {
-
-        if (GlobalParameters.canSid == null
-                || GlobalParameters.canDataTypes == null
-                || GlobalParameters.canMsgDataTypes == null) {
-            return;
-        }
-
-        for (int i = 0; i < data.size(); i += 6) {
-            String canSid = GlobalParameters.canSid.get((Integer) data.get(i));
-            Number data1 = (Number) data.get(i + 1);
-            Number data2 = (Number) data.get(i + 2);
-            String srcModule = "";
-            for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
-                if (entry.getValue() == data.get(i + 3)) {
-                    srcModule = entry.getKey();
-                    break;
+            for (CANDataListener listener : canDataListeners) {
+                if (listener.getCANSidList() == null || listener.getCANSidList().contains(canSid)) {
+                    if (listener.getSourceModule() == null || listener.getSourceModule().equals(srcModule)) {
+                        if (listener.getSerialNumber() == null || listener.getSerialNumber().equals(serialNb.toString())) {
+                            listener.onCANDataReceived(broadcastMessage);
+                        }
+                    }
                 }
             }
-            Integer noSerieSource = (Integer) data.get(i + 4);
-            Integer counter = (Integer) data.get(i + 5);
-
-            BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, srcModule, noSerieSource, counter);
-
-            Intent intent = new Intent(GlobalParameters.CATEGORY_FOR_DISPATCH);
-            intent.addCategory(GlobalParameters.CATEGORY_FOR_DISPATCH);
-            intent.putExtra("data", Parcels.wrap(broadcastMessage));
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
-
     }
 
     public static void moduleToDispatch(List<Object> data) {
@@ -95,12 +88,10 @@ public class DataDispatcher {
         if (GlobalParameters.canModuleTypes == null) {
             return;
         }
-
-
         for (int i = 0; i < data.size(); i += 2) {
             String srcModule = "";
             for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
-                if (entry.getValue() == ((Integer)data.get(i) >> 16)) {
+                if (entry.getValue() == ((Integer) data.get(i) >> 16)) {
                     srcModule = entry.getKey();
                     break;
                 }
@@ -109,13 +100,26 @@ public class DataDispatcher {
             Integer counter = (Integer) data.get(i + 1);
 
             ModuleMessage moduleMessage = new ModuleMessage(srcModule, serialNb, counter);
-
-            Intent intent = new Intent(srcModule);
-            intent.putExtra("data", Parcels.wrap(moduleMessage));
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            for (ModuleDataListener listener : moduleDataListeners) {
+                listener.onModuleDataReceived(moduleMessage);
+            }
         }
 
 
+    }
+
+    public interface CANDataListener {
+        void onCANDataReceived(BroadcastMessage msg);
+
+        List<String> getCANSidList();
+
+        String getSourceModule();
+
+        String getSerialNumber();
+    }
+
+    public interface ModuleDataListener {
+        void onModuleDataReceived(ModuleMessage msg);
     }
 
 }

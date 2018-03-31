@@ -1,13 +1,9 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.LocalBroadcastManager;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -17,13 +13,14 @@ import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
-import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
+import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
@@ -31,7 +28,7 @@ import timber.log.Timber;
  * Created by Felix on 15/févr./2018.
  */
 
-public class MapTag extends OronosView {
+public class MapTag extends OronosView implements DataDispatcher.CANDataListener {
 
     private final int REFRESH_DELAY = 1000; // milliseconds
 
@@ -42,6 +39,13 @@ public class MapTag extends OronosView {
     private Marker rocketMarker;
 
     private GeoPoint serverLocation;
+    private Runnable run = new Runnable() {
+        @Override
+        public void run() {
+            updateMarker();
+            handler.postDelayed(this, REFRESH_DELAY);
+        }
+    };
 
     public MapTag(Context context) {
         super(context);
@@ -53,32 +57,14 @@ public class MapTag extends OronosView {
 
     }
 
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-            switch (msg.getCanSid()) {
-                case "GPS1_LATITUDE":
-                    rocketLocation.setLatitude(msg.getData1().doubleValue());
-                    break;
-                case "GPS1_LONGITUDE":
-                    rocketLocation.setLongitude(msg.getData1().doubleValue());
-                    break;
-                case "GPS1_ALT_MSL":
-                    rocketLocation.setAltitude(msg.getData1().doubleValue());
-                    break;
-            }
-        }
-    };
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        register();
         handler.postDelayed(run, REFRESH_DELAY);
         mapView = new MapView(getContext());
         setupMapView();
         setupRocketMarker();
+        register();
         addView(mapView);
     }
 
@@ -91,31 +77,11 @@ public class MapTag extends OronosView {
     }
 
     private void register() {
-        if (GlobalParameters.canModuleTypes == null) {
-            return;
-        }
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("GPS1_LATITUDE");
-        intentFilter.addAction("GPS1_LONGITUDE");
-        intentFilter.addAction("GPS1_ALT_MSL");
-
-        // Listen for all categories, since it depends on the rocket
-
-        for (String key : GlobalParameters.canModuleTypes.keySet()) {
-            intentFilter.addCategory(key);
-        }
-
-        for (int i = 0; i < 16; i++) {
-            intentFilter.addCategory(String.valueOf(i));
-        }
-
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter);
-
+        DataDispatcher.registerCANDataListener(this);
     }
 
     private void unregister() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
+        DataDispatcher.unregisterCANDataListener(this);
     }
 
     private void setupMapView() {
@@ -183,14 +149,6 @@ public class MapTag extends OronosView {
 
     }
 
-    private Runnable run = new Runnable() {
-        @Override
-        public void run() {
-            updateMarker();
-            handler.postDelayed(this, REFRESH_DELAY);
-        }
-    };
-
     private void updateMarker() {
         rocketMarker.setPosition(rocketLocation);
 
@@ -214,4 +172,33 @@ public class MapTag extends OronosView {
         mapView.getOverlays().add(rocketMarker);
     }
 
+    @Override
+    public void onCANDataReceived(BroadcastMessage msg) {
+        switch (msg.getCanSid()) {
+            case "GPS1_LATITUDE":
+                rocketLocation.setLatitude(msg.getData1().doubleValue());
+                break;
+            case "GPS1_LONGITUDE":
+                rocketLocation.setLongitude(msg.getData1().doubleValue());
+                break;
+            case "GPS1_ALT_MSL":
+                rocketLocation.setAltitude(msg.getData1().doubleValue());
+                break;
+        }
+    }
+
+    @Override
+    public List<String> getCANSidList() {
+        return new ArrayList<>(Arrays.asList("GPS1_LATITUDE", "GPS1_LONGITUDE", "GPS1_ALT_MSL"));
+    }
+
+    @Override
+    public String getSourceModule() {
+        return null;
+    }
+
+    @Override
+    public String getSerialNumber() {
+        return null;
+    }
 }

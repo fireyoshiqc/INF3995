@@ -42,7 +42,5 @@ public class GlobalParameters {
     GlobalParameters() { }
 
     // DisplayLogWidget
-    public final static int LIMIT_OF_N_MSG = 2000;
     public final static int DATA_UPDATE_PERIOD = 1000;
-    public final static String CATEGORY_FOR_DISPATCH = "DISPLAY_LOG_WIDGET";
 }
