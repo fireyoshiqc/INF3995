@@ -7,6 +7,11 @@ import java.util.Map;
 
 
 public class GlobalParameters {
+    //Theme
+    public final static boolean DEFAULT_THEME_IS_DARK = false;
+    //Plot
+
+
     // LogTree
     public final static String LOG_DIR_NAME = "OronosLogs";
 

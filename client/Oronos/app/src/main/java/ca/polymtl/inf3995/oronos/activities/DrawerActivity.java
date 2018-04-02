@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import ca.polymtl.inf3995.oronos.R;
+import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import timber.log.Timber;
 
 /**
@@ -25,9 +26,8 @@ public class DrawerActivity extends AppCompatActivity {
      private final int dataIndex = 0;
      private final int themeIndex = 1;
      private final int pdfIndex = 2;
-     private final int disconnectionIndex = 3;
-     private int presentActID = -1;
     static private DrawerLayout drawerLayout;
+    private boolean selectedThemeIsDark = ThemeUtil.isThemeSetToDark();
 
     private Toolbar toolbar;
     private NavigationView navigationView;
@@ -36,12 +36,6 @@ public class DrawerActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.main_layout);
         navigationView = findViewById(R.id.nav_view);
         toolbar = findViewById(R.id.toolbar);
-
-        if (presentActID == -1){
-            //default selected button
-            //navigationView.getMenu().getItem(0).setChecked(true);
-            presentActID = 0;
-        }
 
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -52,23 +46,15 @@ public class DrawerActivity extends AppCompatActivity {
                         // close drawer when item is tapped
                         drawerLayout.closeDrawers();
 
-                        presentActID = menuItem.getItemId();
-
                         if (menuItem == navigationView.getMenu().getItem(dataIndex)) {
                             switchToMainActivity();
-
                         } else if (menuItem == navigationView.getMenu().getItem(themeIndex)) {
                             themeSelectionPopup();
-
                         } else if (menuItem == navigationView.getMenu().getItem(pdfIndex)) {
                             switchToPdfActivity();
-
                         } else {
                             //toolbar.setTitle("Disconnection");
                             disconnectionPopup();
-
-
-
                         }
                         return true;
                     }
@@ -89,6 +75,7 @@ public class DrawerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeUtil.onActivityCreateSetTheme(this);
     }
 
     @Override
@@ -137,12 +124,20 @@ public class DrawerActivity extends AppCompatActivity {
                 switch (which){
                     case DialogInterface.BUTTON_POSITIVE:
                         //Light theme button clicked
-                        setThemeToLight();
+                        if(selectedThemeIsDark){
+                            selectedThemeIsDark = false;
+                            themeWarningPopup();
+                        }
+
                         break;
 
                     case DialogInterface.BUTTON_NEGATIVE:
                         //Dark theme button clicked
-                        setThemeToDark();
+                        if(!selectedThemeIsDark) {
+                            selectedThemeIsDark = true;
+                            themeWarningPopup();
+                        }
+
                         break;
                 }
             }
@@ -153,6 +148,33 @@ public class DrawerActivity extends AppCompatActivity {
                 .setNegativeButton("Dark theme", dialogClickListener).show();
     }
 
+    private void themeWarningPopup() {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //Ok button clicked
+                        if(selectedThemeIsDark){
+                            setThemeToDark();
+                        } else {
+                            setThemeToLight();
+                        }
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //Cancel button clicked
+                        selectedThemeIsDark = !selectedThemeIsDark;
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("WARNING\n\nChanging theme will clear logs, plots, and all previously acquired data. Are you sure you want to continue?").setPositiveButton("Ok", dialogClickListener)
+                .setNegativeButton("Cancel", dialogClickListener).show();
+    }
+
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         //toolbar.setTitle("ORONOS");
@@ -160,7 +182,7 @@ public class DrawerActivity extends AppCompatActivity {
         this.startActivity(intent);
     }
 
-    private void switchToPdfActivity() {
+    private void switchToPdfActivity() { //This will have to be a fragment. 
         Intent intent = new Intent(this, PdfActivity.class);
         this.startActivity(intent);
     }
@@ -178,9 +200,13 @@ public class DrawerActivity extends AppCompatActivity {
 
     private void setThemeToLight(){
         //TODO
+        ThemeUtil.switchToLightTheme();
+        recreate();
     }
 
     private void setThemeToDark(){
         //TODO
+        ThemeUtil.switchToDarkTheme();
+        recreate();
     }
 }
