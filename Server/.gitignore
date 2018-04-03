@@ -6,6 +6,8 @@ working_dir/*.txt
 working_dir/*.log
 working_dir/*.csv
 
+third_party/PyQt5/
+
 !third_party/lxml/etree.cpython-34m-arm-linux-gnueabihf.so
 !third_party/lxml/objectify.cpython-34m-arm-linux-gnueabihf.so
 
