@@ -9,6 +9,7 @@ import java.util.List;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
+import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
 /**

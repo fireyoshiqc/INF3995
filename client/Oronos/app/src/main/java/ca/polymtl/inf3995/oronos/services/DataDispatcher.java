@@ -1,5 +1,7 @@
 package ca.polymtl.inf3995.oronos.services;
 
+import android.provider.Settings;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +74,26 @@ public class DataDispatcher {
 
             BroadcastMessage broadcastMessage = new BroadcastMessage(canSid, data1, data2, srcModule, serialNb, counter);
             for (CANDataListener listener : canDataListeners) {
+                String givenModule = listener.getSourceModule();
+                List<String> compatibleModules = new ArrayList<>();
+                if (GlobalParameters.canModuleTypes != null && givenModule != null) {
+                    Integer moduleValue = GlobalParameters.canModuleTypes.get(givenModule);
+                    if (moduleValue != null) {
+                        for (Map.Entry<String, Integer> entry : GlobalParameters.canModuleTypes.entrySet()) {
+                            if (entry.getValue().equals(moduleValue)) {
+                                compatibleModules.add(entry.getKey());
+                            }
+                        }
+                    } else {
+                        Timber.w(String.format("Incompatible source module type present in listener : %s", givenModule));
+                        compatibleModules.add(givenModule);
+                    }
+                } else if (givenModule != null) {
+                    compatibleModules.add(givenModule);
+                }
+
                 if (listener.getCANSidList() == null || listener.getCANSidList().contains(canSid)) {
-                    if (listener.getSourceModule() == null || listener.getSourceModule().equals(srcModule)) {
+                    if (givenModule == null || compatibleModules.contains(srcModule)) {
                         if (listener.getSerialNumber() == null || listener.getSerialNumber().equals(serialNb.toString())) {
                             listener.onCANDataReceived(broadcastMessage);
                         }

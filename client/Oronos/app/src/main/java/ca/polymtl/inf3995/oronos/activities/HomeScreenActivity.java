@@ -49,6 +49,7 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import ca.polymtl.inf3995.oronos.utils.LogTree;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
+import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import timber.log.Timber;
 
 public class HomeScreenActivity extends AppCompatActivity {
@@ -357,6 +358,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeUtil.onActivityCreateSetTheme(this);
         setContentView(R.layout.activity_home_screen);
         Timber.plant(new LogTree(getApplicationContext()));
 
