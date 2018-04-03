@@ -39,7 +39,7 @@ dependencies {
     androidTestImplementation 'com.android.support:support-annotations:27.1.0'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test:rules:1.0.1'
-    implementation 'com.koushikdutta.async:androidasync:2.+'
+    implementation 'com.koushikdutta.async:androidasync:2.2.1'
     implementation 'com.illposed.osc:javaosc-core:0.3'
     implementation "com.android.support:support-core-utils:26.1.0"
     implementation 'com.android.support:cardview-v7:26.1.0'
