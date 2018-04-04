@@ -1,7 +1,6 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -52,6 +51,18 @@ import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import timber.log.Timber;
 
+/**
+ * <h1>Home Screen Activity</h1>
+ * The Home Screen Activity is in charge of displaying a user log in questionnaire of three input
+ * fields: username, password and server IP address. The username and password will be verified with
+ * the server by communicating at given server IP address.
+ * <p>
+ * Home Screen Activity must keep in memory the given user information if requested.
+ *
+ * @author  Félix Boulet, Charles Hosson
+ * @version 0.0
+ * @since   2018-04-12
+ */
 public class HomeScreenActivity extends AppCompatActivity {
     private static String[] retardedMessages = {"Ooopsie doopsie!",
             "Oh no! Mama mia!",
@@ -75,8 +86,11 @@ public class HomeScreenActivity extends AppCompatActivity {
     private Random rng = new Random();
     private Snackbar warningBar;
 
+    /**
+     * Listener for the click on the button responsible of trying to log in the user.
+     */
     class StartBtnListener implements View.OnClickListener {
-        private HomeScreenActivity parentActivity = null;
+        private HomeScreenActivity parentActivity;
 
         StartBtnListener(HomeScreenActivity parentActivity) {
             this.parentActivity = parentActivity;
@@ -88,6 +102,9 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the error responses that can occur when trying to log in the user.
+     */
     private static class BasicErrorListener implements Response.ErrorListener {
         protected HomeScreenActivity parent;
         protected String name;
@@ -111,6 +128,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a user log in request. If the log in succeeds, the response of
+     * the server will trigger the next request to obtain the basic configuration parameters such as
+     * the udp port or the xml layout name.
+     */
     private static class PostUsersLoginListener extends BasicErrorListener implements Response.Listener<Void> {
         PostUsersLoginListener(HomeScreenActivity parent) {
             super(parent, "POST /users/login");
@@ -128,6 +150,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get basic configuration request. If the get succeeds, the
+     * response of the server will trigger the next request to obtain the xml layout of a specific
+     * rocket.
+     */
     private static class GetConfigBasicListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigBasicListener(HomeScreenActivity parent) {
             super(parent, "GET /config/basic");
@@ -151,6 +178,12 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get rocket configuration request. If the get succeeds, the
+     * xml rocket file in cache of the android app will be replaced by the new rocket config. Also,
+     * the response of the server will trigger the next request to obtain a can sid map of a certain
+     * rocket.
+     */
     private static class GetConfigRocketsListener extends BasicErrorListener implements Response.Listener<String> {
         GetConfigRocketsListener(HomeScreenActivity parent) {
             super(parent, "GET /config/rockets/" + GlobalParameters.layoutName);
@@ -160,13 +193,17 @@ public class HomeScreenActivity extends AppCompatActivity {
         public void onResponse(String result) {
             File cacheFile = new File(this.parent.getCacheDir(), GlobalParameters.layoutName);
             try {
-                cacheFile.delete();
+                boolean isDeleted = cacheFile.delete();
+                if(!isDeleted) {
+                    Timber.w("Cache file unsuccessfully deleted.");
+                }
                 if (!cacheFile.createNewFile()) {
                     this.parent.dialog.dismiss();
                     this.parent.showInSnackbar("Could not create file '" + GlobalParameters.layoutName + "' " +
                             "in application cache");
                 }
             } catch (IOException e) {
+                Timber.e("Cachefile for Home Screen cannot be deleted or created correctly.");
             }
 
             try {
@@ -196,6 +233,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get can sid configuration request. If the get succeeds, the
+     * response of the server will trigger the next request to obtain a can data types map of a certain
+     * rocket.
+     */
     private static class GetConfigCanSidListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigCanSidListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canSid");
@@ -229,6 +271,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get can data types request. If the get succeeds, the
+     * response of the server will trigger the next request to obtain a can msg data types map of a
+     * certain rocket.
+     */
     private static class GetConfigCanDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigCanDataTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canDataTypes");
@@ -261,6 +308,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get can msg data types request. If the get succeeds, the
+     * response of the server will trigger the next request to obtain can module types map of a
+     * certain rocket.
+     */
     private static class GetConfigCanMsgDataTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigCanMsgDataTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canMsgDataTypes");
@@ -293,6 +345,10 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Listener for the response to a get module types request. If the get succeeds, the
+     * response of the server will trigger the switch to the main activity.
+     */
     private static class GetConfigCanModuleTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigCanModuleTypesListener(HomeScreenActivity parent) {
             super(parent, "GET /config/canModuleTypes");
@@ -326,6 +382,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * This method is responsible of parsing and verifying the user input in the fields of the log in
+     * questionnaire. If something is missing or the IP address format is invalid, a error message
+     * will be displayed so the user can correct is input. Else, the login request will be send to
+     * the server by calling the sendLoginRequest(inputs) private method.
+     */
     public void handleLogin() {
         HomeScreenInputs inputs = this.getTextInputs();
         boolean valid = true;
@@ -355,6 +417,9 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -367,7 +432,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             warningBar.setAction("ENABLE", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ActivityCompat.requestPermissions((Activity) HomeScreenActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
+                    ActivityCompat.requestPermissions(HomeScreenActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
                 }
             }).show();
         } else {
@@ -407,6 +472,13 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.setTextInputs(cachedInputs);
     }
 
+    /**
+     * This method is responsible of sending the log in request to the server using the inputs
+     * provided in arguments.
+     *
+     * @param inputs HomeScreenInputs composed of three strings: username, password and IP
+     *               serverAddress.
+     * */
     private void sendLoginRequest(HomeScreenInputs inputs) {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
         this.dialog = builder.create();
@@ -421,6 +493,9 @@ public class HomeScreenActivity extends AppCompatActivity {
         restWrapper.sendPostUsersLogin(listener, listener);
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onResume() {
         super.onResume();
@@ -429,6 +504,12 @@ public class HomeScreenActivity extends AppCompatActivity {
             this.dialog.dismiss();
     }
 
+    /**
+     * This method unwraps a REST error by transforming a VolleyError code into a legible string.
+     *
+     * @param error VolleyError to be decrypted.
+     * @return string containing error in a legible form.
+     * */
     private String getErrorMsg(VolleyError error) {
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
             //This indicates that the request has either time out or there is no connection
@@ -443,11 +524,22 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * This method chooses a retarded error msg from the table of dummy error msgs.
+     *
+     * @return string containing dummy error in a legible form.
+     * */
     private String getRetardedErrorMsg() {
         int index = this.rng.nextInt(retardedMessages.length);
         return retardedMessages[index];
     }
 
+    /**
+     * This method loads the previous user inputs according to the user preferences. Every input the
+     * user wants to be remembered by the app is loaded.
+     *
+     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     * */
     private HomeScreenInputs loadCachedInputs() {
         HomeScreenInputs result = new HomeScreenInputs();
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
@@ -461,6 +553,12 @@ public class HomeScreenActivity extends AppCompatActivity {
         return result;
     }
 
+    /**
+     * This method saves the current user inputs according to the user preferences. Every input the
+     * user wants to be remembered by the app is saved.
+     *
+     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     * */
     private void saveInputs(HomeScreenInputs inputs) {
         SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -485,12 +583,24 @@ public class HomeScreenActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    /**
+     * This method writes the inputs passed in argument into the corresponding fields of the log in
+     * questionnaire.
+     *
+     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     * */
     private void setTextInputs(HomeScreenInputs inputs) {
         this.editAddr.setText(inputs.serverAddress);
         this.editUser.setText(inputs.username);
         this.editPassword.setText(inputs.password);
     }
 
+    /**
+     * This method reads the input fields of the log in questionnaire and save each string into the
+     * corresponding HomeScreenInputs string.
+     *
+     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     * */
     private HomeScreenInputs getTextInputs() {
         HomeScreenInputs result = new HomeScreenInputs();
         result.serverAddress = this.editAddr.getText().toString();
@@ -499,6 +609,11 @@ public class HomeScreenActivity extends AppCompatActivity {
         return result;
     }
 
+    /**
+     * This method displays the argument string in a snackbar.
+     *
+     * @param msg to be shown in a snackbar.
+     * */
     private void showInSnackbar(String msg) {
         View thisView = findViewById(R.id.coordinatorLayout);
         this.snackbar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
@@ -508,23 +623,35 @@ public class HomeScreenActivity extends AppCompatActivity {
         this.snackbar.show();
     }
 
+    /**
+     * This method starts the Main Activity.
+     * */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         this.startActivity(intent);
     }
 
+    /**
+     * Container for the user input.
+     * */
     class HomeScreenInputs {
         String serverAddress = "";
         String username = "";
         String password = "";
     }
 
+    /**
+     * This method dismiss the permissions not granted warning bar once the permissions are granted.
+     * */
     public void grantPermissions() {
         if (warningBar != null && warningBar.isShown()) {
             warningBar.dismiss();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {

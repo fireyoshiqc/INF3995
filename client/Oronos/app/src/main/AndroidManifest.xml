@@ -23,6 +23,11 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".activities.DrawerActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".activities.PdfActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">

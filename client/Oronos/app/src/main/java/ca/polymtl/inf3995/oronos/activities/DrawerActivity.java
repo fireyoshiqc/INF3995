@@ -19,19 +19,30 @@ import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import timber.log.Timber;
 
 /**
- * Created by Fabri on 2018-03-01.
+ * <h1>Drawer Activity</h1>
+ * The Drawer Activity is in charge of the hamburger menu that allows the user to switch between the
+ * application themes, to choose a PDF for download, to disconnect itself and last but not least to
+ * set the receiving rocket data mode.
+ *
+ *
+ * @author  Félix Boulet, Fabrice Charbonneau
+ * @version 0.0
+ * @since   2018-04-12
  */
-
 public class DrawerActivity extends AppCompatActivity {
-     private final int dataIndex = 0;
-     private final int themeIndex = 1;
-     private final int pdfIndex = 2;
-    static private DrawerLayout drawerLayout;
+    private final int dataIndex = 0;
+    private final int themeIndex = 1;
+    private final int pdfIndex = 2;
+    private DrawerLayout drawerLayout;
     private boolean selectedThemeIsDark = ThemeUtil.isThemeSetToDark();
 
     private Toolbar toolbar;
     private NavigationView navigationView;
 
+    /**
+     * This method set up the hamburger menu and the callback responsible for the actions generated
+     * by a user click on an item of the menu.
+     * */
     protected void onCreateDrawer() {
         drawerLayout = findViewById(R.id.main_layout);
         navigationView = findViewById(R.id.nav_view);
@@ -72,12 +83,18 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *{@inheritDoc}
+     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ThemeUtil.onActivityCreateSetTheme(this);
     }
 
+    /**
+     *{@inheritDoc}
+     * */
     @Override
     public void setContentView(@LayoutRes int layoutResID)
     {
@@ -85,6 +102,9 @@ public class DrawerActivity extends AppCompatActivity {
         onCreateDrawer();
     }
 
+    /**
+     *{@inheritDoc}
+     * */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -95,6 +115,10 @@ public class DrawerActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * This method is displaying a small pop up to confirm the user wants to be disconnected and sent
+     * to Home Screen Activity.
+     * */
     private void disconnectionPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
@@ -117,6 +141,9 @@ public class DrawerActivity extends AppCompatActivity {
                 .setNegativeButton("No", dialogClickListener).show();
     }
 
+    /**
+     * This method is displaying a small pop up to let the user choose between the available themes.
+     * */
     private void themeSelectionPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
@@ -148,6 +175,9 @@ public class DrawerActivity extends AppCompatActivity {
                 .setNegativeButton("Dark theme", dialogClickListener).show();
     }
 
+    /**
+     * This method is displaying a small pop up to confirm the user wants to switch themes.
+     * */
     private void themeWarningPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
@@ -175,35 +205,56 @@ public class DrawerActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", dialogClickListener).show();
     }
 
+    /**
+     * This method is destroying whatever activity is currently up and is starting the Main Activity.
+     * */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
-        //toolbar.setTitle("ORONOS");
         finish();
         this.startActivity(intent);
     }
 
+    /**
+     * This method is starting a fragment responsible of managing the available pdf list from the
+     * server.
+     * */
     private void switchToPdfActivity() { //This will have to be a fragment. 
         Intent intent = new Intent(this, PdfActivity.class);
         this.startActivity(intent);
     }
 
+    /**
+     * This method is destroying whatever activity is currently up and is starting the Home Screen
+     * Activity.
+     * */
     private void switchToHomeScreenActivity() {
         Intent intent = new Intent(this, HomeScreenActivity.class);
         finish();
         this.startActivity(intent);
     }
 
+    /**
+     * This method takes a string and displays it as the new toolbar title.
+     *
+     * @param title The new title to display.
+     * */
     protected void changeToolbarTitle(String title){
         toolbar.setTitle(title);
         setSupportActionBar(toolbar);
     }
 
+    /**
+     * This method provocates a theme switch in order to display the light theme.
+     * */
     private void setThemeToLight(){
         //TODO
         ThemeUtil.switchToLightTheme();
         recreate();
     }
 
+    /**
+     * This method provocates a theme switch in order to display the dark theme.
+     * */
     private void setThemeToDark(){
         //TODO
         ThemeUtil.switchToDarkTheme();

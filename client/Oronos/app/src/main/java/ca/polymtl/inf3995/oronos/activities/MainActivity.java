@@ -2,14 +2,12 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.RelativeLayout;
 
 import java.io.File;
@@ -29,13 +27,25 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
 import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
-import ca.polymtl.inf3995.oronos.widgets.views.ContainableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
 import timber.log.Timber;
 
-
+/**
+ * <h1>Main Activity</h1>
+ * The Main Activity is in charge of switching between the views containing the rocket data.
+ * It is also responsible of the menu view that allows such navigation.
+ * <p>
+ * While being created, Main Activity will open a Socket Client to receive the rocket data, and will
+ * parse the xml file obtained through a REST request to the server to create the layout of the
+ * views containing the rocket data.
+ *
+ *
+ * @author  Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
+ * @version 0.0
+ * @since   2018-04-12
+ */
 public class MainActivity extends DrawerActivity {
     private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
@@ -46,6 +56,9 @@ public class MainActivity extends DrawerActivity {
 
     private RecyclerView recycler;
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +73,7 @@ public class MainActivity extends DrawerActivity {
         if (viewsContainer != null && !viewsContainer.isEmpty()) {
             dataLayout.addView(viewsContainer.get(0), -1);
         } else {
-            Timber.e("No view in viewOfGrid, cannot display any data.");
+            Timber.e("No view in viewsContainer, cannot display any data.");
         }
 
         // Ready to start
@@ -69,7 +82,9 @@ public class MainActivity extends DrawerActivity {
         Timber.v("Main Activity : Creation Done.");
     }
 
-
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -91,10 +106,7 @@ public class MainActivity extends DrawerActivity {
      */
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
-        //toolbar.setTitle("ORONOS");
-        // Title is set in parser
         setSupportActionBar(toolbar);
-
 
         ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
         if (viewsContainer != null) {
@@ -160,6 +172,7 @@ public class MainActivity extends DrawerActivity {
      * in the res/menu/menu_main.xml file.
      *
      * @param menu Menu to inflate in the toolbar.
+     * @return true
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -172,6 +185,7 @@ public class MainActivity extends DrawerActivity {
      * Callback for any triggered MenuItem in the toolbar.
      *
      * @param item MenuItem that was triggered in the toolbar.
+     * @return true for the menu to be displayed.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -189,6 +203,9 @@ public class MainActivity extends DrawerActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
