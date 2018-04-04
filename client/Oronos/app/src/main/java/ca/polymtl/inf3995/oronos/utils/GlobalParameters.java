@@ -34,8 +34,10 @@ public class GlobalParameters {
             Integer.parseInt("2f", 16)
     );
     // SocketClient
+    public static final String CLIENT_ADDRESS = "0.0.0.0";
+
     public static boolean                   hasRetardedErrorMessages = false;
-    public static String                    serverAddress = "0.0.0.0";
+    public static String                    serverAddress = "";
     public static int                       udpPort = 5005;
     public static Map<Integer, String>      canSid;
     public static Map<String, String>       canDataTypes;

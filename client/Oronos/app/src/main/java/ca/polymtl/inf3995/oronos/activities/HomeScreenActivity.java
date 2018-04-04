@@ -144,6 +144,8 @@ public class HomeScreenActivity extends AppCompatActivity {
                 this.parent.snackbar.dismiss();
             this.parent.saveInputs(this.parent.getTextInputs());
 
+            GlobalParameters.serverAddress = this.parent.getTextInputs().serverAddress;
+
             this.parent.dialog.setMessage("Sending basic config request...");
             GetConfigBasicListener nextListener = new GetConfigBasicListener(this.parent);
             RestHttpWrapper.getInstance().sendGetConfigBasic(nextListener, nextListener);

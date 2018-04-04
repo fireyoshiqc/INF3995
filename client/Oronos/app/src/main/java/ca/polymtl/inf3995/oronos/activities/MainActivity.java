@@ -95,7 +95,7 @@ public class MainActivity extends DrawerActivity {
      * Utilities for the client
      */
     private void setUpUtilities() {
-        SocketClient.getInstance().connect(GlobalParameters.serverAddress, GlobalParameters.udpPort);
+        SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
     }
 
 

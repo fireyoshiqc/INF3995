@@ -28,7 +28,7 @@ public class SocketClientUnitTest {
      */
     @Before
     public void SetUpSocketClient() {
-        clientObj = new SocketClient(GlobalParameters.serverAddress, GlobalParameters.udpPort);
+        clientObj = new SocketClient(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
     }
 
     /**
@@ -45,7 +45,7 @@ public class SocketClientUnitTest {
     @Test
     public void receiveMsgFromServer() throws Exception {
         appContext = InstrumentationRegistry.getTargetContext();
-        fakeServerObj = new FakeServer(GlobalParameters.serverAddress, GlobalParameters.udpPort);
+        fakeServerObj = new FakeServer(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
         fakeServerObj.send("Testing if client can be reached form server through udp");
         Thread.sleep(1000);
         assertEquals(1, clientObj.numMessagesReceived(0));
