@@ -37,7 +37,7 @@ public class GlobalParameters {
     public static final String CLIENT_ADDRESS = "0.0.0.0";
 
     public static boolean                   hasRetardedErrorMessages = false;
-    public static String                    serverAddress = "";
+    public static String                    serverAddress = null;
     public static int                       udpPort = 5005;
     public static Map<Integer, String>      canSid;
     public static Map<String, String>       canDataTypes;
@@ -45,6 +45,7 @@ public class GlobalParameters {
     public static Map<String, Integer>      canModuleTypes;
     public static String                    layoutName;
     public static String                    mapName;
+    public static double                    serverTimeout = 0.0;
 
     GlobalParameters() { }
 

@@ -2,13 +2,19 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.android.volley.Response;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,10 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
+import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.services.SocketClient;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
@@ -49,6 +58,7 @@ public class MainActivity extends DrawerActivity {
     private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
     private boolean isMenuActive;
+    private Timer heartbeatTimer = null;
 
     private List<OronosView> viewsContainer;
     private RelativeLayout dataLayout;
@@ -62,6 +72,7 @@ public class MainActivity extends DrawerActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setUpHeartbeatTask();
         setUpUtilities();
         setContentView(R.layout.activity_main);
 
@@ -96,8 +107,59 @@ public class MainActivity extends DrawerActivity {
      */
     private void setUpUtilities() {
         SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
+
     }
 
+    /**
+     * Setup the heartbeat task if not already started.
+     */
+    private void setUpHeartbeatTask() {
+        if ( this.heartbeatTimer != null )
+            return;
+
+        // At least one hearbeat per minute.
+        long heartbeatPeriod = Math.min((long)GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
+
+        this.heartbeatTimer = new Timer(true);
+        TimerTask heartbeatTask = new TimerTask() {
+            private long     lastAnswer = System.nanoTime();
+            private Snackbar warningBar = null;
+            private Toast    warningToast = null;
+
+            @Override
+            public void run() {
+                if ( GlobalParameters.serverAddress == null )
+                    return;
+
+                RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
+                    @Override
+                    public void onResponse(Void response) {
+                        lastAnswer = System.nanoTime();
+                    }
+                },null);
+
+                long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
+                long timeSinceLastAnswer = System.nanoTime() - this.lastAnswer;
+                boolean toastIsShown = warningToast != null && warningToast.getView() != null &&
+                                       warningToast.getView().isShown();
+                if ( timeSinceLastAnswer > serverTimeoutNs && !toastIsShown ) {
+                    Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
+                    mainHandler.post(new Runnable(){
+                        @Override
+                        public void run() {
+                            String msg = ( GlobalParameters.hasRetardedErrorMessages ) ?
+                                         "henlo fren, server not know da wae" :
+                                         "WARNING : Server has not answered to heartbeats for a while";
+                            warningToast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                            warningToast.show();
+                        }
+                    });
+                }
+
+            }
+        };
+        this.heartbeatTimer.scheduleAtFixedRate(heartbeatTask, heartbeatPeriod, heartbeatPeriod);
+    }
 
     /**
      * This method declares the toolbar and its menu elements.

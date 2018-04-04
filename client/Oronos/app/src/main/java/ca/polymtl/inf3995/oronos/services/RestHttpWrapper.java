@@ -117,6 +117,21 @@ public class RestHttpWrapper {
         volleyQueue.add(request);
     }
 
+    public void sendPostUsersHeartbeat(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+        String fullUrl = this.serverUrl + "/users/heartbeat";
+
+        JSONObject json = new JSONObject();
+        String foo = json.toString();
+
+        JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
+                                                                              json,
+                                                                              resListen,
+                                                                              errListen);
+        request.setRetryPolicy(this.retryPolicy);
+        request.setShouldCache(false);
+        volleyQueue.add(request);
+    }
+
     public void sendGetConfigBasic(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/basic", resListen, errListen);
     }
@@ -143,6 +158,10 @@ public class RestHttpWrapper {
 
     public void sendGetConfigCanModuleTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/canModuleTypes", resListen, errListen);
+    }
+
+    public void sendGetConfigTimeout(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/timeout", resListen, errListen);
     }
 
     // TODO: miscFiles

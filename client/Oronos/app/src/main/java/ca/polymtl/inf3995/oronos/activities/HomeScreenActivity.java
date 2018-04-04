@@ -349,7 +349,7 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     /**
      * Listener for the response to a get module types request. If the get succeeds, the
-     * response of the server will trigger the switch to the main activity.
+     * response of the server will trigger the next request to obtain the server timeout delay
      */
     private static class GetConfigCanModuleTypesListener extends BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigCanModuleTypesListener(HomeScreenActivity parent) {
@@ -373,6 +373,37 @@ public class HomeScreenActivity extends AppCompatActivity {
                 }
 
                 GlobalParameters.canModuleTypes = map;
+            } else {
+                Timber.e("Error");
+            }
+
+            this.parent.dialog.setMessage("Sending server timeout delay request...");
+            GetConfigTimeoutListener nextListener = new GetConfigTimeoutListener(this.parent);
+            RestHttpWrapper.getInstance().sendGetConfigTimeout(nextListener, nextListener);
+        }
+    }
+
+    /**
+     * Listener for the response to a get module types request. If the get succeeds, the
+     * response of the server will trigger the switch to the main activity.
+     */
+    private static class GetConfigTimeoutListener extends BasicErrorListener implements Response.Listener<JSONObject> {
+        GetConfigTimeoutListener(HomeScreenActivity parent) {
+            super(parent, "GET /config/timeout");
+        }
+
+        @Override
+        public void onResponse(JSONObject result) {
+            Double timeoutMinutes = null;
+
+            try {
+                timeoutMinutes = (Double)JsonHelper.toMap(result).get("timeoutMinutes");
+            } catch (JSONException e) {
+                Timber.e(e.getMessage());
+            }
+
+            if (timeoutMinutes != null) {
+                GlobalParameters.serverTimeout = timeoutMinutes * 60.0;
             } else {
                 Timber.e("Error");
             }
@@ -503,7 +534,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         super.onResume();
 
         RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
-        GlobalParameters.serverAddress = "";
+        GlobalParameters.serverAddress = null;
 
         if (this.dialog != null && this.dialog.isShowing())
             this.dialog.dismiss();
