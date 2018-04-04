@@ -59,6 +59,7 @@ public class MainActivity extends DrawerActivity {
     private int currentDataViewState;
     private boolean isMenuActive;
     private Timer heartbeatTimer = null;
+    private Toast warningToast = null;
 
     private List<OronosView> viewsContainer;
     private RelativeLayout dataLayout;
@@ -98,6 +99,8 @@ public class MainActivity extends DrawerActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if ( this.warningToast != null )
+            this.warningToast.cancel();
         SocketClient.getInstance().disconnect();
         DataDispatcher.clearAllListeners();
     }
@@ -122,9 +125,7 @@ public class MainActivity extends DrawerActivity {
 
         this.heartbeatTimer = new Timer(true);
         TimerTask heartbeatTask = new TimerTask() {
-            private long     lastAnswer = System.nanoTime();
-            private Snackbar warningBar = null;
-            private Toast    warningToast = null;
+            private long  lastAnswer = System.nanoTime();
 
             @Override
             public void run() {
