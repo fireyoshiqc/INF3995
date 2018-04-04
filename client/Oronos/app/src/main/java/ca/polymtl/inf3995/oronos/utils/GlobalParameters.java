@@ -35,7 +35,7 @@ public class GlobalParameters {
     );
     // SocketClient
     public static boolean                   hasRetardedErrorMessages = false;
-    public static String                    CLIENT_ADDRESS = "0.0.0.0";
+    public static String                    serverAddress = "0.0.0.0";
     public static int                       udpPort = 5005;
     public static Map<Integer, String>      canSid;
     public static Map<String, String>       canDataTypes;

@@ -20,7 +20,6 @@ import java.util.List;
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
-import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.services.SocketClient;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
@@ -89,7 +88,6 @@ public class MainActivity extends DrawerActivity {
     protected void onDestroy() {
         super.onDestroy();
         SocketClient.getInstance().disconnect();
-        RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
         DataDispatcher.clearAllListeners();
     }
 
@@ -97,7 +95,7 @@ public class MainActivity extends DrawerActivity {
      * Utilities for the client
      */
     private void setUpUtilities() {
-        SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
+        SocketClient.getInstance().connect(GlobalParameters.serverAddress, GlobalParameters.udpPort);
     }
 
 
