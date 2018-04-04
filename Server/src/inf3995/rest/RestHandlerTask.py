@@ -31,7 +31,7 @@ class RestHandlerTask(AbstractTaskNode):
 		cherrypy.engine.start()
 	
 	def handle_data(self):
-		pass
+		self.__server.drop_dead_clients()
 	
 	def cleanup(self):
 		cherrypy.engine.exit()

@@ -6,6 +6,7 @@ import json
 import os
 import collections
 import threading
+import time
 
 import cherrypy
 
@@ -26,11 +27,12 @@ class RestServer(object):
 	def __init__(self):
 		self.__event_logger = inf3995.core.ApplicationManager().get_event_logger()
 		self.__sessions = {}
-		self.__sessions_mutex = threading.Lock()
+		self.__sessions_mutex = threading.RLock()
 		self.__skip_auth = inf3995.core.ProgramOptions.get_value("skip-auth")
 		self.__auth_manager = AuthenticationManager()
 		settings = inf3995.core.ApplicationManager().get_settings_manager().settings
 		self.__auth_manager.load_users(settings["Authentication"]["users_file"])
+		self.__users_timeout = float(settings["REST"]["users_timeout_minutes"]) * 60.0
 		self.__add_ip_callbacks = []
 		self.__remove_ip_callbacks = []
 	
@@ -45,6 +47,20 @@ class RestServer(object):
 			self.__add_ip_callbacks.append(add_ip_fn)
 		if remove_ip_fn is not None:
 			self.__remove_ip_callbacks.append(remove_ip_fn)
+	
+	def drop_dead_clients(self):
+		self.__sessions_mutex.acquire()
+		now = time.monotonic()
+		dead_clients = []
+		for id, session in self.__sessions.items():
+			if now - session["heartbeat"] > self.__users_timeout:
+				self.__event_logger.log_info("Client at IP " + session["ip"] + \
+				                             " timed out")
+				dead_clients.append(id)
+		self.__sessions_mutex.release()
+		
+		for id in dead_clients:
+			self._remove_session(id)
 	
 	def GET(self, *args):
 		if len(args) > 1 and args[0] == "config":
@@ -72,7 +88,8 @@ class RestServer(object):
 			"canSid"          : self.get_config_cansid,
 			"canDataTypes"    : self.get_config_candatatypes,
 			"canMsgDataTypes" : self.get_config_canmsgdatatypes,
-			"canModuleTypes"  : self.get_config_canmoduletypes
+			"canModuleTypes"  : self.get_config_canmoduletypes,
+			"timeout"         : self.get_config_timeout
 		}
 		default = RestServer._raise_error_404
 		return switch.get(url[0], default)(request, url[1:len(url)])
@@ -200,11 +217,20 @@ class RestServer(object):
 		cherrypy.response.headers["Content-Type"] = "application/json"
 		return json.dumps(result, indent=2).encode("utf-8")
 	
+	def get_config_timeout(self, request, url):
+		self._check_if_logged_in()
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		result = {"timeoutMinutes" : self.__users_timeout / 60.0}
+		cherrypy.response.headers["Content-Type"] = "application/json"
+		return json.dumps(result, indent=2).encode("utf-8")
 	
 	def post_users(self, request, url):
 		switch = {
-			"login"  : self.post_users_login,
-			"logout" : self.post_users_logout,
+			"login"     : self.post_users_login,
+			"logout"    : self.post_users_logout,
+			"heartbeat" : self.post_users_heartbeat
 		}
 		default = RestServer._raise_error_404
 		return switch.get(url[0], default)(request, url[1:len(url)])
@@ -225,6 +251,7 @@ class RestServer(object):
 			session["ip"] = request.remote.ip
 			session["datetime"] = datetime.datetime.now()
 			session["device"] = self._get_device_from_request(request)
+			session["heartbeat"] = time.monotonic()
 			
 			self.__event_logger.log_info("User login : '" + session["user"] + "'" + \
 			                             " at IP " + session["ip"])
@@ -248,17 +275,22 @@ class RestServer(object):
 			can_delete = session is not None and \
 			             (self.__skip_auth or data["username"] == session["user"])
 			if can_delete:
-				self.__event_logger.log_info("User logout : '" + session["user"] + "'")
-				for fn in self.__remove_ip_callbacks:
-					fn(session["ip"])
-				
-				self.__sessions.pop(cherrypy.session.id)
-				cherrypy.session.clear()
-				cherrypy.session.delete()
+				self._remove_session(cherrypy.session.id)
 			else:
 				RestServer._raise_http_error(401)
 		else:
 			RestServer._raise_http_error(400)
+	
+	def post_users_heartbeat(self, request, url):
+		self._check_if_logged_in()
+		
+		if len(url) != 0:
+			RestServer._raise_http_error(404)
+		
+		self.__sessions_mutex.acquire()
+		session = self._get_session()
+		session["heartbeat"] = time.monotonic()
+		self.__sessions_mutex.release()
 	
 	@staticmethod
 	def _raise_http_error(code):
@@ -309,4 +341,16 @@ class RestServer(object):
 		else:
 			# TODO: Parse the User-Agent string to try and find the device type.
 			return RestServer.__UNKNOWN_DEVICE
+	#
+	def _remove_session(self, id):
+		session = self.__sessions.get(id, None)
+		if session is None:
+			return
+		self.__event_logger.log_info("User logout : '" + session["user"] + "'")
+		for fn in self.__remove_ip_callbacks:
+			fn(session["ip"])
+		
+		self.__sessions_mutex.acquire()
+		self.__sessions.pop(id)
+		self.__sessions_mutex.release()
 

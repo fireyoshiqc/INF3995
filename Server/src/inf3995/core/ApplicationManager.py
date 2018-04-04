@@ -166,16 +166,16 @@ class ApplicationManager(object):
 		event_logger_node.connect_to_source(log_viewer_node)
 
 		# TODO: Build the worker threads
-		self.__build_thread([dummy_node], 0.5)
-		self.__build_thread([rest_node])
-		self.__build_thread([rx_node])
-		self.__build_thread([tx_node], 20.0)
-		self.__build_thread([data_logger_node])
-		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
-		self.__build_thread([event_logger_node])
+		self.__build_thread("Dummy",     [dummy_node], 0.5)
+		self.__build_thread("REST",      [rest_node], 1.0)
+		self.__build_thread("Data Rx",   [rx_node])
+		self.__build_thread("Data Tx",   [tx_node], 20.0)
+		self.__build_thread("Data Log",  [data_logger_node])
+		self.__build_thread("View",      [log_viewer_node, users_viewer_node], 15.0)
+		self.__build_thread("Event Log", [event_logger_node])
 	
-	def __build_thread(self, task_nodes, max_freq = None):
-		worker = WorkerThread(max_freq)
+	def __build_thread(self, name, task_nodes, max_freq = None):
+		worker = WorkerThread(name, max_freq)
 		for node in task_nodes:
 			worker.add_task_node(node)
 		self.__worker_threads.append(worker)
