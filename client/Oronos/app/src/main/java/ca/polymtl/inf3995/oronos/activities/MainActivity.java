@@ -59,6 +59,7 @@ public class MainActivity extends DrawerActivity {
     private int currentDataViewState;
     private boolean isMenuActive;
     private Timer heartbeatTimer = null;
+    private long lastServerAnswer = System.nanoTime();
     private Toast warningToast = null;
 
     private List<OronosView> viewsContainer;
@@ -117,16 +118,16 @@ public class MainActivity extends DrawerActivity {
      * Setup the heartbeat task if not already started.
      */
     private void setUpHeartbeatTask() {
-        if ( this.heartbeatTimer != null )
+        if ( this.heartbeatTimer != null ) {
+            lastServerAnswer = System.nanoTime();
             return;
+        }
 
         // At least one hearbeat per minute.
         long heartbeatPeriod = Math.min((long)GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
 
         this.heartbeatTimer = new Timer(true);
         TimerTask heartbeatTask = new TimerTask() {
-            private long  lastAnswer = System.nanoTime();
-
             @Override
             public void run() {
                 if ( GlobalParameters.serverAddress == null )
@@ -135,12 +136,12 @@ public class MainActivity extends DrawerActivity {
                 RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
                     @Override
                     public void onResponse(Void response) {
-                        lastAnswer = System.nanoTime();
+                        lastServerAnswer = System.nanoTime();
                     }
                 },null);
 
                 long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
-                long timeSinceLastAnswer = System.nanoTime() - this.lastAnswer;
+                long timeSinceLastAnswer = System.nanoTime() - lastServerAnswer;
                 boolean toastIsShown = warningToast != null && warningToast.getView() != null &&
                                        warningToast.getView().isShown();
                 if ( timeSinceLastAnswer > serverTimeoutNs && !toastIsShown ) {
