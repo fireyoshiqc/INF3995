@@ -1,6 +1,7 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -8,9 +9,18 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.transition.AutoTransition;
+import android.transition.Explode;
+import android.transition.Slide;
+import android.transition.Transition;
+import android.transition.TransitionManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.GridLayoutAnimationController;
+import android.view.animation.LayoutAnimationController;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -233,9 +243,6 @@ public class MainActivity extends DrawerActivity {
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +
                     e.getMessage());
-        } catch (NullPointerException e) {
-            Timber.e("Cache dir or layout name seems to be null for some reason. Retrying.");
-            fillViewsContainer();
         }
     }
 
@@ -319,13 +326,43 @@ public class MainActivity extends DrawerActivity {
     public void changeStateOfDataLayout(int nextView) {
         if (nextView == MENU_VIEW_ID) {
             if (isMenuActive) {
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_out);
+                recycler.setLayoutAnimation(controller);
+                //TODO: Fix this if able to make the fade out animation appear
+                /*
+                recycler.setLayoutAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        dataLayout.removeView(recycler);
+                        isMenuActive = false;
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                Maybe use recycler.getItemAnimator().endAnimations()
+                */
+                recycler.scheduleLayoutAnimation();
                 dataLayout.removeView(recycler);
                 isMenuActive = false;
+
             } else {
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_in);
+                recycler.setLayoutAnimation(controller);
+                recycler.scheduleLayoutAnimation();
                 dataLayout.addView(recycler);
                 isMenuActive = true;
             }
         } else {
+            Slide transition = new Slide();
+            TransitionManager.beginDelayedTransition(dataLayout, transition);
             if (isMenuActive) {
                 dataLayout.removeView(recycler);
                 isMenuActive = false;

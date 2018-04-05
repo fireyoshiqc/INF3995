@@ -55,12 +55,9 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
     public MapTag(Context context) {
         super(context);
-
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context));
-
         handler = new Handler();
         mapView = new MapView(context);
-
     }
 
     @Override
@@ -68,8 +65,8 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         super.onAttachedToWindow();
         handler.postDelayed(run, REFRESH_DELAY);
         mapView = new MapView(getContext());
-        setupMapView();
         setupRocketMarker();
+        setupMapView();
         register();
         addView(mapView);
     }

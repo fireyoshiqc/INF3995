@@ -2,6 +2,10 @@ package ca.polymtl.inf3995.oronos.widgets.containers;
 
 import android.content.Context;
 import android.support.design.widget.TabLayout;
+import android.transition.AutoTransition;
+import android.transition.Slide;
+import android.transition.TransitionManager;
+import android.view.Gravity;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -48,6 +52,9 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                AutoTransition transition = new AutoTransition();
+                transition.setDuration(100);
+                TransitionManager.beginDelayedTransition(containerLayout, transition);
                 containerLayout.removeAllViewsInLayout();
                 containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents());
             }
