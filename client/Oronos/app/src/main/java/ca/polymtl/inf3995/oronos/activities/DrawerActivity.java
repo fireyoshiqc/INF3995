@@ -2,6 +2,7 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -25,7 +26,7 @@ import timber.log.Timber;
  * set the receiving rocket data mode.
  *
  *
- * @author  Félix Boulet, Fabrice Charbonneau
+ * @author  Fabrice Charbonneau, Félix Boulet
  * @version 0.0
  * @since   2018-04-12
  */
@@ -40,7 +41,7 @@ public class DrawerActivity extends AppCompatActivity {
     private NavigationView navigationView;
 
     /**
-     * This method set up the hamburger menu and the callback responsible for the actions generated
+     * This method sets up the hamburger menu and the callback responsible for the actions generated
      * by a user click on an item of the menu.
      * */
     protected void onCreateDrawer() {
@@ -116,7 +117,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is displaying a small pop up to confirm the user wants to be disconnected and sent
+     * This method displays a small pop up to confirm the user wants to be disconnected and sent
      * to Home Screen Activity.
      * */
     private void disconnectionPopup() {
@@ -142,7 +143,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is displaying a small pop up to let the user choose between the available themes.
+     * This method displays a small pop up to let the user choose between the available themes.
      * */
     private void themeSelectionPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -176,7 +177,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is displaying a small pop up to confirm the user wants to switch themes.
+     * This method displays a small pop up to confirm the user wants to switch themes.
      * */
     private void themeWarningPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -206,7 +207,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is destroying whatever activity is currently up and is starting the Main Activity.
+     * This method destroys whatever activity is currently up and is starting the Main Activity.
      * */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
@@ -215,7 +216,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is starting a fragment responsible of managing the available pdf list from the
+     * This method starts a fragment responsible of managing the available pdf list from the
      * server.
      * */
     private void switchToPdfActivity() { //This will have to be a fragment. 
@@ -224,7 +225,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     * This method is destroying whatever activity is currently up and is starting the Home Screen
+     * This method destroys whatever activity is currently up and is starting the Home Screen
      * Activity.
      * */
     private void switchToHomeScreenActivity() {
@@ -240,6 +241,7 @@ public class DrawerActivity extends AppCompatActivity {
      * */
     protected void changeToolbarTitle(String title){
         toolbar.setTitle(title);
+        toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
     }
 
