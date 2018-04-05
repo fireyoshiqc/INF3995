@@ -6,7 +6,12 @@ import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 
 /**
- * Created by Felix on 10/mars/2018.
+ * <h1>Permissions Util</h1>
+ * Permissions related methods
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
 
 public class PermissionsUtil {

@@ -1,16 +1,18 @@
 package ca.polymtl.inf3995.oronos.utils;
 
-/**
- * Created by Fabri on 2018-02-13.
- * Same file than in TP4. Found by Patrick, inspired by https://developer.android.com/training/volley/requestqueue.html
- */
-
 import android.content.Context;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
+/**
+ * <h1>Volley Singleton</h1>
+ * Used by {@link ca.polymtl.inf3995.oronos.services.RestHttpWrapper} for all HTTP and REST requests
+ *
+ * @author Fabrice Charbonneau, Patrick Richer St-Onge
+ * @see "https://developer.android.com/training/volley/requestqueue.html"
+ */
 public class VolleySingleton {
     private static VolleySingleton mInstance;
     private static Context mCtx;

@@ -9,7 +9,14 @@ import java.util.HashMap;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 
 /**
- * Created by Felix on 22/mars/2018.
+ * <h1>CAN Custom Update</h1>
+ * Contains all the functions that are called in the XMLs.
+ * <p>
+ * Based on CustomUpdate.py
+ *
+ * @author Oronos, Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
 
 // TODO: FINISH THIS USING CustomUpdate.py as a base
@@ -121,7 +128,7 @@ public class CANCustomUpdate {
     }
 
     private static String apogeeDetect(BroadcastMessage msg) {
-        String key = msg.getSourceModule()+ msg.getSerialNb();
+        String key = msg.getSourceModule() + msg.getSerialNb();
         if (!altMax.containsKey(key)) {
             altMax.put(msg.getSourceModule() + msg.getSerialNb(), Double.NEGATIVE_INFINITY);
         }
