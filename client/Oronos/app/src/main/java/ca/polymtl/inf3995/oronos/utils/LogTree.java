@@ -5,9 +5,6 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-
-import org.joda.time.DateTime;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -18,27 +15,30 @@ import java.util.Calendar;
 import timber.log.Timber;
 
 /**
- * Created by prst on 2018-02-13.
+ * <h1>Log Tree</h1>
+ * Replace Android Log in order to have custom logging messages and redirect the output to file
+ *
+ * @author Patrick Richer St-Onge, Justine Pepin, Fabrice Charbonneau
+ * @version 0.0
+ * @since 2018-04-12
+ * <p>
+ * <pre>
+ * {@code
+ * Timber.plant(new LogTree());
+ * Timber.v("hello");
+ * Timber.d("hello");
+ * Timber.i("hello");
+ * Timber.w("hello");
+ * Timber.e("hello");
+ * }
+ * </pre>
  */
-
-/* USAGE
-// à appeller seulement une fois pour l'application?
-Timber.plant(new LogTree());
-
-// pour logger
-Timber.v("hello");
-Timber.d("hello");
-Timber.i("hello");
-Timber.w("hello");
-Timber.e("hello");
-
-*/
 
 public class LogTree extends Timber.DebugTree {
     private Context appContext;
     private File logFile;
 
-    public LogTree(Context context){
+    public LogTree(Context context) {
         super();
         this.appContext = context;
 
@@ -70,7 +70,7 @@ public class LogTree extends Timber.DebugTree {
         }
         Log.println(priority, tag, messageStr);
 
-        if(isExternalStorageReadable() && isExternalStorageWritable()){
+        if (isExternalStorageReadable() && isExternalStorageWritable()) {
             File file = getPrivateLogStorageDir();
             writeToFile(messageStr);
         }
@@ -78,7 +78,7 @@ public class LogTree extends Timber.DebugTree {
     }
 
     /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
+    private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             return true;
@@ -87,21 +87,20 @@ public class LogTree extends Timber.DebugTree {
     }
 
     /* Checks if external storage is available to at least read */
-    public boolean isExternalStorageReadable() {
+    private boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+        if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
             return true;
         }
         return false;
     }
 
-    private void createLogFile(){
+    private void createLogFile() {
         String currentTime = Calendar.getInstance().getTime().toString();
         File file = new File(getPrivateLogStorageDir(), currentTime + ".txt");
         try {
-            if(!file.createNewFile()){
-                Log.println(Log.ERROR, "Timber" , "file could not be created");
+            if (!file.createNewFile()) {
+                Log.println(Log.ERROR, "Timber", "file could not be created");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -109,26 +108,26 @@ public class LogTree extends Timber.DebugTree {
 
         this.logFile = file;
 
-        Log.println(Log.ERROR, "Timber" , "this is what file looks like: " + file.getName());
+        Log.println(Log.ERROR, "Timber", "this is what file looks like: " + file.getName());
     }
 
-    public File getPrivateLogStorageDir() {
+    private File getPrivateLogStorageDir() {
         // Get the directory OronosLogs from the app's private document directory.
 
         File file = new File(appContext.getExternalFilesDir(
                 Environment.DIRECTORY_DOCUMENTS), GlobalParameters.LOG_DIR_NAME);
-        if(file.exists()){
+        if (file.exists()) {
             Log.println(Log.INFO, "Timber", "new File() finds the log directory. All is good. =)");
         } else {
             Log.println(Log.INFO, "Timber", "new File() isn't working; directory not accessible. Creating new directory...");
-            if(!file.mkdirs()){
+            if (!file.mkdirs()) {
                 Log.println(Log.ERROR, "Timber", "error creating directory.");
             }
         }
         return file;
     }
 
-    public void writeToFile( String message) {
+    private void writeToFile(String message) {
         FileOutputStream fileOutput = null;
         try {
             fileOutput = new FileOutputStream(this.logFile);

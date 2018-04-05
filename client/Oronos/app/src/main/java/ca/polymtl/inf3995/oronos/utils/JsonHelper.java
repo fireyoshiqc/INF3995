@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * From github https://gist.github.com/codebutler/2339666
+ * <h1>JSON Helper</h1>
+ * Convert JSON objects to Java objects
+ *
+ * @author Eric Butler, Patrick Richer St-Onge
+ * @see "https://gist.github.com/codebutler/2339666"
  */
 
 public class JsonHelper {
