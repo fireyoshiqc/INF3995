@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -25,21 +26,26 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>Map Tag</h1>
+ * Displays map using osmdroid
+ *
+ * @author Patrick Richer St-Onge, Fabrice Charbonneau
+ * @version 0.0
+ * @since 2018-04-12
  */
 
 public class MapTag extends OronosView implements DataDispatcher.CANDataListener {
 
-    private final int REFRESH_DELAY = 1000; // milliseconds
+    private static final int REFRESH_DELAY = 1000; // milliseconds
 
     private MapView mapView;
-    private Handler handler;
+    private final Handler handler;
 
     private GeoPoint rocketLocation;
     private Marker rocketMarker;
 
     private GeoPoint serverLocation;
-    private Runnable run = new Runnable() {
+    private final Runnable run = new Runnable() {
         @Override
         public void run() {
             updateMarker();
@@ -120,7 +126,8 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
-        serverMarker.setIcon(getResources().getDrawable(R.drawable.ic_home_black_24dp));
+        //serverMarker.setIcon(getResources().getDrawable(R.drawable.ic_home_black_24dp, getContext().getTheme()));
+        rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
 
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
@@ -168,7 +175,8 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         rocketMarker.setPosition(rocketLocation);
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
-        rocketMarker.setIcon(getResources().getDrawable(R.drawable.ic_adjust_black_24dp));
+        //rocketMarker.setIcon(getResources().getDrawable(R.drawable.ic_adjust_black_24dp, getContext().getTheme()));
+        rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_adjust_black_24dp));
         mapView.getOverlays().add(rocketMarker);
     }
 
