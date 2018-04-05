@@ -82,9 +82,8 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         DataDispatcher.registerCANDataListener(this);
 
         refreshPlot();
-        setGenericPlotSettings();
-
         initializeViews();
+        setGenericPlotSettings();
         run();
 
     }
@@ -124,8 +123,12 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
             if (!listEntry.isEmpty()) {
                 LineDataSet line = new LineDataSet(listEntry, can.getId());
+
+                //Settings pour chaque LineDataSet
                 line.setColor(colors[colorCount]);
                 line.setCircleColor(colors[colorCount]);
+                line.setDrawValues(false); //pas de label au-dessus des points
+
                 lines.add(line);
                 colorCount++;
             }
@@ -144,6 +147,13 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         Description desc = new Description();
         desc.setText("");
         this.chart.setDescription(desc);
+
+        //Couleur du texte, la même que axisView qui se change automatiquement selon le theme sélectionné
+        this.chart.getXAxis().setTextColor(this.axisView.getTextColors().getDefaultColor());
+        this.chart.getAxisLeft().setTextColor(this.axisView.getTextColors().getDefaultColor());
+        this.chart.getAxisRight().setTextColor(this.axisView.getTextColors().getDefaultColor());
+        this.chart.getLegend().setTextColor(this.axisView.getTextColors().getDefaultColor());
+
 
     }
 
@@ -181,7 +191,7 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     private void createSlider() {
         timeSecondsView = new TextView(context);
-        timeSecondsView.setText(1 + " minute");
+        timeSecondsView.setText(String.format("%s minutes %s%s", 1, 0, " seconds"));
         LayoutParams timeViewParams = new LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
