@@ -3,10 +3,10 @@
 
 import datetime
 import json
-import os
-import collections
+import os.path
 import threading
 import time
+import mimetypes
 
 import cherrypy
 
@@ -151,11 +151,9 @@ class RestServer(object):
 			cherrypy.response.headers["Content-Type"] = "application/json"
 			return json.dumps(all_files, indent=2).encode("utf-8")
 		else:
-			file_path = "/".join([misc_files_dir] + list(url))
-			if os.path.isfile(file_path):
-				cherrypy.lib.static.serve_file(os.getcwd() + "/" + file_path)
-			else:
-				RestServer._raise_http_error(404)
+			file_path = os.path.join(*([self.__MISC_FILES_DIR] + list(url)))
+			file_path = os.path.abspath(os.path.join(os.getcwd(), file_path))
+			return self._serve_file_as_download(file_path)
 	
 	def get_config_devicetypes(self, request, url):
 		if len(url) != 0:
@@ -341,7 +339,7 @@ class RestServer(object):
 		else:
 			# TODO: Parse the User-Agent string to try and find the device type.
 			return RestServer.__UNKNOWN_DEVICE
-	#
+
 	def _remove_session(self, id):
 		session = self.__sessions.get(id, None)
 		if session is None:
@@ -353,4 +351,17 @@ class RestServer(object):
 		self.__sessions_mutex.acquire()
 		self.__sessions.pop(id)
 		self.__sessions_mutex.release()
+
+	def _serve_file_as_download(self, file_path):
+		if os.path.isfile(file_path):
+			file_name = os.path.basename(file_path)
+			file_ext = os.path.splitext(file_name)[1]
+			default_type = "application/octet-stream"
+			content_type = mimetypes.types_map.get(file_ext, default_type)
+			file_content = open(file_path, "rb").read()
+			cherrypy.response.headers["Content-Type"] = content_type
+			cherrypy.response.headers["Content-Disposition"] = "attachment; filename=\"%s\"" % os.path.basename(file_path)
+			return file_content
+		else:
+			RestServer._raise_http_error(404)
 
