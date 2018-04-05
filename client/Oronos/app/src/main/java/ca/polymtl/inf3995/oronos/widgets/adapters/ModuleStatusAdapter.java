@@ -1,9 +1,7 @@
 package ca.polymtl.inf3995.oronos.widgets.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,12 +17,18 @@ import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 /**
+ * <h1>Module Status Adapter</h1>
  * This Adapter allows to display a grid containing small cards representing PCBs.
  * Each card must indicate the PCB name, the PCB serial number and the PCB status (between ONLINE,
  * DELAY and OFFLINE).
  * If the PCB status is ONLINE, the background of the card must be GREEN.
  * If the PCB status is DELAY, the background of the card must be ORANGE.
  * If the PCB status is OFFLINE, the background of the card must be RED.
+ *
+ *
+ * @author  Félix Boulet, Justine Pepin
+ * @version 0.0
+ * @since   2018-04-12
  */
 public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapter.PCBContainer> {
     private Context mContext;
@@ -48,7 +52,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
     /**
      * Constructor for this class; supposedly called by ModuleStatus.java
      *
-     * @param context        Context of the activity.
+     * @param context Context of the activity.
      */
     public ModuleStatusAdapter(Context context, int nGrid, int nColumns) {
         mContext = context;
@@ -57,12 +61,17 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         PCBList = new ArrayList<>();
     }
 
-
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     public PCBContainer onCreateViewHolder(ViewGroup parent, int viewType) {
         return new PCBContainer(LayoutInflater.from(parent.getContext()).inflate(R.layout.module_status_card, parent, false));
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     public void onBindViewHolder(PCBContainer holder, int position) {
         PCBPair pcb = PCBList.get(position);
@@ -72,11 +81,17 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         holder.itemView.setBackgroundColor(pcb.status.toColor(mContext));
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     public int getItemCount() {
         return PCBList.size();
     }
 
+    /**
+     * @return the list containing the PCB info.
+     * */
     public List<PCBPair> getPCBList() {
         return PCBList;
     }
@@ -115,6 +130,13 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         }
     }
 
+    /**
+     * If there is place in the grid, add PCB.
+     *
+     * @param PCBname  String Name of PCB.
+     * @param noSerial int Serial number of PCB.
+     * @param noMsg    int number of messages received from this PCB.
+     * */
     private void addItem(String PCBname, int noSerial, int noMsg) {
         if (PCBList.size() < nGrid) {
             PCBPair pcbPair = new PCBPair(PCBname, noSerial, noMsg);
@@ -123,6 +145,14 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         }
     }
 
+    /**
+     * Find a PCB in the PCB list and return its index.
+     *
+     * @param PCBname  String Name of PCB.
+     * @param noSerial int Serial number of PCB.
+     * @param noMsg    int number of messages received from this PCB.
+     * @return index   int representing the position of the PCB in the PCB list.
+     * */
     private int findPCBPosition(String PCBname, int noSerial, int noMsg) {
         int index;
         for (index = 0; index < PCBList.size(); index++) {

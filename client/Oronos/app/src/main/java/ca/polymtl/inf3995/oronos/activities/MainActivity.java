@@ -61,6 +61,7 @@ public class MainActivity extends DrawerActivity {
     private Timer heartbeatTimer = null;
     private long lastServerAnswer = System.nanoTime();
     private Toast warningToast = null;
+    private boolean isRunning = false;
 
     private List<OronosView> viewsContainer;
     private RelativeLayout dataLayout;
@@ -92,6 +93,7 @@ public class MainActivity extends DrawerActivity {
         currentDataViewState = 0;
         isMenuActive = false;
         Timber.v("Main Activity : Creation Done.");
+        this.isRunning = true;
     }
 
     /**
@@ -104,6 +106,14 @@ public class MainActivity extends DrawerActivity {
             this.warningToast.cancel();
         SocketClient.getInstance().disconnect();
         DataDispatcher.clearAllListeners();
+        this.isRunning = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        this.isRunning = false;
     }
 
     /**
@@ -130,7 +140,7 @@ public class MainActivity extends DrawerActivity {
         TimerTask heartbeatTask = new TimerTask() {
             @Override
             public void run() {
-                if ( GlobalParameters.serverAddress == null )
+                if ( GlobalParameters.serverAddress == null || !isRunning )
                     return;
 
                 RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
