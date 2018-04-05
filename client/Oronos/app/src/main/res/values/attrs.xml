@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="FixedContainerWidget">
-        <attr name="disposition" format="string">
-            <enum name="column" value="1"/>
-            <enum name="row" value="2"/>
-        </attr>
+    <declare-styleable name="customColors">
+        <attr name="redCanTag" format="color" />
+        <attr name="greenCanTag" format="color" />
     </declare-styleable>
+
 </resources>

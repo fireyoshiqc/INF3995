@@ -3,6 +3,7 @@ package ca.polymtl.inf3995.oronos.widgets.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,16 +48,21 @@ public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdap
         holder.canid.setText(can.getId());
         holder.data.setText(can.getDataToDisplay());
         holder.unit.setText(can.getUnit());
+        TypedValue outValue;
         switch (can.getState()) {
             case NONE:
                 break;
             case RED:
                 holder.itemView.setBackgroundResource(R.drawable.can_data_large_border_red);
-                holder.data.setTextColor(0xFFCC0000);
+                outValue = new TypedValue();
+                context.getTheme().resolveAttribute(R.attr.redCanTag, outValue, true);
+                holder.data.setTextColor(outValue.data);
                 break;
             case GREEN:
                 holder.itemView.setBackgroundResource(R.drawable.can_data_large_border_green);
-                holder.data.setTextColor(Color.BLACK);
+                outValue = new TypedValue();
+                context.getTheme().resolveAttribute(R.attr.greenCanTag, outValue, true);
+                holder.data.setTextColor(outValue.data);
                 break;
         }
     }

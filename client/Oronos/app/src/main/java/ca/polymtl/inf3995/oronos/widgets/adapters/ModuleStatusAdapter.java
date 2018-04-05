@@ -2,6 +2,7 @@ package ca.polymtl.inf3995.oronos.widgets.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -38,7 +39,6 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
         PCBContainer(final View view) {
             super(view);
-            // TODO: Set views from XML
             PCBName = view.findViewById(R.id.pcb_name);
             PCBSerialNb = view.findViewById(R.id.pcb_serial);
             PCBStatusDisplay = view.findViewById(R.id.pcb_status);
@@ -69,7 +69,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
         holder.PCBName.setText(pcb.name);
         holder.PCBSerialNb.setText(String.format("%d", pcb.serialNb));
         holder.PCBStatusDisplay.setText(pcb.status.toString());
-        holder.itemView.setBackgroundColor(pcb.status.toColor());
+        holder.itemView.setBackgroundColor(pcb.status.toColor(mContext));
     }
 
     @Override
@@ -141,9 +141,9 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
      * PCBStatusDisplay represent each possible state with a color and a string.
      */
     private enum PCBStatus {
-        ONLINE("ONLINE", GlobalParameters.GREEN_STATUS),
-        DELAY("DELAY", GlobalParameters.ORANGE_STATUS),
-        OFFLINE("OFFLINE", GlobalParameters.RED_STATUS);
+        ONLINE("ONLINE", R.color.greenA700dark),
+        DELAY("DELAY", R.color.orangeA700),
+        OFFLINE("OFFLINE", R.color.redA700);
 
         private final String text;
         private final int color;
@@ -158,8 +158,8 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
             return text;
         }
 
-        public int toColor() {
-            return color;
+        public int toColor(Context context) {
+            return ContextCompat.getColor(context, this.color);
         }
     }
 
