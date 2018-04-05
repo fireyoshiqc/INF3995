@@ -1,7 +1,5 @@
 package ca.polymtl.inf3995.oronos.services;
 
-import android.provider.Settings;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,14 +9,26 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
 /**
- * Created by prst on 2018-03-01.
- */
-
+ * <h1>Data Dispatcher</h1>
+ * The Data Dispatcher receives raw OSC data from the Socket Client and manage the listener for each
+ * message type. It must create the associated message type (either Broadcast Message for can data
+ * or Module Message for module data).
+ *
+ *
+ * @author  Félix Boulet, Justine Pepin, Patrick Richer St-Onge
+ * @version 0.0
+ * @since   2018-04-12
+ **/
 public class DataDispatcher {
 
     static private List<CANDataListener> canDataListeners = new CopyOnWriteArrayList<>();
     static private List<ModuleDataListener> moduleDataListeners = new CopyOnWriteArrayList<>();
 
+    /**
+     * This method adds a listener to the list of CAN Data Listeners.
+     *
+     * @param listener the listener to register to the list of CAN Data Listeners.
+     * */
     public static void registerCANDataListener(CANDataListener listener) {
         if (!canDataListeners.contains(listener)) {
             canDataListeners.add(listener);
@@ -28,6 +38,11 @@ public class DataDispatcher {
 
     }
 
+    /**
+     * This method removes a listener from the list of CAN Data Listeners.
+     *
+     * @param listener the listener to unregister from the list of CAN Data Listeners.
+     * */
     public static void unregisterCANDataListener(CANDataListener listener) {
         canDataListeners.remove(listener);
     }
@@ -40,15 +55,21 @@ public class DataDispatcher {
         }
     }
 
-    public static void unregisterModuleDataListener(ModuleDataListener listener) {
-        moduleDataListeners.remove(listener);
-    }
-
+    /**
+     * This method removes all listeners from the list of CAN Data Listeners and the list of Module
+     * Data Listeners.
+     * */
     public static void clearAllListeners() {
         canDataListeners.clear();
         moduleDataListeners.clear();
     }
 
+    /**
+     * This method receives as an argument data to send to every listener on the list of CAN Data
+     * Listeners.
+     *
+     * @param data the data of a CAN message in list form.
+     * */
     public static void dataToDispatch(List<Object> data) {
 
         if (GlobalParameters.canSid == null
@@ -103,6 +124,12 @@ public class DataDispatcher {
         }
     }
 
+    /**
+     * This method receives as an argument data to send to every listener on the list of Module Data
+     * Listeners.
+     *
+     * @param data the data of a module message in list form.
+     * */
     public static void moduleToDispatch(List<Object> data) {
 
         if (GlobalParameters.canModuleTypes == null) {
@@ -128,6 +155,10 @@ public class DataDispatcher {
 
     }
 
+    /**
+     * CAN Data Listener interface that every tag that wants to listen for CAN messages should
+     * implement.
+     * */
     public interface CANDataListener {
         void onCANDataReceived(BroadcastMessage msg);
 
@@ -138,6 +169,10 @@ public class DataDispatcher {
         String getSerialNumber();
     }
 
+    /**
+     * Module Data Listener interface that every tag that wants to listen for module messages should
+     * implement.
+     * */
     public interface ModuleDataListener {
         void onModuleDataReceived(ModuleMessage msg);
     }
