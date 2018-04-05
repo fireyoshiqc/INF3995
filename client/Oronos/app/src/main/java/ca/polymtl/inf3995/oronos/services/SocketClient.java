@@ -14,6 +14,8 @@ import com.koushikdutta.async.callback.DataCallback;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import timber.log.Timber;
 
@@ -37,6 +39,7 @@ public class SocketClient {
     private InetSocketAddress host;
     private AsyncDatagramSocket asyncDatagramSocket;
     private OSCByteArrayToJavaConverter byteToJavaConverter = new OSCByteArrayToJavaConverter();
+    private Executor dispatchExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     // This is for test purpose.
     private int numOfMessageReceived = 0;
@@ -147,7 +150,7 @@ public class SocketClient {
      * @param message OSC msg to send.
      * */
     private void forwardToDispatcher(final String address, final OSCMessage message) {
-        final Thread dispatcherThread = new Thread(new Runnable() {
+        dispatchExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -160,6 +163,5 @@ public class SocketClient {
                 }
             }
         });
-        dispatcherThread.start();
     }
 }
