@@ -38,7 +38,13 @@ import timber.log.Timber;
 
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>Plot</h1>
+ * The Plot class is a View that displays a single plot.
+ * Using the MPChart library to create the plot.
+ *
+ * @author  Fabrice Charbonneau, Félix Boulet
+ * @version 0.0
+ * @since   2018-04-12
  */
 
 public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher.CANDataListener {
@@ -88,6 +94,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     }
 
+    /**
+     * This method creates a thread that calls a function to refresh the plot periodically
+     */
     private void run() {
 
         final Handler handler = new Handler();
@@ -102,6 +111,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     }
 
+    /**
+     * This method instantiates a DataPlot object for each data set
+     */
     private void initializeDataList() {
         dataMap = new HashMap<>();
         for (CAN can : this.canList) {
@@ -111,6 +123,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         }
     }
 
+    /**
+     * This method refreshes the plot by acquiring the new data and replaces the old data
+     */
     private void refreshPlot() {
 
         int[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
@@ -138,6 +153,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         this.chart.invalidate(); // refresh
     }
 
+    /**
+     * This method sets general settings for the plot
+     */
     private void setGenericPlotSettings() {
         //no interaction
         this.chart.setTouchEnabled(false);
@@ -157,6 +175,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     }
 
+    /**
+     * This method creates and sets parameters for the side text naming the y axis
+     */
     private void createAxisText() {
 
         this.axisView = new TextView(context);
@@ -171,6 +192,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     }
 
+    /**
+     * This method creates and sets parameters for the title at the top of the graph
+     */
     private void createTitle() {
 
         this.titleView = new TextView(context);
@@ -189,6 +213,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
     }
 
+    /**
+     * This method creates and sets the elements for the slider
+     */
     private void createSlider() {
         timeSecondsView = new TextView(context);
         timeSecondsView.setText(String.format("%s minutes %s%s", 1, 0, " seconds"));
@@ -211,6 +238,9 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         sliderLayoutParams.setMargins(convertDpToPx(100, dm), convertDpToPx(0, dm), convertDpToPx(0, dm), convertDpToPx(0, dm));
     }
 
+    /**
+     * This method initializes all the views
+     */
     private void initializeViews() { //Could have been an xml
         createTitle();
         createAxisText();
@@ -261,6 +291,12 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         addView(containerLayout);
     }
 
+    /**
+     * This method converts a Dp value to a Px value
+     *
+     * @param dp value in Dp
+     * @param displayMetrics displayMetrics of the View. Usually retrieved with View.getResources().getDisplayMetrics()
+     */
     private int convertDpToPx(int dp, DisplayMetrics displayMetrics) {
         float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, displayMetrics);
         return Math.round(pixels);
@@ -278,11 +314,17 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         return axis;
     }
 
+    /**
+     *{@inheritDoc}
+     * */
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
     }
 
+    /**
+     *{@inheritDoc}
+     * */
     @Override
     public List<String> getCANSidList() {
         if (list.isEmpty()) {
@@ -305,10 +347,16 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         return null;
     }
 
-    //Slider
+
+    /**
+     * This private class is used to implement the slider and customizes its behavior
+     */
     private class SliderChangeListener implements SeekBar.OnSeekBarChangeListener {
         private int timeSelected;
 
+        /**
+         *{@inheritDoc}
+         * */
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             int minuteInSeconds = 60;
@@ -322,11 +370,17 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
             timeSecondsView.setText(String.format("%s minutes %s%s", Integer.toString(minutesShow), Integer.toString(secondsShow), appendSecondStr));
         }
 
+        /**
+         *{@inheritDoc}
+         * */
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
 
         }
 
+        /**
+         *{@inheritDoc}
+         * */
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seconds = timeSelected;
