@@ -220,7 +220,7 @@ public class DrawerActivity extends AppCompatActivity {
      * server.
      * */
     private void switchToPdfActivity() { //This will have to be a fragment. 
-        Intent intent = new Intent(this, PdfActivity.class);
+        Intent intent = new Intent(this, MiscFilesActivity.class);
         this.startActivity(intent);
     }
 

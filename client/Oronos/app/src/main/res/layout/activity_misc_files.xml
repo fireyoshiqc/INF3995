@@ -19,7 +19,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
         <RelativeLayout
-            android:id="@+id/pdf_layout"
+            android:id="@+id/misc_files_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:gravity="top"
@@ -29,10 +29,10 @@
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
             <TextView
-                android:id="@+id/pdf_title"
+                android:id="@+id/misc_files_title"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_weight="1.0"/>
+                android:layout_weight="1.0" />
 
         </RelativeLayout>
 

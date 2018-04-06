@@ -13,13 +13,13 @@
             android:icon="@drawable/ic_theme_select"
             android:title="Theme selection" />
         <item
-            android:id="@+id/pdf"
+            android:id="@+id/misc_files"
             android:icon="@drawable/ic_pdf_picture"
-            android:title="PDF downloads" />
+            android:title="Misc files download" />
         <item
             android:id="@+id/disconnection"
             android:icon="@drawable/ic_disconnect"
-            android:title="Disconnection" />
+            android:title="Logout" />
     </group>
 
 </menu>

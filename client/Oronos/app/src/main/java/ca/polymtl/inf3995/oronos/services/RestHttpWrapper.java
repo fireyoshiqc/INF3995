@@ -17,6 +17,8 @@ import com.android.volley.toolbox.StringRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.polymtl.inf3995.oronos.utils.VolleySingleton;
 import timber.log.Timber;
@@ -40,11 +42,16 @@ public class RestHttpWrapper {
     private String       password = "";
     private RetryPolicy  retryPolicy;
 
+    public static class FileAttachment {
+        public String filename;
+        public byte[] fileContent;
+        public String contentType;
+    }
+
     /**
      * Class containing a template of a Json POST Request
      * */
     private static class JSONPostRequestVoidResponse extends JsonRequest<Void> {
-
         /**
          * Constructor building a POSt request to url sending a JSONObject
          *
@@ -64,6 +71,38 @@ public class RestHttpWrapper {
         @Override
         protected Response<Void> parseNetworkResponse(NetworkResponse response) {
             return Response.success(null, HttpHeaderParser.parseCacheHeaders(response));
+        }
+    }
+
+    /**
+     * Class for a binary data request
+     */
+    private static class FileDownloadGetRequest extends Request<FileAttachment> {
+        private Response.Listener<FileAttachment> listener;
+
+        FileDownloadGetRequest(String url, Response.Listener<FileAttachment> resListen, Response.ErrorListener errListen) {
+            super(Method.GET, url, errListen);
+            this.listener = resListen;
+        }
+
+        @Override
+        protected void deliverResponse(FileAttachment response) {
+            this.listener.onResponse(response);
+        }
+
+        @Override
+        protected Response<FileAttachment> parseNetworkResponse(NetworkResponse response) {
+            FileAttachment responseData = new FileAttachment();
+            responseData.fileContent = response.data;
+            responseData.contentType = response.headers.get("Content-Type");
+
+            final String attachmentRegex = "attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"";
+            Pattern pattern = Pattern.compile(attachmentRegex);
+            Matcher match = pattern.matcher(response.headers.get("Content-Disposition"));
+            if (match.find())
+                responseData.filename = match.group(1);
+
+            return Response.success(responseData, HttpHeaderParser.parseCacheHeaders(response));
         }
     }
 
@@ -226,6 +265,27 @@ public class RestHttpWrapper {
         this.sendStringGetRequest("/config/rockets/" + rocket, resListen, errListen);
     }
 
+
+    /**
+     * This method sends a String Get Request to obtain the currently (re)emitting rocket xml configuration
+     *
+     * @param resListen the listener waiting for the response.
+     * @param errListen the listener waiting for any error response that could be sent.
+     * */
+    public void sendGetConfigMiscFiles(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        this.sendJsonGetRequest("/config/miscFiles", resListen, errListen);
+    }
+
+    /**
+     * This method sends a String Get Request to obtain the currently (re)emitting rocket xml configuration
+     *
+     * @param resListen the listener waiting for the response.
+     * @param errListen the listener waiting for any error response that could be sent.
+     * */
+    public void sendGetConfigMiscFiles(String miscFile, Response.Listener<RestHttpWrapper.FileAttachment> resListen, Response.ErrorListener errListen) {
+        this.sendFileGetRequest("/config/miscFiles/" + miscFile, resListen, errListen);
+    }
+
     /**
      * This method sends a Json Get Request to obtain the can sid configuration of whatever is
      * currently running on the server.
@@ -281,8 +341,6 @@ public class RestHttpWrapper {
         this.sendJsonGetRequest("/config/timeout", resListen, errListen);
     }
 
-    // TODO: miscFiles
-
     /**
      * This method is a template for any Json Get Request; it formats the url by adding the specific
      * part of any request to the general «root» part of the server url. Then, it sends the request.
@@ -316,6 +374,15 @@ public class RestHttpWrapper {
                                                   this.serverUrl + url,
                                                   resListener,
                                                   errListener);
+        request.setRetryPolicy(this.retryPolicy);
+        request.setShouldCache(false);
+        this.volleyQueue.add(request);
+    }
+
+    private void sendFileGetRequest(String url, Response.Listener<RestHttpWrapper.FileAttachment> resListener, Response.ErrorListener errListener) {
+        FileDownloadGetRequest request = new FileDownloadGetRequest(this.serverUrl + url,
+                                                                    resListener,
+                                                                    errListener);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
