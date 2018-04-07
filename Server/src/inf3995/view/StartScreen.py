@@ -35,6 +35,7 @@ class StartScreen(QWidget):
 		super().__init__()
 
 		self.program_options = []
+		self.start_server = False
 
 		self.initUI()
 
@@ -117,6 +118,7 @@ class StartScreen(QWidget):
 			pickle.dump(self.program_options, preferences_file,
 							pickle.HIGHEST_PROTOCOL)
 
+		self.start_server = True
 		self.close()
 
 	def center(self):
@@ -145,3 +147,8 @@ class StartScreen(QWidget):
 				all_files.append(filename)
 
 		return all_files
+
+	def closeEvent(self, event):
+		if self.start_server != True:
+			print(__name__ + ': Exiting server')
+			sys.exit(0)
