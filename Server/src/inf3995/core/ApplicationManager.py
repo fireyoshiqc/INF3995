@@ -61,7 +61,6 @@ class ApplicationManager(object):
 			self.__gui = StartScreen()
 			self.__started_with_gui = True
 			start_screen_app.exec_()
-			# TODO: Don't start server if the app is closed with the X
 			sys.stdout.flush()
 		
 		self.__quit = False
