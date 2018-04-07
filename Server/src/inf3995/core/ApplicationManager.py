@@ -7,6 +7,7 @@ import sys
 import keyboard
 import unittest
 from enum import Enum
+from PyQt5.QtWidgets import QApplication
 
 import inf3995.rest as rest
 import inf3995.data_rx as data_rx
@@ -21,6 +22,7 @@ from inf3995.logging.DataLoggerTask import *
 from inf3995.logging.EventLoggerTask import *
 from inf3995.view.EventLogViewerTask import *
 from inf3995.view.UsersViewerTask import *
+from inf3995.view.StartScreen import *
 
 class _ConnectorType(Enum):
 	SERIAL = 1  # Start at 1 because 0 is False in a boolean sense
@@ -51,9 +53,15 @@ class ApplicationManager(object):
 		
 		ProgramOptions.configure_and_parse(argv)
 		
+		self.__started_with_gui = False
 		if len(argv) == 1:
-			# TODO: Show GUI to enter the options visually
 			print("And God said, Let there be a GUI: and there was a GUI (someday maybe)." "\n")
+			# Show GUI to enter the options visually
+			start_screen_app = QApplication(sys.argv)
+			self.__gui = StartScreen()
+			self.__started_with_gui = True
+			start_screen_app.exec_()
+			# TODO: Don't start server if the app is closed with the X
 			sys.stdout.flush()
 		
 		self.__quit = False
@@ -130,9 +138,16 @@ class ApplicationManager(object):
 		log_viewer_node = EventLogViewerTask()
 		event_logger_node = EventLoggerTask()
 
-		baudrate = ProgramOptions.get_value('baudrate')
-		connector_type = ProgramOptions.get_value('connector-type').upper()
-		connector_file = ProgramOptions.get_value('connector-file')
+		if self.__started_with_gui:
+			# Get arguments entered in GUI
+			baudrate = self.__gui.program_options.baudrate
+			connector_type = self.__gui.program_options.connector_type.upper()
+			connector_file = self.__gui.program_options.connector_file
+		else:
+			# Get command line arguments
+			baudrate = ProgramOptions.get_value('baudrate')
+			connector_type = ProgramOptions.get_value('connector-type').upper()
+			connector_file = ProgramOptions.get_value('connector-file')
 		# TODO: Figure out a cleaner way to do this to avoid code repetition
 		if _ConnectorType[connector_type] == _ConnectorType.SERIAL:
 			rx_node = data_rx.USBReaderTask(serial_port=connector_file,
