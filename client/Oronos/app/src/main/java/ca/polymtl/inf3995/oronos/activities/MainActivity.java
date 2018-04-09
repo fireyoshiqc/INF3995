@@ -109,11 +109,24 @@ public class MainActivity extends DrawerActivity {
         this.isRunning = false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onPause() {
         super.onPause();
 
         this.isRunning = false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        this.isRunning = true;
     }
 
     /**
@@ -140,7 +153,7 @@ public class MainActivity extends DrawerActivity {
         TimerTask heartbeatTask = new TimerTask() {
             @Override
             public void run() {
-                if ( GlobalParameters.serverAddress == null || !isRunning )
+                if ( GlobalParameters.serverAddress == null )
                     return;
 
                 RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
@@ -149,6 +162,10 @@ public class MainActivity extends DrawerActivity {
                         lastServerAnswer = System.nanoTime();
                     }
                 },null);
+
+                // We send the request if app is in background, but we do not check for timeouts
+                if ( !isRunning )
+                    return;
 
                 long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
                 long timeSinceLastAnswer = System.nanoTime() - lastServerAnswer;

@@ -45,7 +45,7 @@ public class RestHttpWrapper {
     public static class FileAttachment {
         public String filename;
         public byte[] fileContent;
-        public String contentType;
+        public String mimeType;
     }
 
     /**
@@ -94,7 +94,9 @@ public class RestHttpWrapper {
         protected Response<FileAttachment> parseNetworkResponse(NetworkResponse response) {
             FileAttachment responseData = new FileAttachment();
             responseData.fileContent = response.data;
-            responseData.contentType = response.headers.get("Content-Type");
+            responseData.mimeType = response.headers.get("Content-Type").split(";")[0];
+            if (responseData.mimeType == null || responseData.mimeType.equals(""))
+                responseData.mimeType = "application/octet-stream";
 
             final String attachmentRegex = "attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"";
             Pattern pattern = Pattern.compile(attachmentRegex);
