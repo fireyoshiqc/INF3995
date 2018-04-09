@@ -37,10 +37,8 @@ import timber.log.Timber;
 public class MapTag extends OronosView implements DataDispatcher.CANDataListener {
 
     private static final int REFRESH_DELAY = 1000; // milliseconds
-
-    private MapView mapView;
     private final Handler handler;
-
+    private MapView mapView;
     private GeoPoint rocketLocation;
     private Marker rocketMarker;
 
@@ -91,7 +89,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         mapView.setUseDataConnection(false);
         mapView.setBuiltInZoomControls(false);
         mapView.setMultiTouchControls(true);
-        //mapView.setMaxZoomLevel(15.0);
         mapView.setMinZoomLevel(1.0);
 
         if (GlobalParameters.mapName == null) {
@@ -123,7 +120,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
-        //serverMarker.setIcon(getResources().getDrawable(R.drawable.ic_home_black_24dp, getContext().getTheme()));
         rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
 
         switch (GlobalParameters.mapName) {

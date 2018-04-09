@@ -3,17 +3,15 @@ package ca.polymtl.inf3995.oronos.widgets.containers;
 import android.content.Context;
 import android.support.design.widget.TabLayout;
 import android.transition.AutoTransition;
-import android.transition.Slide;
 import android.transition.TransitionManager;
-import android.view.Gravity;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.CleanableWidget;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
+import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
 
 /**
  * Created by Felix on 15/févr./2018.

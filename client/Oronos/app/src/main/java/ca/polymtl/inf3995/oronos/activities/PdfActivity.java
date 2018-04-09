@@ -10,17 +10,16 @@ import ca.polymtl.inf3995.oronos.R;
  * The Pdf Activity is responsible of managing the PDF list the client gets from the server and to
  * provocate PDF downloads that are requested by the user.
  *
- *
- * @author  Fabrice Charbonneau
+ * @author Fabrice Charbonneau
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class PdfActivity extends DrawerActivity {
     public static final String MESSAGE = "pdf list";
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 

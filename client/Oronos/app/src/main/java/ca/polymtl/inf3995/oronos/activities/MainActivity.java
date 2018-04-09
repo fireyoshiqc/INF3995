@@ -1,25 +1,17 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.transition.AutoTransition;
-import android.transition.Explode;
 import android.transition.Slide;
-import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.GridLayoutAnimationController;
 import android.view.animation.LayoutAnimationController;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -59,10 +51,9 @@ import timber.log.Timber;
  * parse the xml file obtained through a REST request to the server to create the layout of the
  * views containing the rocket data.
  *
- *
- * @author  Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
+ * @author Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class MainActivity extends DrawerActivity {
     private final int MENU_VIEW_ID = -1;
@@ -80,7 +71,7 @@ public class MainActivity extends DrawerActivity {
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,11 +99,11 @@ public class MainActivity extends DrawerActivity {
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if ( this.warningToast != null )
+        if (this.warningToast != null)
             this.warningToast.cancel();
         SocketClient.getInstance().disconnect();
         DataDispatcher.clearAllListeners();
@@ -138,19 +129,19 @@ public class MainActivity extends DrawerActivity {
      * Setup the heartbeat task if not already started.
      */
     private void setUpHeartbeatTask() {
-        if ( this.heartbeatTimer != null ) {
+        if (this.heartbeatTimer != null) {
             lastServerAnswer = System.nanoTime();
             return;
         }
 
         // At least one hearbeat per minute.
-        long heartbeatPeriod = Math.min((long)GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
+        long heartbeatPeriod = Math.min((long) GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
 
         this.heartbeatTimer = new Timer(true);
         TimerTask heartbeatTask = new TimerTask() {
             @Override
             public void run() {
-                if ( GlobalParameters.serverAddress == null || !isRunning )
+                if (GlobalParameters.serverAddress == null || !isRunning)
                     return;
 
                 RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
@@ -158,20 +149,20 @@ public class MainActivity extends DrawerActivity {
                     public void onResponse(Void response) {
                         lastServerAnswer = System.nanoTime();
                     }
-                },null);
+                }, null);
 
-                long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
+                long serverTimeoutNs = (long) (GlobalParameters.serverTimeout * 1.0e9);
                 long timeSinceLastAnswer = System.nanoTime() - lastServerAnswer;
                 boolean toastIsShown = warningToast != null && warningToast.getView() != null &&
-                                       warningToast.getView().isShown();
-                if ( timeSinceLastAnswer > serverTimeoutNs && !toastIsShown ) {
+                        warningToast.getView().isShown();
+                if (timeSinceLastAnswer > serverTimeoutNs && !toastIsShown) {
                     Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
-                    mainHandler.post(new Runnable(){
+                    mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            String msg = ( GlobalParameters.hasRetardedErrorMessages ) ?
-                                         "henlo fren, server not know da wae" :
-                                         "WARNING : Server has not answered to heartbeats for a while";
+                            String msg = (GlobalParameters.hasRetardedErrorMessages) ?
+                                    "henlo fren, server not know da wae" :
+                                    "WARNING : Server has not answered to heartbeats for a while";
                             warningToast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                             warningToast.show();
                         }

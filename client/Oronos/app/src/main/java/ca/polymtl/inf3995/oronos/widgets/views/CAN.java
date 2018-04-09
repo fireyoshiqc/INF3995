@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -9,7 +10,6 @@ import java.util.List;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import timber.log.Timber;
 
 /**
@@ -96,6 +96,7 @@ public class CAN implements ContainableWidget, DataDispatcher.CANDataListener {
         this.hasChanged = false;
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         double newData = 0.0;

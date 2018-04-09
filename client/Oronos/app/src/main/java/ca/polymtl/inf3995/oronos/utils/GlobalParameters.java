@@ -19,10 +19,6 @@ public class GlobalParameters {
     // LogTree
     public final static String LOG_DIR_NAME = "OronosLogs";
 
-    // ModuleStatus
-    public final static int ONLINE_TO_DELAY = 2000; // in milliseconds.
-    public final static int DELAY_TO_OFFLINE = 4000; // in milliseconds.
-
     // SocketClient
     public static final String CLIENT_ADDRESS = "0.0.0.0";
 
@@ -36,9 +32,6 @@ public class GlobalParameters {
     public static String layoutName;
     public static String mapName;
     public static double serverTimeout = 0.0;
-
-    // DisplayLogWidget
-    public final static int DATA_UPDATE_PERIOD = 1000;
 
     GlobalParameters() {
     }

@@ -59,11 +59,12 @@ import timber.log.Timber;
  * <p>
  * Home Screen Activity must keep in memory the given user information if requested.
  *
- * @author  Félix Boulet, Charles Hosson
+ * @author Félix Boulet, Charles Hosson
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class HomeScreenActivity extends AppCompatActivity {
+    static final private int STORAGE_PERMISSION_REQUEST = 42;
     private static String[] retardedMessages = {"Ooopsie doopsie!",
             "Oh no! Mama mia!",
             "We'we vewy sowwy, please twy again.",
@@ -73,9 +74,6 @@ public class HomeScreenActivity extends AppCompatActivity {
             "Yeah, whatever, it's not working, I dunno.",
             "It's not a bug, it's a feature, ok!",
             "Server machine broke"};
-
-    static final private int STORAGE_PERMISSION_REQUEST = 42;
-
     private EditText editAddr;
     private EditText editUser;
     private EditText editPassword;
@@ -87,18 +85,292 @@ public class HomeScreenActivity extends AppCompatActivity {
     private Snackbar warningBar;
 
     /**
-     * Listener for the click on the button responsible of trying to log in the user.
+     * This method is responsible of parsing and verifying the user input in the fields of the log in
+     * questionnaire. If something is missing or the IP address format is invalid, a error message
+     * will be displayed so the user can correct is input. Else, the login request will be send to
+     * the server by calling the sendLoginRequest(inputs) private method.
      */
-    class StartBtnListener implements View.OnClickListener {
-        private HomeScreenActivity parentActivity;
+    public void handleLogin() {
+        HomeScreenInputs inputs = this.getTextInputs();
+        boolean valid = true;
+        if (inputs.username.equalsIgnoreCase("")) {
+            ((TextInputLayout) findViewById(R.id.userField)).setError("Username is required !");
+            valid = false;
+        } else {
+            ((TextInputLayout) findViewById(R.id.userField)).setError(null);
+        }
+        if (inputs.password.equalsIgnoreCase("")) {
+            ((TextInputLayout) findViewById(R.id.passwordField)).setError("Password is required !");
+            valid = false;
+        } else {
+            ((TextInputLayout) findViewById(R.id.passwordField)).setError(null);
+        }
+        if (inputs.serverAddress.equalsIgnoreCase("")) {
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address is required !"));
+            valid = false;
+        } else if (!inputs.serverAddress.matches("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$")) {
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address format is invalid !"));
+            valid = false;
+        } else {
+            ((TextInputLayout) findViewById(R.id.addrField)).setError(null);
+        }
+        if (valid) {
+            this.sendLoginRequest(inputs);
+        }
+    }
 
-        StartBtnListener(HomeScreenActivity parentActivity) {
-            this.parentActivity = parentActivity;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ThemeUtil.onActivityCreateSetTheme(this);
+        setContentView(R.layout.activity_home_screen);
+        Timber.plant(new LogTree(getApplicationContext()));
+
+        if (!PermissionsUtil.hasPermissions(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            warningBar = Snackbar.make(findViewById(android.R.id.content), "Write to external memory permission is required for using this app.", Snackbar.LENGTH_INDEFINITE);
+            warningBar.setAction("ENABLE", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ActivityCompat.requestPermissions(HomeScreenActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
+                }
+            }).show();
+        } else {
+            grantPermissions();
         }
 
-        @Override
-        public void onClick(View view) {
-            parentActivity.handleLogin();
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        this.editAddr = findViewById(R.id.editAddr);
+        this.editUser = findViewById(R.id.editUser);
+        this.editPassword = findViewById(R.id.editPassword);
+        this.saveUserAddr = findViewById(R.id.userAddrCheckbox);
+        this.savePassword = findViewById(R.id.passwordCheckbox);
+
+        if (GlobalParameters.hasRetardedErrorMessages) {
+            ((ImageView) findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
+        }
+
+        Button btnStart = findViewById(R.id.btnStart);
+        btnStart.setOnClickListener(new StartBtnListener(this));
+
+        saveUserAddr.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                savePassword.setEnabled(b);
+                if (!b) {
+                    savePassword.setChecked(false);
+                }
+            }
+        });
+
+        CookieHandler.setDefault(new CookieManager());
+        RestHttpWrapper.getInstance().setup(this.getApplicationContext());
+
+        HomeScreenInputs cachedInputs = this.loadCachedInputs();
+        this.setTextInputs(cachedInputs);
+    }
+
+    /**
+     * This method is responsible of sending the log in request to the server using the inputs
+     * provided in arguments.
+     *
+     * @param inputs HomeScreenInputs composed of three strings: username, password and IP
+     *               serverAddress.
+     */
+    private void sendLoginRequest(HomeScreenInputs inputs) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
+        this.dialog = builder.create();
+        this.dialog.setCancelable(false);
+        this.dialog.setTitle("Authentication and Configuration from Server");
+        this.dialog.setMessage("Sending login request...");
+        this.dialog.show();
+
+        RestHttpWrapper restWrapper = RestHttpWrapper.getInstance();
+        restWrapper.setLoginInfo(inputs.serverAddress, 80, inputs.username, inputs.password);
+        PostUsersLoginListener listener = new PostUsersLoginListener(this);
+        restWrapper.sendPostUsersLogin(listener, listener);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
+        GlobalParameters.serverAddress = null;
+
+        if (this.dialog != null && this.dialog.isShowing())
+            this.dialog.dismiss();
+    }
+
+    /**
+     * This method unwraps a REST error by transforming a VolleyError code into a legible string.
+     *
+     * @param error VolleyError to be decrypted.
+     * @return string containing error in a legible form.
+     */
+    private String getErrorMsg(VolleyError error) {
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+            //This indicates that the request has either time out or there is no connection
+            return "ERROR : TimeoutError or NoConnectionError";
+        } else if (error instanceof NetworkError) {
+            //Indicates that there was network error while performing the request
+            return "ERROR : NetworkError";
+        } else if (error.networkResponse != null) {
+            return "ERROR : HTTP " + error.networkResponse.statusCode;
+        } else {
+            return "ERROR : N/A";
+        }
+    }
+
+    /**
+     * This method chooses a retarded error msg from the table of dummy error msgs.
+     *
+     * @return string containing dummy error in a legible form.
+     */
+    private String getRetardedErrorMsg() {
+        int index = this.rng.nextInt(retardedMessages.length);
+        return retardedMessages[index];
+    }
+
+    /**
+     * This method loads the previous user inputs according to the user preferences. Every input the
+     * user wants to be remembered by the app is loaded.
+     *
+     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     */
+    private HomeScreenInputs loadCachedInputs() {
+        HomeScreenInputs result = new HomeScreenInputs();
+        SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
+        result.serverAddress = prefs.getString("serverAddress", "");
+        result.username = prefs.getString("username", "");
+        result.password = prefs.getString("password", "");
+        this.saveUserAddr.setChecked(prefs.getBoolean("userAddrChecked", false));
+        this.savePassword.setChecked(prefs.getBoolean("passwordChecked", false));
+        this.savePassword.setEnabled(this.saveUserAddr.isChecked());
+
+        return result;
+    }
+
+    /**
+     * This method saves the current user inputs according to the user preferences. Every input the
+     * user wants to be remembered by the app is saved.
+     *
+     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     */
+    private void saveInputs(HomeScreenInputs inputs) {
+        SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        if (this.saveUserAddr.isChecked()) {
+            editor.putString("serverAddress", inputs.serverAddress);
+            editor.putString("username", inputs.username);
+        } else {
+            if (prefs.contains("serverAddress") && prefs.contains("username")) {
+                editor.remove("serverAddress");
+                editor.remove("username");
+            }
+        }
+        if (this.savePassword.isChecked()) {
+            editor.putString("password", inputs.password);
+        } else {
+            if (prefs.contains("password")) {
+                editor.remove("password");
+            }
+        }
+        editor.putBoolean("userAddrChecked", this.saveUserAddr.isChecked());
+        editor.putBoolean("passwordChecked", this.savePassword.isChecked());
+        editor.apply();
+    }
+
+    /**
+     * This method reads the input fields of the log in questionnaire and save each string into the
+     * corresponding HomeScreenInputs string.
+     *
+     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     */
+    private HomeScreenInputs getTextInputs() {
+        HomeScreenInputs result = new HomeScreenInputs();
+        result.serverAddress = this.editAddr.getText().toString();
+        result.username = this.editUser.getText().toString();
+        result.password = this.editPassword.getText().toString();
+        return result;
+    }
+
+    /**
+     * This method writes the inputs passed in argument into the corresponding fields of the log in
+     * questionnaire.
+     *
+     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
+     */
+    private void setTextInputs(HomeScreenInputs inputs) {
+        this.editAddr.setText(inputs.serverAddress);
+        this.editUser.setText(inputs.username);
+        this.editPassword.setText(inputs.password);
+    }
+
+    /**
+     * This method displays the argument string in a snackbar.
+     *
+     * @param msg to be shown in a snackbar.
+     */
+    private void showInSnackbar(String msg) {
+        View thisView = findViewById(R.id.coordinatorLayout);
+        this.snackbar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
+        TextView snackbarTextView = this.snackbar.getView().findViewById(R.id.snackbar_text);
+        snackbarTextView.setMaxLines(3);
+        snackbarTextView.setTextSize(16);
+        this.snackbar.show();
+    }
+
+    /**
+     * This method starts the Main Activity.
+     */
+    private void switchToMainActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        this.startActivity(intent);
+    }
+
+    /**
+     * This method dismiss the permissions not granted warning bar once the permissions are granted.
+     */
+    public void grantPermissions() {
+        if (warningBar != null && warningBar.isShown()) {
+            warningBar.dismiss();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case STORAGE_PERMISSION_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    grantPermissions();
+
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    warningBar.show();
+                }
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
         }
     }
 
@@ -196,7 +468,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             File cacheFile = new File(this.parent.getCacheDir(), GlobalParameters.layoutName);
             try {
                 boolean isDeleted = cacheFile.delete();
-                if(!isDeleted) {
+                if (!isDeleted) {
                     Timber.w("Cache file unsuccessfully deleted.");
                 }
                 if (!cacheFile.createNewFile()) {
@@ -397,7 +669,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             Double timeoutMinutes = null;
 
             try {
-                timeoutMinutes = (Double)JsonHelper.toMap(result).get("timeoutMinutes");
+                timeoutMinutes = (Double) JsonHelper.toMap(result).get("timeoutMinutes");
             } catch (JSONException e) {
                 Timber.e(e.getMessage());
             }
@@ -414,304 +686,29 @@ public class HomeScreenActivity extends AppCompatActivity {
         }
     }
 
-
     /**
-     * This method is responsible of parsing and verifying the user input in the fields of the log in
-     * questionnaire. If something is missing or the IP address format is invalid, a error message
-     * will be displayed so the user can correct is input. Else, the login request will be send to
-     * the server by calling the sendLoginRequest(inputs) private method.
+     * Listener for the click on the button responsible of trying to log in the user.
      */
-    public void handleLogin() {
-        HomeScreenInputs inputs = this.getTextInputs();
-        boolean valid = true;
-        if (inputs.username.equalsIgnoreCase("")) {
-            ((TextInputLayout) findViewById(R.id.userField)).setError("Username is required !");
-            valid = false;
-        } else {
-            ((TextInputLayout) findViewById(R.id.userField)).setError(null);
-        }
-        if (inputs.password.equalsIgnoreCase("")) {
-            ((TextInputLayout) findViewById(R.id.passwordField)).setError("Password is required !");
-            valid = false;
-        } else {
-            ((TextInputLayout) findViewById(R.id.passwordField)).setError(null);
-        }
-        if (inputs.serverAddress.equalsIgnoreCase("")) {
-            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address is required !"));
-            valid = false;
-        } else if (!inputs.serverAddress.matches("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$")) {
-            ((TextInputLayout) findViewById(R.id.addrField)).setError(("Server IP address format is invalid !"));
-            valid = false;
-        } else {
-            ((TextInputLayout) findViewById(R.id.addrField)).setError(null);
-        }
-        if (valid) {
-            this.sendLoginRequest(inputs);
-        }
-    }
+    class StartBtnListener implements View.OnClickListener {
+        private HomeScreenActivity parentActivity;
 
-    /**
-     * {@inheritDoc}
-     * */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        ThemeUtil.onActivityCreateSetTheme(this);
-        setContentView(R.layout.activity_home_screen);
-        Timber.plant(new LogTree(getApplicationContext()));
-
-        if (!PermissionsUtil.hasPermissions(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            warningBar = Snackbar.make(findViewById(android.R.id.content), "Write to external memory permission is required for using this app.", Snackbar.LENGTH_INDEFINITE);
-            warningBar.setAction("ENABLE", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ActivityCompat.requestPermissions(HomeScreenActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
-                }
-            }).show();
-        } else {
-            grantPermissions();
+        StartBtnListener(HomeScreenActivity parentActivity) {
+            this.parentActivity = parentActivity;
         }
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        this.editAddr = findViewById(R.id.editAddr);
-        this.editUser = findViewById(R.id.editUser);
-        this.editPassword = findViewById(R.id.editPassword);
-        this.saveUserAddr = findViewById(R.id.userAddrCheckbox);
-        this.savePassword = findViewById(R.id.passwordCheckbox);
-
-        if (GlobalParameters.hasRetardedErrorMessages) {
-            ((ImageView) findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
+        @Override
+        public void onClick(View view) {
+            parentActivity.handleLogin();
         }
-
-        Button btnStart = findViewById(R.id.btnStart);
-        btnStart.setOnClickListener(new StartBtnListener(this));
-
-        saveUserAddr.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                savePassword.setEnabled(b);
-                if (!b) {
-                    savePassword.setChecked(false);
-                }
-            }
-        });
-
-        CookieHandler.setDefault(new CookieManager());
-        RestHttpWrapper.getInstance().setup(this.getApplicationContext());
-
-        HomeScreenInputs cachedInputs = this.loadCachedInputs();
-        this.setTextInputs(cachedInputs);
-    }
-
-    /**
-     * This method is responsible of sending the log in request to the server using the inputs
-     * provided in arguments.
-     *
-     * @param inputs HomeScreenInputs composed of three strings: username, password and IP
-     *               serverAddress.
-     * */
-    private void sendLoginRequest(HomeScreenInputs inputs) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
-        this.dialog = builder.create();
-        this.dialog.setCancelable(false);
-        this.dialog.setTitle("Authentication and Configuration from Server");
-        this.dialog.setMessage("Sending login request...");
-        this.dialog.show();
-
-        RestHttpWrapper restWrapper = RestHttpWrapper.getInstance();
-        restWrapper.setLoginInfo(inputs.serverAddress, 80, inputs.username, inputs.password);
-        PostUsersLoginListener listener = new PostUsersLoginListener(this);
-        restWrapper.sendPostUsersLogin(listener, listener);
-    }
-
-    /**
-     * {@inheritDoc}
-     * */
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
-        GlobalParameters.serverAddress = null;
-
-        if (this.dialog != null && this.dialog.isShowing())
-            this.dialog.dismiss();
-    }
-
-    /**
-     * This method unwraps a REST error by transforming a VolleyError code into a legible string.
-     *
-     * @param error VolleyError to be decrypted.
-     * @return string containing error in a legible form.
-     * */
-    private String getErrorMsg(VolleyError error) {
-        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-            //This indicates that the request has either time out or there is no connection
-            return "ERROR : TimeoutError or NoConnectionError";
-        } else if (error instanceof NetworkError) {
-            //Indicates that there was network error while performing the request
-            return "ERROR : NetworkError";
-        } else if (error.networkResponse != null) {
-            return "ERROR : HTTP " + error.networkResponse.statusCode;
-        } else {
-            return "ERROR : N/A";
-        }
-    }
-
-    /**
-     * This method chooses a retarded error msg from the table of dummy error msgs.
-     *
-     * @return string containing dummy error in a legible form.
-     * */
-    private String getRetardedErrorMsg() {
-        int index = this.rng.nextInt(retardedMessages.length);
-        return retardedMessages[index];
-    }
-
-    /**
-     * This method loads the previous user inputs according to the user preferences. Every input the
-     * user wants to be remembered by the app is loaded.
-     *
-     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
-     * */
-    private HomeScreenInputs loadCachedInputs() {
-        HomeScreenInputs result = new HomeScreenInputs();
-        SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
-        result.serverAddress = prefs.getString("serverAddress", "");
-        result.username = prefs.getString("username", "");
-        result.password = prefs.getString("password", "");
-        this.saveUserAddr.setChecked(prefs.getBoolean("userAddrChecked", false));
-        this.savePassword.setChecked(prefs.getBoolean("passwordChecked", false));
-        this.savePassword.setEnabled(this.saveUserAddr.isChecked());
-
-        return result;
-    }
-
-    /**
-     * This method saves the current user inputs according to the user preferences. Every input the
-     * user wants to be remembered by the app is saved.
-     *
-     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
-     * */
-    private void saveInputs(HomeScreenInputs inputs) {
-        SharedPreferences prefs = this.getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        if (this.saveUserAddr.isChecked()) {
-            editor.putString("serverAddress", inputs.serverAddress);
-            editor.putString("username", inputs.username);
-        } else {
-            if (prefs.contains("serverAddress") && prefs.contains("username")) {
-                editor.remove("serverAddress");
-                editor.remove("username");
-            }
-        }
-        if (this.savePassword.isChecked()) {
-            editor.putString("password", inputs.password);
-        } else {
-            if (prefs.contains("password")) {
-                editor.remove("password");
-            }
-        }
-        editor.putBoolean("userAddrChecked", this.saveUserAddr.isChecked());
-        editor.putBoolean("passwordChecked", this.savePassword.isChecked());
-        editor.apply();
-    }
-
-    /**
-     * This method writes the inputs passed in argument into the corresponding fields of the log in
-     * questionnaire.
-     *
-     * @param inputs HomeScreenInputs containing three strings: username, password, IP serverAddress.
-     * */
-    private void setTextInputs(HomeScreenInputs inputs) {
-        this.editAddr.setText(inputs.serverAddress);
-        this.editUser.setText(inputs.username);
-        this.editPassword.setText(inputs.password);
-    }
-
-    /**
-     * This method reads the input fields of the log in questionnaire and save each string into the
-     * corresponding HomeScreenInputs string.
-     *
-     * @return HomeScreenInputs containing three strings: username, password, IP serverAddress.
-     * */
-    private HomeScreenInputs getTextInputs() {
-        HomeScreenInputs result = new HomeScreenInputs();
-        result.serverAddress = this.editAddr.getText().toString();
-        result.username = this.editUser.getText().toString();
-        result.password = this.editPassword.getText().toString();
-        return result;
-    }
-
-    /**
-     * This method displays the argument string in a snackbar.
-     *
-     * @param msg to be shown in a snackbar.
-     * */
-    private void showInSnackbar(String msg) {
-        View thisView = findViewById(R.id.coordinatorLayout);
-        this.snackbar = Snackbar.make(thisView, msg, Snackbar.LENGTH_INDEFINITE);
-        TextView snackbarTextView = this.snackbar.getView().findViewById(R.id.snackbar_text);
-        snackbarTextView.setMaxLines(3);
-        snackbarTextView.setTextSize(16);
-        this.snackbar.show();
-    }
-
-    /**
-     * This method starts the Main Activity.
-     * */
-    private void switchToMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        this.startActivity(intent);
     }
 
     /**
      * Container for the user input.
-     * */
+     */
     class HomeScreenInputs {
         String serverAddress = "";
         String username = "";
         String password = "";
-    }
-
-    /**
-     * This method dismiss the permissions not granted warning bar once the permissions are granted.
-     * */
-    public void grantPermissions() {
-        if (warningBar != null && warningBar.isShown()) {
-            warningBar.dismiss();
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     * */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case STORAGE_PERMISSION_REQUEST: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    grantPermissions();
-
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    warningBar.show();
-                }
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
-        }
     }
 
 }

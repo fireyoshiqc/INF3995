@@ -17,7 +17,6 @@ import com.android.volley.toolbox.StringRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 import ca.polymtl.inf3995.oronos.utils.VolleySingleton;
 import timber.log.Timber;
 
@@ -26,50 +25,22 @@ import timber.log.Timber;
  * Singleton Rest Http Wrapper that is the entry and departure point for any rest/http communication
  * with the server.
  *
- *
- * @author  Fabrice Charbonneau, Charles Hosson
+ * @author Fabrice Charbonneau, Charles Hosson
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  **/
 public class RestHttpWrapper {
     private static RestHttpWrapper instance;
 
     private RequestQueue volleyQueue;
-    private String       serverUrl = "";
-    private String       username = "";
-    private String       password = "";
-    private RetryPolicy  retryPolicy;
-
-    /**
-     * Class containing a template of a Json POST Request
-     * */
-    private static class JSONPostRequestVoidResponse extends JsonRequest<Void> {
-
-        /**
-         * Constructor building a POSt request to url sending a JSONObject
-         *
-         * @param url address to which the POST will be sent.
-         * @param jsonRequest the message to post; can be null.
-         * @param listener the listener waiting for the response.
-         * @param errorListener the listener waiting for any error response that could be sent.
-         * */
-        JSONPostRequestVoidResponse(String url, JSONObject jsonRequest, Response.Listener<Void> listener,
-                                    Response.ErrorListener errorListener) {
-            super(Request.Method.POST, url, (jsonRequest == null) ? null : jsonRequest.toString(), listener, errorListener);
-        }
-
-        /**
-         * {@inheritDoc}
-         * */
-        @Override
-        protected Response<Void> parseNetworkResponse(NetworkResponse response) {
-            return Response.success(null, HttpHeaderParser.parseCacheHeaders(response));
-        }
-    }
+    private String serverUrl = "";
+    private String username = "";
+    private String password = "";
+    private RetryPolicy retryPolicy;
 
     /**
      * Constructor called by getInstance() of this Singleton class.
-     * */
+     */
     private RestHttpWrapper() {
         this.retryPolicy = new DefaultRetryPolicy(5000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
     }
@@ -78,7 +49,7 @@ public class RestHttpWrapper {
      * This method returns the Rest Http Wrapper Instance.
      *
      * @return instance of Rest Http Wrapper.
-     * */
+     */
     public static RestHttpWrapper getInstance() {
         if (instance == null) {
             instance = new RestHttpWrapper();
@@ -91,12 +62,11 @@ public class RestHttpWrapper {
      * Singleton.
      *
      * @param appContext the application context.
-     * */
+     */
     public void setup(Context appContext) {
         if (this.volleyQueue == null) {
             this.volleyQueue = VolleySingleton.getInstance(appContext).getRequestQueue();
-        }
-        else {
+        } else {
             Timber.e("Error: RestHttpWrapper has already been set up, this method should only be called once.");
         }
     }
@@ -106,10 +76,10 @@ public class RestHttpWrapper {
      * to the server.
      *
      * @param serverIp IP address of the server.
-     * @param port Port number of the server.
+     * @param port     Port number of the server.
      * @param username Username the client wish to log in as.
      * @param password Password associated to the username.
-     * */
+     */
     public void setLoginInfo(String serverIp, int port, String username, String password) {
         this.serverUrl = "http://" + serverIp + ":" + port;
         this.username = username;
@@ -123,7 +93,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendPostUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/login";
 
@@ -137,9 +107,9 @@ public class RestHttpWrapper {
         }
 
         JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
-                                                                              json,
-                                                                              resListen,
-                                                                              errListen);
+                json,
+                resListen,
+                errListen);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
@@ -153,7 +123,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendPostUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/logout";
 
@@ -165,9 +135,9 @@ public class RestHttpWrapper {
         }
 
         JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
-                                                                              json,
-                                                                              resListen,
-                                                                              errListen);
+                json,
+                resListen,
+                errListen);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
@@ -179,16 +149,16 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendPostUsersHeartbeat(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/heartbeat";
 
         JSONObject json = new JSONObject();
 
         JSONPostRequestVoidResponse request = new JSONPostRequestVoidResponse(fullUrl,
-                                                                              json,
-                                                                              resListen,
-                                                                              errListen);
+                json,
+                resListen,
+                errListen);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
@@ -200,7 +170,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigBasic(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/basic", resListen, errListen);
     }
@@ -210,7 +180,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigRockets(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/rockets", resListen, errListen);
     }
@@ -218,10 +188,10 @@ public class RestHttpWrapper {
     /**
      * This method sends a String Get Request to obtain the currently (re)emitting rocket xml configuration
      *
-     * @param rocket the name of the rocket xml configuration
+     * @param rocket    the name of the rocket xml configuration
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigRockets(String rocket, Response.Listener<String> resListen, Response.ErrorListener errListen) {
         this.sendStringGetRequest("/config/rockets/" + rocket, resListen, errListen);
     }
@@ -232,7 +202,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigCanSid(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/canSid", resListen, errListen);
     }
@@ -243,7 +213,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigCanDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/canDataTypes", resListen, errListen);
     }
@@ -254,7 +224,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigCanMsgDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/canMsgDataTypes", resListen, errListen);
     }
@@ -265,7 +235,7 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigCanModuleTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/canModuleTypes", resListen, errListen);
     }
@@ -276,46 +246,46 @@ public class RestHttpWrapper {
      *
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
-     * */
+     */
     public void sendGetConfigTimeout(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
         this.sendJsonGetRequest("/config/timeout", resListen, errListen);
     }
-
-    // TODO: miscFiles
 
     /**
      * This method is a template for any Json Get Request; it formats the url by adding the specific
      * part of any request to the general «root» part of the server url. Then, it sends the request.
      *
-     * @param url the specific part of a get request to the server.
+     * @param url         the specific part of a get request to the server.
      * @param resListener the listener waiting for the response.
      * @param errListener the listener waiting for any error response that could be sent.
-     * */
+     */
     private void sendJsonGetRequest(String url, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,
-                                                          this.serverUrl + url,
-                                                          null,
-                                                          resListener,
-                                                          errListener);
+                this.serverUrl + url,
+                null,
+                resListener,
+                errListener);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
     }
 
+    // TODO: miscFiles
+
     /**
      * This method is a template for any String Get Request; it formats the url by adding the specific
      * part of any request to the general «root» part of the server url. Then, it sends the request.
      *
-     * @param url the specific part of a get request to the server.
+     * @param url         the specific part of a get request to the server.
      * @param resListener the listener waiting for the response.
      * @param errListener the listener waiting for any error response that could be sent.
-     * */
+     */
     private void sendStringGetRequest(String url, Response.Listener<String> resListener, Response.ErrorListener errListener) {
         StringRequest request = new StringRequest(Request.Method.GET,
-                                                  this.serverUrl + url,
-                                                  resListener,
-                                                  errListener);
+                this.serverUrl + url,
+                resListener,
+                errListener);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
@@ -325,8 +295,35 @@ public class RestHttpWrapper {
      * This method returns the device name.
      *
      * @return device name as a string.
-     * */
+     */
     private String getDeviceName() {
         return Build.MODEL;
+    }
+
+    /**
+     * Class containing a template of a Json POST Request
+     */
+    private static class JSONPostRequestVoidResponse extends JsonRequest<Void> {
+
+        /**
+         * Constructor building a POSt request to url sending a JSONObject
+         *
+         * @param url           address to which the POST will be sent.
+         * @param jsonRequest   the message to post; can be null.
+         * @param listener      the listener waiting for the response.
+         * @param errorListener the listener waiting for any error response that could be sent.
+         */
+        JSONPostRequestVoidResponse(String url, JSONObject jsonRequest, Response.Listener<Void> listener,
+                                    Response.ErrorListener errorListener) {
+            super(Request.Method.POST, url, (jsonRequest == null) ? null : jsonRequest.toString(), listener, errorListener);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected Response<Void> parseNetworkResponse(NetworkResponse response) {
+            return Response.success(null, HttpHeaderParser.parseCacheHeaders(response));
+        }
     }
 }

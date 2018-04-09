@@ -17,10 +17,9 @@ import java.util.List;
 
 public class DataPlot {
     private static final int ONE_SECOND_IN_MILLIS = 1000;
-
+    private final int maxEntries;
     private int nEntries;
     private List<Double> entriesList;
-    private final int maxEntries;
     private long lastEntryTime = 0;
 
     public DataPlot(int maxEntries) {

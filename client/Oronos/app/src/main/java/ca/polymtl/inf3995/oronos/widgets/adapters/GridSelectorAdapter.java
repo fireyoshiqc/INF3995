@@ -19,10 +19,9 @@ import ca.polymtl.inf3995.oronos.activities.MainActivity;
  * This Adapter allows to display a grid containing small cards representing tags available for
  * navigating through the application.
  *
- *
- * @author  Félix Boulet
+ * @author Félix Boulet
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapter.OronosViewCard> {
     private Context mContext;
@@ -32,9 +31,9 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
      * Constructor requesting the activity context and the names of the tags the menu will have to
      * display.
      *
-     * @param c context of the activity.
+     * @param c         context of the activity.
      * @param gridNames a list of all the names of the tags.
-     * */
+     */
     public GridSelectorAdapter(Context c, List<OronosViewCardContents> gridNames) {
         mContext = c;
         this.gridNames = gridNames;
@@ -42,7 +41,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     public OronosViewCard onCreateViewHolder(ViewGroup parent, int viewType) {
         CardView cardView;
@@ -52,7 +51,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     public void onBindViewHolder(OronosViewCard holder, int position) {
         holder.gridName.setText(gridNames.get(position).title);
@@ -65,16 +64,30 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     public int getItemCount() {
         return gridNames.size();
     }
 
     /**
+     * An instance of this class represent the content of an OronosViewCard.
+     */
+    public static class OronosViewCardContents {
+        private String title;
+        private List<String> subtitles;
+
+        public OronosViewCardContents(String title, List<String> subtitles) {
+            this.title = title;
+            this.subtitles = subtitles;
+
+        }
+    }
+
+    /**
      * An instance of this class represent a card indicating the views under a section of the app;
      * small buttons allows to navigate to these views.
-     * */
+     */
     class OronosViewCard extends RecyclerView.ViewHolder {
         TextView gridName;
         TextView subElements;
@@ -91,20 +104,6 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
                     ((MainActivity) mContext).changeStateOfDataLayout(getAdapterPosition());
                 }
             });
-        }
-    }
-
-    /**
-     * An instance of this class represent the content of an OronosViewCard.
-     * */
-    public static class OronosViewCardContents {
-        private String title;
-        private List<String> subtitles;
-
-        public OronosViewCardContents(String title, List<String> subtitles) {
-            this.title = title;
-            this.subtitles = subtitles;
-
         }
     }
 }
