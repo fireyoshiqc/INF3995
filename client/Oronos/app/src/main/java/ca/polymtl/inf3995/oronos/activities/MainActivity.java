@@ -11,6 +11,8 @@ import android.transition.Slide;
 import android.transition.TransitionManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.RelativeLayout;
@@ -180,7 +182,10 @@ public class MainActivity extends DrawerActivity {
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setupActionDisplayGrid();
+    }
 
+    private void setupActionDisplayGrid() {
         ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
         if (viewsContainer != null) {
             for (OronosView view : viewsContainer) {
@@ -204,7 +209,6 @@ public class MainActivity extends DrawerActivity {
             Timber.e("View container is empty, cannot create menu properly.");
         }
 
-
         recycler = new RecyclerView(this);
         GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
@@ -212,6 +216,32 @@ public class MainActivity extends DrawerActivity {
         recycler.setAdapter(adapter);
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         recycler.setNestedScrollingEnabled(false);
+        recycler.setItemAnimator(null);
+        recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                if (e.getAction() != MotionEvent.ACTION_UP) {
+                    return false;
+                }
+                View child = rv.findChildViewUnder(e.getX(), e.getY());
+                if (child != null) {
+                    return false;
+                } else {
+                    changeStateOfDataLayout(MENU_VIEW_ID);
+                    return true;
+                }
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
     }
 
     /**
@@ -283,28 +313,17 @@ public class MainActivity extends DrawerActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    // TODO: REFACTOR THIS!
                     for (FindMe findMe : FindMe.getInstances()) {
                         findMe.grantPermissions();
                     }
 
 
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    // TODO: REFACTOR THIS!
                     for (FindMe findMe : FindMe.getInstances()) {
                         findMe.showPermissionWarning();
                     }
                 }
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
         }
     }
 
