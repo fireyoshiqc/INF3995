@@ -120,7 +120,7 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
-        rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
+        serverMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
 
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
@@ -168,7 +168,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         rocketMarker.setPosition(rocketLocation);
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
-        //rocketMarker.setIcon(getResources().getDrawable(R.drawable.ic_adjust_black_24dp, getContext().getTheme()));
         rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_adjust_black_24dp));
         mapView.getOverlays().add(rocketMarker);
     }
