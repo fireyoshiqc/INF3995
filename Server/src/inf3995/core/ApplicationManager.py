@@ -139,14 +139,15 @@ class ApplicationManager(object):
 
 		if self.__started_with_gui:
 			# Get arguments entered in GUI
-			baudrate = self.__gui.program_options.baudrate
-			connector_type = self.__gui.program_options.connector_type.upper()
-			connector_file = self.__gui.program_options.connector_file
-		else:
-			# Get command line arguments
-			baudrate = ProgramOptions.get_value('baudrate')
-			connector_type = ProgramOptions.get_value('connector-type').upper()
-			connector_file = ProgramOptions.get_value('connector-file')
+			ProgramOptions.set_value('rocket', self.__gui.program_options.rocket)
+			ProgramOptions.set_value('map', self.__gui.program_options.map)
+			ProgramOptions.set_value('baudrate', self.__gui.program_options.baudrate)
+			ProgramOptions.set_value('connector-type', self.__gui.program_options.connector_type.upper())
+			ProgramOptions.set_value('connector-file', self.__gui.program_options.connector_file)
+		
+		baudrate = ProgramOptions.get_value('baudrate')
+		connector_type = ProgramOptions.get_value('connector-type').upper()
+		connector_file = ProgramOptions.get_value('connector-file')
 		# TODO: Figure out a cleaner way to do this to avoid code repetition
 		if _ConnectorType[connector_type] == _ConnectorType.SERIAL:
 			rx_node = data_rx.USBReaderTask(serial_port=connector_file,

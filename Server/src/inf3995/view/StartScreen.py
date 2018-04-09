@@ -13,8 +13,8 @@ from PyQt5.QtGui import QIcon, QFont
 
 #ORONOS_LOGO = '../../../ressources/logo-oronos.png'
 ORONOS_LOGO = '../ressources/logo-oronos.png'
-MAP_LOCATIONS = ['spaceport america', 'motel 6', 'convention center',
-					'st-pie de guire']
+MAP_LOCATIONS = ['spaceport_america', 'motel_6', 'convention_center',
+					'st-pie_de_guire']
 #ROCKETS_DIR = '../../../working_dir/rockets'
 ROCKETS_DIR = 'rockets'
 CONNECTOR_TYPES = ['serial', 'simulation']
@@ -44,7 +44,7 @@ class StartScreen(QWidget):
 		try:
 			with open(PREFERENCES_FILE, 'rb') as preferences_file:
 				saved_preferences = pickle.load(preferences_file)
-		except FileNotFoundError as e:
+		except FileNotFoundError:
 			print(__name__ + ': Server preferences file '
 					+ str(PREFERENCES_FILE) + ' not found')
 			saved_preferences = GUIProgramOptions(save_preferences=False)
@@ -136,11 +136,10 @@ class StartScreen(QWidget):
 
 	def find_all_files_in_dir(self, dir_path):
 		all_files = []
-		foo = os.walk(dir_path)
 		for root, subdirs, files in os.walk(dir_path):
 			for f in files:
 				filename = root + "/" + f
-				filename = filename.replace("\\", "/");
+				filename = filename.replace("\\", "/")
 				filename = filename.replace(dir_path, "")
 				if filename[0] == "/":
 					filename = filename[1:len(filename)]
