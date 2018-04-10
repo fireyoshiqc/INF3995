@@ -15,11 +15,24 @@ import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
 
 /**
- * Created by Felix on 11/mars/2018.
+ * <h1>Dual Widget</h1>
+ * This Dual Widget class is responsible of displaying two views either vertically aligned or
+ * horizontally aligned.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class DualWidget extends AbstractWidgetContainer<OronosView> implements CleanableWidget {
 
+    /**
+     * Constructor requesting the activity context, a list of views to put into the dual Widget and
+     * the orientation of the widget(either vertical or horizontal).
+     *
+     * @param context context of the activity.
+     * @param list a list of views that are to be displayed in the widget.
+     * @param orientation DualWidgetOrientation.
+     */
     public DualWidget(Context context, List<OronosView> list, DualWidgetOrientation orientation) {
         super(context, list);
         switch (orientation) {
@@ -33,6 +46,10 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
     }
 
+    /**
+     * This method is setting up harmoniously two views according to the orientation of the Dual
+     * Widget.
+     */
     private void buildContents() {
         for (OronosView widget : list) {
             LinearLayout container = new LinearLayout(getContext());
@@ -47,6 +64,9 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public OronosView cleanup() {
         List<ContainableWidget> toRemove = new ArrayList<>();
@@ -66,6 +86,9 @@ public class DualWidget extends AbstractWidgetContainer<OronosView> implements C
         }
     }
 
+    /**
+     * Enum of all possible orientations of a Dual Widget.
+     * */
     public enum DualWidgetOrientation {
         HORIZONTAL, VERTICAL
     }

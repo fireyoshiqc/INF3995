@@ -15,21 +15,37 @@ import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.widgets.views.CAN;
 
 /**
- * Created by Felix on 07/mars/2018.
+ * <h1>Data Displayer Adapter</h1>
+ * This Adapter allows to display CAN messages in an aerated way.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdapter.DataContainer> {
 
     private final int maxLargeItems;
     private Context context;
     private List<CAN> canTags;
 
+    /**
+     * Constructor requesting the activity context, a list of CAN tags to select the messages to be
+     * displayed and the maximum number of large items fitting the screen of the device.
+     *
+     * @param context context of the activity.
+     * @param canTags a list of all the CAN tags that are to be displayed.
+     * @param maxLargeItems an int to specify, according to the device type, the maximum number of
+     *                      large items that can fit into the view.
+     */
     public DataDisplayerAdapter(Context context, List<CAN> canTags, int maxLargeItems) {
         this.context = context;
         this.canTags = canTags;
         this.maxLargeItems = maxLargeItems;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataContainer onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView;
@@ -41,6 +57,9 @@ public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdap
         return new DataContainer(itemView);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onBindViewHolder(DataContainer holder, int position) {
         CAN can = canTags.get(position);
@@ -67,6 +86,9 @@ public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdap
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onViewRecycled(DataContainer holder) {
         super.onViewRecycled(holder);
@@ -74,6 +96,9 @@ public class DataDisplayerAdapter extends RecyclerView.Adapter<DataDisplayerAdap
         holder.data.setTextColor(Color.BLACK);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getItemCount() {
         return canTags.size();
