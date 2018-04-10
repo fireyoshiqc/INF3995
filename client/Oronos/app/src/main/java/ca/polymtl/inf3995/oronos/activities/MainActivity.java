@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.RelativeLayout;
@@ -352,6 +353,9 @@ public class MainActivity extends DrawerActivity {
                 LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_in);
                 recycler.setLayoutAnimation(controller);
                 recycler.scheduleLayoutAnimation();
+                if (recycler.getParent() != null) {
+                    ((ViewGroup)recycler.getParent()).removeView(recycler);
+                }
                 dataLayout.addView(recycler);
                 isMenuActive = true;
             }

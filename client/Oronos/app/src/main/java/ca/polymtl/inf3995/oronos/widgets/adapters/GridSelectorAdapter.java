@@ -66,9 +66,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
      */
     @Override
     public OronosViewCard onCreateViewHolder(ViewGroup parent, int viewType) {
-        CardView cardView;
-        cardView = (CardView) LayoutInflater.from(mContext).inflate(R.layout.preview_card, parent, false);
-        return new OronosViewCard(cardView);
+        return new OronosViewCard(LayoutInflater.from(parent.getContext()).inflate(R.layout.preview_card, parent, false));
     }
 
     /**
