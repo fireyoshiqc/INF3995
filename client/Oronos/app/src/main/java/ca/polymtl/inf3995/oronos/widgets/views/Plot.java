@@ -1,12 +1,8 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -22,8 +18,6 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
-import org.parceler.Parcels;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +26,7 @@ import java.util.Map;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.DataPlot;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
-import timber.log.Timber;
 
 
 /**
@@ -42,16 +34,15 @@ import timber.log.Timber;
  * The Plot class is a View that displays a single plot.
  * Using the MPChart library to create the plot.
  *
- * @author  Fabrice Charbonneau, Félix Boulet
+ * @author Fabrice Charbonneau, Félix Boulet
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 
 public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher.CANDataListener {
 
     //consts
     private final int REFRESH_DELAY = 1000; //milliseconds
-    private final int UPDATE_DATA_DELAY = 1000; //milliseconds
     private final int TITLE_TEXT_SIZE = 30; //size in sp
     private final int DEFAULT_TIME_SELECTED = 60; //seconds
     private final int MAXIMUM_ENTRIES = 300; //corresponds to seconds, we have 1 entry/second
@@ -199,11 +190,10 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
 
         this.titleView = new TextView(context);
 
-        if (name.equals("")) {
-            //this.titleView.setText("plot");
-        } else {
+        if (!name.equals("")) {
             this.titleView.setText(name);
         }
+
         this.titleView.setTextSize(TITLE_TEXT_SIZE);
         this.titleView.setGravity(Gravity.CENTER_HORIZONTAL);
         this.titleView.setLayoutParams(new ViewGroup.LayoutParams(
@@ -294,7 +284,7 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
     /**
      * This method converts a Dp value to a Px value
      *
-     * @param dp value in Dp
+     * @param dp             value in Dp
      * @param displayMetrics displayMetrics of the View. Usually retrieved with View.getResources().getDisplayMetrics()
      */
     private int convertDpToPx(int dp, DisplayMetrics displayMetrics) {
@@ -315,16 +305,16 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
     }
 
     /**
-     *{@inheritDoc}
-     * */
+     * {@inheritDoc}
+     */
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         dataMap.get(msg.getCanSid()).addEntry(msg.getData1().doubleValue());
     }
 
     /**
-     *{@inheritDoc}
-     * */
+     * {@inheritDoc}
+     */
     @Override
     public List<String> getCANSidList() {
         if (list.isEmpty()) {
@@ -355,8 +345,8 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         private int timeSelected;
 
         /**
-         *{@inheritDoc}
-         * */
+         * {@inheritDoc}
+         */
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             int minuteInSeconds = 60;
@@ -371,16 +361,16 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         }
 
         /**
-         *{@inheritDoc}
-         * */
+         * {@inheritDoc}
+         */
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
 
         }
 
         /**
-         *{@inheritDoc}
-         * */
+         * {@inheritDoc}
+         */
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seconds = timeSelected;

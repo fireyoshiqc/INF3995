@@ -3,8 +3,11 @@ package ca.polymtl.inf3995.oronos.widgets.views;
 import android.content.Context;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -37,12 +40,13 @@ import timber.log.Timber;
 public class MapTag extends OronosView implements DataDispatcher.CANDataListener {
 
     private static final int REFRESH_DELAY = 1000; // milliseconds
-
-    private MapView mapView;
     private final Handler handler;
-
+    private MapView mapView;
     private GeoPoint rocketLocation;
     private Marker rocketMarker;
+
+    private final CoordinatorLayout coordinator;
+    private final LinearLayout content;
 
     private GeoPoint serverLocation;
     private final Runnable run = new Runnable() {
@@ -55,11 +59,34 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
     public MapTag(Context context) {
         super(context);
-
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context));
-
         handler = new Handler();
+
+        coordinator = new CoordinatorLayout(getContext());
+        content = new LinearLayout(getContext());
         mapView = new MapView(context);
+
+        //buildView();
+        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        //content.addView(mapView);
+        coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        coordinator.addView(content);
+        addView(coordinator);
+    }
+
+    private void buildView() {
+        //setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+//        setupRocketMarker();
+//        setupMapView();
+//
+//        content.setOrientation(LinearLayout.VERTICAL);
+//        content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+//
+//        content.addView(mapView);
+
 
     }
 
@@ -68,10 +95,11 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         super.onAttachedToWindow();
         handler.postDelayed(run, REFRESH_DELAY);
         mapView = new MapView(getContext());
-        setupMapView();
         setupRocketMarker();
+        setupMapView();
         register();
-        addView(mapView);
+        //addView(mapView);
+        content.addView(mapView);
     }
 
     @Override
@@ -79,7 +107,10 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         super.onDetachedFromWindow();
         handler.removeCallbacks(run);
         unregister();
-        removeView(mapView);
+        if (mapView != null) {
+            content.removeView(mapView);
+        }
+
     }
 
     private void register() {
@@ -94,7 +125,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         mapView.setUseDataConnection(false);
         mapView.setBuiltInZoomControls(false);
         mapView.setMultiTouchControls(true);
-        //mapView.setMaxZoomLevel(15.0);
         mapView.setMinZoomLevel(1.0);
 
         if (GlobalParameters.mapName == null) {
@@ -117,7 +147,7 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
             default:
                 // Default to USA
                 iTileSource = new XYTileSource("map/usa", 0, 15, 256, ".jpg", null);
-                Snackbar.make(getRootView(), "Unknown map. Default to Spaceport America.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(coordinator, "Unknown map. Default to Spaceport America.", Snackbar.LENGTH_LONG).show();
         }
 
         mapView.setTileSource(iTileSource);
@@ -126,8 +156,7 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
         Marker serverMarker = new Marker(mapView);
         serverMarker.setTitle("Server");
-        //serverMarker.setIcon(getResources().getDrawable(R.drawable.ic_home_black_24dp, getContext().getTheme()));
-        rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
+        serverMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_home_black_24dp));
 
         switch (GlobalParameters.mapName) {
             case "spaceport_america":
@@ -175,7 +204,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         rocketMarker.setPosition(rocketLocation);
         rocketMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         rocketMarker.setTitle("Rocket");
-        //rocketMarker.setIcon(getResources().getDrawable(R.drawable.ic_adjust_black_24dp, getContext().getTheme()));
         rocketMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_adjust_black_24dp));
         mapView.getOverlays().add(rocketMarker);
     }

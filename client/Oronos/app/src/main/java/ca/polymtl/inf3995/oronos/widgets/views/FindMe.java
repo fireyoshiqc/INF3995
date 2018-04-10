@@ -66,7 +66,6 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     private LocationManager locationManager;
     private Snackbar warningBar;
 
-    private long lastLocationTime = 0;
     private Location rocketLocation = new Location("");
     private Location deviceLocation = new Location("");
 
@@ -406,21 +405,12 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
 
     /**
      * This method is called when the device's location has changed.
-     * It tries to evaluate the accuracy of the new location, then calls updateLocation
-     * if it is deemed sufficient. Accuracy criterion are the following (one or more must be true) :
-     * - The location comes from the GPS.
-     * - The location comes from the network, it has been more than 10 seconds since the last update,
-     * and the accuracy is better than two times the last location's accuracy (i.e. if the last
-     * location's accuracy was 20 meters, it would need to be 40 meters or less).
-     * - The location has not been updated in 60 seconds or more.
      *
      * @param location The new location provided by the GPS or network.
      */
     @Override
     public void onLocationChanged(Location location) {
-        // Try to find better criteria for evaluating accuracy
         deviceLocation = location;
-        lastLocationTime = System.currentTimeMillis();
     }
 
     /**

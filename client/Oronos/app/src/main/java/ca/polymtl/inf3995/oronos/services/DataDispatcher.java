@@ -14,10 +14,9 @@ import timber.log.Timber;
  * message type. It must create the associated message type (either Broadcast Message for can data
  * or Module Message for module data).
  *
- *
- * @author  Félix Boulet, Justine Pepin, Patrick Richer St-Onge
+ * @author Félix Boulet, Justine Pepin, Patrick Richer St-Onge
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  **/
 public class DataDispatcher {
 
@@ -28,7 +27,7 @@ public class DataDispatcher {
      * This method adds a listener to the list of CAN Data Listeners.
      *
      * @param listener the listener to register to the list of CAN Data Listeners.
-     * */
+     */
     public static void registerCANDataListener(CANDataListener listener) {
         if (!canDataListeners.contains(listener)) {
             canDataListeners.add(listener);
@@ -42,7 +41,7 @@ public class DataDispatcher {
      * This method removes a listener from the list of CAN Data Listeners.
      *
      * @param listener the listener to unregister from the list of CAN Data Listeners.
-     * */
+     */
     public static void unregisterCANDataListener(CANDataListener listener) {
         canDataListeners.remove(listener);
     }
@@ -58,7 +57,7 @@ public class DataDispatcher {
     /**
      * This method removes all listeners from the list of CAN Data Listeners and the list of Module
      * Data Listeners.
-     * */
+     */
     public static void clearAllListeners() {
         canDataListeners.clear();
         moduleDataListeners.clear();
@@ -69,7 +68,7 @@ public class DataDispatcher {
      * Listeners.
      *
      * @param data the data of a CAN message in list form.
-     * */
+     */
     public static void dataToDispatch(List<Object> data) {
 
         if (GlobalParameters.canSid == null
@@ -129,7 +128,7 @@ public class DataDispatcher {
      * Listeners.
      *
      * @param data the data of a module message in list form.
-     * */
+     */
     public static void moduleToDispatch(List<Object> data) {
 
         if (GlobalParameters.canModuleTypes == null) {
@@ -158,7 +157,7 @@ public class DataDispatcher {
     /**
      * CAN Data Listener interface that every tag that wants to listen for CAN messages should
      * implement.
-     * */
+     */
     public interface CANDataListener {
         void onCANDataReceived(BroadcastMessage msg);
 
@@ -172,7 +171,7 @@ public class DataDispatcher {
     /**
      * Module Data Listener interface that every tag that wants to listen for module messages should
      * implement.
-     * */
+     */
     public interface ModuleDataListener {
         void onModuleDataReceived(ModuleMessage msg);
     }

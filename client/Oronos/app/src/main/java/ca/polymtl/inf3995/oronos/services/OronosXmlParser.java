@@ -32,10 +32,9 @@ import timber.log.Timber;
  * This parser is specifically targeting Oronos rocket xml files. Each tag in the application will
  * be created only if it exists in the xml, and according to the specifications of the xml.
  *
- *
- * @author  Félix Boulet, Patrick Richer St-Onge
+ * @author Félix Boulet, Patrick Richer St-Onge
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  **/
 public class OronosXmlParser {
     private static final String ns = null;
@@ -45,7 +44,7 @@ public class OronosXmlParser {
      * Constructor requesting the context
      *
      * @param context to which all the tags will be added.
-     * */
+     */
     public OronosXmlParser(Context context) {
         this.context = context;
     }
@@ -56,7 +55,7 @@ public class OronosXmlParser {
      *
      * @param in Oronos xml file.
      * @return Rocket
-     * */
+     */
     public Rocket parse(InputStream in) {
 
         XmlPullParser parser = Xml.newPullParser();
@@ -71,7 +70,7 @@ public class OronosXmlParser {
             }
         } catch (XmlPullParserException e) {
             Timber.e("There is an issue with the XML file. Maybe you're missing a closing tag somewhere? Exception message :\n" +
-            e.getMessage());
+                    e.getMessage());
 
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +
@@ -79,7 +78,7 @@ public class OronosXmlParser {
 
         } catch (UnsupportedContainerWidgetException e) {
             Timber.e(e.getMessage());
-        } finally  {
+        } finally {
             try {
                 in.close();
             } catch (IOException e) {
@@ -94,7 +93,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag Rocket.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private Rocket readRocket(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         List<OronosView> entries = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, ns, "Rocket");
@@ -120,7 +119,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag GridContainer.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private List<OronosView> readGridContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "GridContainer");
         List<OronosView> list = new ArrayList<>();
@@ -143,7 +142,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag Grid.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private OronosView readGrid(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Grid");
         OronosView contents = null;
@@ -192,7 +191,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag TabContainer.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private OronosView readTabContainer(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "TabContainer");
         List<Tab> list = new ArrayList<>();
@@ -215,7 +214,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag Tab.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private Tab readTab(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "Tab");
         OronosView contents = null;
@@ -265,7 +264,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag DataDisplayer.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private DataDisplayer readDataDisplayer(XmlPullParser parser, DataDisplayer.DataLayout layout) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "DataDisplayer");
         List<CAN> list = new ArrayList<>();
@@ -288,7 +287,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag DisplayLogWidget.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private DisplayLogWidget readDisplayLogWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "DisplayLogWidget");
         List<CAN> list = new ArrayList<>();
@@ -311,7 +310,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag DualVWidget.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private OronosView readDualVWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualVWidget");
         int startLine = parser.getLineNumber();
@@ -370,7 +369,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag DualHWidget.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private OronosView readDualHWidget(XmlPullParser parser) throws XmlPullParserException, IOException, UnsupportedContainerWidgetException {
         parser.require(XmlPullParser.START_TAG, ns, "DualHWidget");
         int startLine = parser.getLineNumber();
@@ -429,7 +428,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag FindMe.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private FindMe readFindMe(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "FindMe");
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -445,7 +444,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag Map.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private MapTag readMap(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Map");
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -461,7 +460,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag ModuleStatus.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private ModuleStatus readModuleStatus(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Modulestatus");
         int nGrid = Integer.parseInt(parser.getAttributeValue(null, "nGrid"));
@@ -479,7 +478,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag Plot.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private Plot readPlot(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "Plot");
         String plotName = parser.getAttributeValue(null, "name");
@@ -505,7 +504,7 @@ public class OronosXmlParser {
      * This method is reading the information related to the tag CAN.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private CAN readCAN(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "CAN");
         String id = parser.getAttributeValue(null, "id");
@@ -535,7 +534,7 @@ public class OronosXmlParser {
      * This method is skipping an unknown tag.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private UnsupportedWidget readUnsupportedWidget(XmlPullParser parser) throws XmlPullParserException, IOException {
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -550,7 +549,7 @@ public class OronosXmlParser {
      * This method skips an unknown tag.
      *
      * @param parser a correctly configured XmlPullParser
-     * */
+     */
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();

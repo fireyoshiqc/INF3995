@@ -1,5 +1,6 @@
 package ca.polymtl.inf3995.oronos.widgets.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.polymtl.inf3995.oronos.R;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 
 /**
  * <h1>Module Status Adapter</h1>
@@ -25,29 +25,17 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
  * If the PCB status is DELAY, the background of the card must be ORANGE.
  * If the PCB status is OFFLINE, the background of the card must be RED.
  *
- *
- * @author  Félix Boulet, Justine Pepin
+ * @author Félix Boulet, Justine Pepin
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapter.PCBContainer> {
+    private final int ONLINE_TO_DELAY = 2000; // in milliseconds.
+    private final int DELAY_TO_OFFLINE = 4000; // in milliseconds.
     private Context mContext;
     private int nGrid;
     private int nColumns;
     private List<PCBPair> PCBList;
-
-    class PCBContainer extends RecyclerView.ViewHolder {
-        private TextView PCBName;
-        private TextView PCBSerialNb;
-        private TextView PCBStatusDisplay;
-
-        PCBContainer(final View view) {
-            super(view);
-            PCBName = view.findViewById(R.id.pcb_name);
-            PCBSerialNb = view.findViewById(R.id.pcb_serial);
-            PCBStatusDisplay = view.findViewById(R.id.pcb_status);
-        }
-    }
 
     /**
      * Constructor for this class; supposedly called by ModuleStatus.java
@@ -63,7 +51,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     public PCBContainer onCreateViewHolder(ViewGroup parent, int viewType) {
         return new PCBContainer(LayoutInflater.from(parent.getContext()).inflate(R.layout.module_status_card, parent, false));
@@ -71,7 +59,8 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
+    @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(PCBContainer holder, int position) {
         PCBPair pcb = PCBList.get(position);
@@ -83,7 +72,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     public int getItemCount() {
         return PCBList.size();
@@ -91,7 +80,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
     /**
      * @return the list containing the PCB info.
-     * */
+     */
     public List<PCBPair> getPCBList() {
         return PCBList;
     }
@@ -115,10 +104,10 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
                 pcb.status = PCBStatus.ONLINE;
             } else {
                 if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
-                        < GlobalParameters.ONLINE_TO_DELAY) {
+                        < ONLINE_TO_DELAY) {
                     pcb.status = PCBStatus.ONLINE;
                 } else if (DateTime.now().getMillis() - pcb.lastTimeSeen.getMillis()
-                        < GlobalParameters.DELAY_TO_OFFLINE) {
+                        < DELAY_TO_OFFLINE) {
                     pcb.status = PCBStatus.DELAY;
                 } else {
                     pcb.status = PCBStatus.OFFLINE;
@@ -136,12 +125,12 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
      * @param PCBname  String Name of PCB.
      * @param noSerial int Serial number of PCB.
      * @param noMsg    int number of messages received from this PCB.
-     * */
+     */
     private void addItem(String PCBname, int noSerial, int noMsg) {
         if (PCBList.size() < nGrid) {
             PCBPair pcbPair = new PCBPair(PCBname, noSerial, noMsg);
             PCBList.add(pcbPair);
-            this.notifyItemInserted(PCBList.size()-1);
+            this.notifyItemInserted(PCBList.size() - 1);
         }
     }
 
@@ -152,7 +141,7 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
      * @param noSerial int Serial number of PCB.
      * @param noMsg    int number of messages received from this PCB.
      * @return index   int representing the position of the PCB in the PCB list.
-     * */
+     */
     private int findPCBPosition(String PCBname, int noSerial, int noMsg) {
         int index;
         for (index = 0; index < PCBList.size(); index++) {
@@ -190,6 +179,19 @@ public class ModuleStatusAdapter extends RecyclerView.Adapter<ModuleStatusAdapte
 
         public int toColor(Context context) {
             return ContextCompat.getColor(context, this.color);
+        }
+    }
+
+    class PCBContainer extends RecyclerView.ViewHolder {
+        private TextView PCBName;
+        private TextView PCBSerialNb;
+        private TextView PCBStatusDisplay;
+
+        PCBContainer(final View view) {
+            super(view);
+            PCBName = view.findViewById(R.id.pcb_name);
+            PCBSerialNb = view.findViewById(R.id.pcb_serial);
+            PCBStatusDisplay = view.findViewById(R.id.pcb_status);
         }
     }
 

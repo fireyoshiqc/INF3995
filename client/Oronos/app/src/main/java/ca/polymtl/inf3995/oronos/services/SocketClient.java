@@ -14,6 +14,8 @@ import com.koushikdutta.async.callback.DataCallback;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import timber.log.Timber;
 
@@ -26,10 +28,9 @@ import timber.log.Timber;
  * Packets are handled by JavaOSC to create OSCMessage and parse automatically binary data.
  * Extracted data is forwarded to DataDispatcher in List format.
  *
- *
- * @author  Félix Boulet, Justine Pepin, Patrick Richer St-Onge
+ * @author Félix Boulet, Justine Pepin, Patrick Richer St-Onge
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  **/
 public class SocketClient {
 
@@ -37,13 +38,14 @@ public class SocketClient {
     private InetSocketAddress host;
     private AsyncDatagramSocket asyncDatagramSocket;
     private OSCByteArrayToJavaConverter byteToJavaConverter = new OSCByteArrayToJavaConverter();
+    private Executor dispatchExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     // This is for test purpose.
     private int numOfMessageReceived = 0;
 
     /**
      * Constructor of SocketClient.
-     * */
+     */
     private SocketClient() {
     }
 
@@ -56,7 +58,7 @@ public class SocketClient {
 
     /**
      * This method counts the number of msg received. Useful for testing.
-     * */
+     */
     public synchronized int numMessagesReceived(int num) {
         if (numOfMessageReceived == Integer.MAX_VALUE) {
             numOfMessageReceived = 0;
@@ -69,8 +71,8 @@ public class SocketClient {
      * callback responsible of handling any incoming UDP packet.
      *
      * @param hostname local IP address
-     * @param port local port
-     * */
+     * @param port     local port
+     */
     public void connect(String hostname, int port) {
         if (host == null) {
             try {
@@ -124,7 +126,7 @@ public class SocketClient {
 
     /**
      * This method is disconnecting the UDP socket client.
-     * */
+     */
     public void disconnect() {
         asyncDatagramSocket = null;
         host = null;
@@ -135,7 +137,7 @@ public class SocketClient {
      * This method is converting the bytes received by UDP socket into an OSC msg.
      *
      * @param bytesReceived array of bytes to be converted.
-     * */
+     */
     private OSCMessage getOSCMessage(byte[] bytesReceived) {
         return (OSCMessage) byteToJavaConverter.convert(bytesReceived, bytesReceived.length);
     }
@@ -145,9 +147,9 @@ public class SocketClient {
      *
      * @param address address of DataDispatcher channel on which to send an OSC msg.
      * @param message OSC msg to send.
-     * */
+     */
     private void forwardToDispatcher(final String address, final OSCMessage message) {
-        final Thread dispatcherThread = new Thread(new Runnable() {
+        dispatchExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -160,6 +162,5 @@ public class SocketClient {
                 }
             }
         });
-        dispatcherThread.start();
     }
 }

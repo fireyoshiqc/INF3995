@@ -25,10 +25,9 @@ import timber.log.Timber;
  * application themes, to choose a PDF for download, to disconnect itself and last but not least to
  * set the receiving rocket data mode.
  *
- *
- * @author  Fabrice Charbonneau, Félix Boulet
+ * @author Fabrice Charbonneau, Félix Boulet
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class DrawerActivity extends AppCompatActivity {
     private final int dataIndex = 0;
@@ -43,7 +42,7 @@ public class DrawerActivity extends AppCompatActivity {
     /**
      * This method sets up the hamburger menu and the callback responsible for the actions generated
      * by a user click on an item of the menu.
-     * */
+     */
     protected void onCreateDrawer() {
         drawerLayout = findViewById(R.id.main_layout);
         navigationView = findViewById(R.id.nav_view);
@@ -85,8 +84,8 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     *{@inheritDoc}
-     * */
+     * {@inheritDoc}
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,18 +93,17 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     /**
-     *{@inheritDoc}
-     * */
+     * {@inheritDoc}
+     */
     @Override
-    public void setContentView(@LayoutRes int layoutResID)
-    {
+    public void setContentView(@LayoutRes int layoutResID) {
         super.setContentView(layoutResID);
         onCreateDrawer();
     }
 
     /**
-     *{@inheritDoc}
-     * */
+     * {@inheritDoc}
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -119,12 +117,12 @@ public class DrawerActivity extends AppCompatActivity {
     /**
      * This method displays a small pop up to confirm the user wants to be disconnected and sent
      * to Home Screen Activity.
-     * */
+     */
     private void disconnectionPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which){
+                switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
                         //Yes button clicked
                         switchToHomeScreenActivity();
@@ -144,15 +142,15 @@ public class DrawerActivity extends AppCompatActivity {
 
     /**
      * This method displays a small pop up to let the user choose between the available themes.
-     * */
+     */
     private void themeSelectionPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which){
+                switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
                         //Light theme button clicked
-                        if(selectedThemeIsDark){
+                        if (selectedThemeIsDark) {
                             selectedThemeIsDark = false;
                             themeWarningPopup();
                         }
@@ -161,7 +159,7 @@ public class DrawerActivity extends AppCompatActivity {
 
                     case DialogInterface.BUTTON_NEGATIVE:
                         //Dark theme button clicked
-                        if(!selectedThemeIsDark) {
+                        if (!selectedThemeIsDark) {
                             selectedThemeIsDark = true;
                             themeWarningPopup();
                         }
@@ -178,15 +176,15 @@ public class DrawerActivity extends AppCompatActivity {
 
     /**
      * This method displays a small pop up to confirm the user wants to switch themes.
-     * */
+     */
     private void themeWarningPopup() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which){
+                switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
                         //Ok button clicked
-                        if(selectedThemeIsDark){
+                        if (selectedThemeIsDark) {
                             setThemeToDark();
                         } else {
                             setThemeToLight();
@@ -208,7 +206,7 @@ public class DrawerActivity extends AppCompatActivity {
 
     /**
      * This method destroys whatever activity is currently up and is starting the Main Activity.
-     * */
+     */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         finish();
@@ -218,7 +216,7 @@ public class DrawerActivity extends AppCompatActivity {
     /**
      * This method starts a fragment responsible of managing the available pdf list from the
      * server.
-     * */
+     */
     private void switchToPdfActivity() { //This will have to be a fragment. 
         Intent intent = new Intent(this, MiscFilesActivity.class);
         this.startActivity(intent);
@@ -227,7 +225,7 @@ public class DrawerActivity extends AppCompatActivity {
     /**
      * This method destroys whatever activity is currently up and is starting the Home Screen
      * Activity.
-     * */
+     */
     private void switchToHomeScreenActivity() {
         Intent intent = new Intent(this, HomeScreenActivity.class);
         finish();
@@ -238,8 +236,8 @@ public class DrawerActivity extends AppCompatActivity {
      * This method takes a string and displays it as the new toolbar title.
      *
      * @param title The new title to display.
-     * */
-    protected void changeToolbarTitle(String title){
+     */
+    protected void changeToolbarTitle(String title) {
         toolbar.setTitle(title);
         toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
@@ -247,8 +245,8 @@ public class DrawerActivity extends AppCompatActivity {
 
     /**
      * This method provocates a theme switch in order to display the light theme.
-     * */
-    private void setThemeToLight(){
+     */
+    private void setThemeToLight() {
         //TODO
         ThemeUtil.switchToLightTheme();
         recreate();
@@ -256,8 +254,8 @@ public class DrawerActivity extends AppCompatActivity {
 
     /**
      * This method provocates a theme switch in order to display the dark theme.
-     * */
-    private void setThemeToDark(){
+     */
+    private void setThemeToDark() {
         //TODO
         ThemeUtil.switchToDarkTheme();
         recreate();

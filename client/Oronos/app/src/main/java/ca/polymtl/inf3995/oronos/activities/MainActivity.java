@@ -1,16 +1,23 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.transition.Fade;
+import android.transition.Slide;
+import android.transition.TransitionManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -49,10 +56,9 @@ import timber.log.Timber;
  * parse the xml file obtained through a REST request to the server to create the layout of the
  * views containing the rocket data.
  *
- *
- * @author  Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
+ * @author Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
  * @version 0.0
- * @since   2018-04-12
+ * @since 2018-04-12
  */
 public class MainActivity extends DrawerActivity {
     private final int MENU_VIEW_ID = -1;
@@ -70,7 +76,7 @@ public class MainActivity extends DrawerActivity {
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,11 +104,11 @@ public class MainActivity extends DrawerActivity {
 
     /**
      * {@inheritDoc}
-     * */
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if ( this.warningToast != null )
+        if (this.warningToast != null)
             this.warningToast.cancel();
         SocketClient.getInstance().disconnect();
         DataDispatcher.clearAllListeners();
@@ -141,7 +147,7 @@ public class MainActivity extends DrawerActivity {
      * Setup the heartbeat task if not already started.
      */
     private void setUpHeartbeatTask() {
-        if ( this.heartbeatTimer != null ) {
+        if (this.heartbeatTimer != null) {
             lastServerAnswer = System.nanoTime();
             return;
         }
@@ -161,7 +167,7 @@ public class MainActivity extends DrawerActivity {
                     public void onResponse(Void response) {
                         lastServerAnswer = System.nanoTime();
                     }
-                },null);
+                }, null);
 
                 // We send the request if app is in background, but we do not check for timeouts
                 if ( !isRunning )
@@ -170,15 +176,15 @@ public class MainActivity extends DrawerActivity {
                 long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
                 long timeSinceLastAnswer = System.nanoTime() - lastServerAnswer;
                 boolean toastIsShown = warningToast != null && warningToast.getView() != null &&
-                                       warningToast.getView().isShown();
-                if ( timeSinceLastAnswer > serverTimeoutNs && !toastIsShown ) {
+                        warningToast.getView().isShown();
+                if (timeSinceLastAnswer > serverTimeoutNs && !toastIsShown) {
                     Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
-                    mainHandler.post(new Runnable(){
+                    mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            String msg = ( GlobalParameters.hasRetardedErrorMessages ) ?
-                                         "henlo fren, server not know da wae" :
-                                         "WARNING : Server has not answered to heartbeats for a while";
+                            String msg = (GlobalParameters.hasRetardedErrorMessages) ?
+                                    "henlo fren, server not know da wae" :
+                                    "WARNING : Server has not answered to heartbeats for a while";
                             warningToast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                             warningToast.show();
                         }
@@ -196,7 +202,10 @@ public class MainActivity extends DrawerActivity {
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setupActionDisplayGrid();
+    }
 
+    private void setupActionDisplayGrid() {
         ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
         if (viewsContainer != null) {
             for (OronosView view : viewsContainer) {
@@ -220,14 +229,41 @@ public class MainActivity extends DrawerActivity {
             Timber.e("View container is empty, cannot create menu properly.");
         }
 
-
         recycler = new RecyclerView(this);
+        recycler.setBackgroundColor(Color.BLACK);
+        recycler.getBackground().setAlpha(128);
         GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recycler.setLayoutManager(staggeredGridLayoutManager);
         recycler.setAdapter(adapter);
         recycler.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
         recycler.setNestedScrollingEnabled(false);
+        recycler.setItemAnimator(null);
+        recycler.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                if (e.getAction() != MotionEvent.ACTION_UP) {
+                    return false;
+                }
+                View child = rv.findChildViewUnder(e.getX(), e.getY());
+                if (child != null) {
+                    return false;
+                } else {
+                    changeStateOfDataLayout(MENU_VIEW_ID);
+                    return true;
+                }
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
     }
 
     /**
@@ -250,9 +286,6 @@ public class MainActivity extends DrawerActivity {
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +
                     e.getMessage());
-        } catch (NullPointerException e) {
-            Timber.e("Cache dir or layout name seems to be null for some reason. Retrying.");
-            fillViewsContainer();
         }
     }
 
@@ -302,28 +335,17 @@ public class MainActivity extends DrawerActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    // TODO: REFACTOR THIS!
                     for (FindMe findMe : FindMe.getInstances()) {
                         findMe.grantPermissions();
                     }
 
 
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    // TODO: REFACTOR THIS!
                     for (FindMe findMe : FindMe.getInstances()) {
                         findMe.showPermissionWarning();
                     }
                 }
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
         }
     }
 
@@ -335,14 +357,28 @@ public class MainActivity extends DrawerActivity {
      */
     public void changeStateOfDataLayout(int nextView) {
         if (nextView == MENU_VIEW_ID) {
+            Fade transition = new Fade();
+            TransitionManager.beginDelayedTransition(dataLayout, transition);
             if (isMenuActive) {
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_out);
+                recycler.setLayoutAnimation(controller);
+                recycler.scheduleLayoutAnimation();
                 dataLayout.removeView(recycler);
                 isMenuActive = false;
+
             } else {
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_in);
+                recycler.setLayoutAnimation(controller);
+                recycler.scheduleLayoutAnimation();
+                if (recycler.getParent() != null) {
+                    ((ViewGroup)recycler.getParent()).removeView(recycler);
+                }
                 dataLayout.addView(recycler);
                 isMenuActive = true;
             }
         } else {
+            Slide transition = new Slide();
+            TransitionManager.beginDelayedTransition(dataLayout, transition);
             if (isMenuActive) {
                 dataLayout.removeView(recycler);
                 isMenuActive = false;

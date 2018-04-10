@@ -3,7 +3,6 @@ package ca.polymtl.inf3995.oronos.widgets.views;
 import android.app.Activity;
 import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,12 +20,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import timber.log.Timber;
 
 public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget, DataDispatcher.CANDataListener {
     private final int MAX_LINES = 5000;
+    private final int DATA_UPDATE_PERIOD = 1000;
     private final ConcurrentHashMap<String, Integer> lastMsgsReceived;
     private Timer listUpdater;
 
@@ -52,7 +51,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         coordinatorLayout.findViewById(R.id.scroll_fab).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                listView.setSelection(listAdapter.getCount()-1);
+                listView.setSelection(listAdapter.getCount() - 1);
             }
         });
 
@@ -105,7 +104,7 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
                 });
             }
         };
-        listUpdater.scheduleAtFixedRate(sensorTask, 0, GlobalParameters.DATA_UPDATE_PERIOD);
+        listUpdater.scheduleAtFixedRate(sensorTask, 0, DATA_UPDATE_PERIOD);
     }
 
     /**
