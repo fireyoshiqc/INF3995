@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.design.widget.TabLayout;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -54,7 +55,12 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
                 transition.setDuration(100);
                 TransitionManager.beginDelayedTransition(containerLayout, transition);
                 containerLayout.removeAllViewsInLayout();
-                containerLayout.addView(list.get(tabLayout.getSelectedTabPosition()).getContents());
+
+                OronosView newTab  = list.get(tabLayout.getSelectedTabPosition()).getContents();
+                if (newTab.getParent() != null) {
+                    ((ViewGroup)newTab.getParent()).removeView(newTab);
+                }
+                containerLayout.addView(newTab);
             }
 
             @Override
