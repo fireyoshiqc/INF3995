@@ -51,9 +51,6 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                AutoTransition transition = new AutoTransition();
-                transition.setDuration(100);
-                TransitionManager.beginDelayedTransition(containerLayout, transition);
                 containerLayout.removeAllViewsInLayout();
 
                 OronosView newTab  = list.get(tabLayout.getSelectedTabPosition()).getContents();
