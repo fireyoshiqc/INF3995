@@ -165,7 +165,7 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendPostUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+    public Request<?> sendPostUsersLogin(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/login";
 
         JSONObject json = new JSONObject();
@@ -184,6 +184,7 @@ public class RestHttpWrapper {
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
+        return request;
     }
 
     /**
@@ -195,7 +196,7 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendPostUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+    public Request<?> sendPostUsersLogout(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/logout";
 
         JSONObject json = new JSONObject();
@@ -212,6 +213,7 @@ public class RestHttpWrapper {
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
+        return request;
     }
 
     /**
@@ -221,7 +223,7 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendPostUsersHeartbeat(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
+    public Request<?> sendPostUsersHeartbeat(Response.Listener<Void> resListen, Response.ErrorListener errListen) {
         String fullUrl = this.serverUrl + "/users/heartbeat";
 
         JSONObject json = new JSONObject();
@@ -233,6 +235,7 @@ public class RestHttpWrapper {
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         volleyQueue.add(request);
+        return request;
     }
 
     /**
@@ -242,8 +245,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigBasic(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/basic", resListen, errListen);
+    public Request<?> sendGetConfigBasic(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/basic", resListen, errListen);
     }
 
     /**
@@ -252,8 +255,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigRockets(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/rockets", resListen, errListen);
+    public Request<?> sendGetConfigRockets(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/rockets", resListen, errListen);
     }
 
     /**
@@ -263,8 +266,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigRockets(String rocket, Response.Listener<String> resListen, Response.ErrorListener errListen) {
-        this.sendStringGetRequest("/config/rockets/" + rocket, resListen, errListen);
+    public Request<?> sendGetConfigRockets(String rocket, Response.Listener<String> resListen, Response.ErrorListener errListen) {
+        return this.sendStringGetRequest("/config/rockets/" + rocket, resListen, errListen);
     }
 
 
@@ -274,8 +277,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigMiscFiles(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/miscFiles", resListen, errListen);
+    public Request<?> sendGetConfigMiscFiles(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/miscFiles", resListen, errListen);
     }
 
     /**
@@ -284,8 +287,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigMiscFiles(String miscFile, Response.Listener<RestHttpWrapper.FileAttachment> resListen, Response.ErrorListener errListen) {
-        this.sendFileGetRequest("/config/miscFiles/" + miscFile, resListen, errListen);
+    public Request<?> sendGetConfigMiscFiles(String miscFile, Response.Listener<RestHttpWrapper.FileAttachment> resListen, Response.ErrorListener errListen) {
+        return this.sendFileGetRequest("/config/miscFiles/" + miscFile, resListen, errListen);
     }
 
     /**
@@ -295,8 +298,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigCanSid(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/canSid", resListen, errListen);
+    public Request<?> sendGetConfigCanSid(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/canSid", resListen, errListen);
     }
 
     /**
@@ -306,8 +309,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigCanDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/canDataTypes", resListen, errListen);
+    public Request<?> sendGetConfigCanDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/canDataTypes", resListen, errListen);
     }
 
     /**
@@ -317,8 +320,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigCanMsgDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/canMsgDataTypes", resListen, errListen);
+    public Request<?> sendGetConfigCanMsgDataTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/canMsgDataTypes", resListen, errListen);
     }
 
     /**
@@ -328,8 +331,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigCanModuleTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/canModuleTypes", resListen, errListen);
+    public Request<?> sendGetConfigCanModuleTypes(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/canModuleTypes", resListen, errListen);
     }
 
     /**
@@ -339,8 +342,8 @@ public class RestHttpWrapper {
      * @param resListen the listener waiting for the response.
      * @param errListen the listener waiting for any error response that could be sent.
      * */
-    public void sendGetConfigTimeout(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
-        this.sendJsonGetRequest("/config/timeout", resListen, errListen);
+    public Request<?> sendGetConfigTimeout(Response.Listener<JSONObject> resListen, Response.ErrorListener errListen) {
+        return this.sendJsonGetRequest("/config/timeout", resListen, errListen);
     }
 
     /**
@@ -351,7 +354,7 @@ public class RestHttpWrapper {
      * @param resListener the listener waiting for the response.
      * @param errListener the listener waiting for any error response that could be sent.
      * */
-    private void sendJsonGetRequest(String url, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
+    private JsonObjectRequest sendJsonGetRequest(String url, Response.Listener<JSONObject> resListener, Response.ErrorListener errListener) {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,
                                                           this.serverUrl + url,
@@ -361,6 +364,7 @@ public class RestHttpWrapper {
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
+        return request;
     }
 
     /**
@@ -371,7 +375,7 @@ public class RestHttpWrapper {
      * @param resListener the listener waiting for the response.
      * @param errListener the listener waiting for any error response that could be sent.
      * */
-    private void sendStringGetRequest(String url, Response.Listener<String> resListener, Response.ErrorListener errListener) {
+    private StringRequest sendStringGetRequest(String url, Response.Listener<String> resListener, Response.ErrorListener errListener) {
         StringRequest request = new StringRequest(Request.Method.GET,
                                                   this.serverUrl + url,
                                                   resListener,
@@ -379,15 +383,17 @@ public class RestHttpWrapper {
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
+        return request;
     }
 
-    private void sendFileGetRequest(String url, Response.Listener<RestHttpWrapper.FileAttachment> resListener, Response.ErrorListener errListener) {
+    private FileDownloadGetRequest sendFileGetRequest(String url, Response.Listener<RestHttpWrapper.FileAttachment> resListener, Response.ErrorListener errListener) {
         FileDownloadGetRequest request = new FileDownloadGetRequest(this.serverUrl + url,
                                                                     resListener,
                                                                     errListener);
         request.setRetryPolicy(this.retryPolicy);
         request.setShouldCache(false);
         this.volleyQueue.add(request);
+        return request;
     }
 
     /**

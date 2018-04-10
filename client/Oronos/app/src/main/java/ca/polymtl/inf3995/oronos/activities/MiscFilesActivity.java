@@ -1,16 +1,29 @@
 package ca.polymtl.inf3995.oronos.activities;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +51,35 @@ import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
  * @since   2018-04-12
  */
 public class MiscFilesActivity extends DrawerActivity {
-    private TextView textViewTitle = null;
+    private AlertDialog          dialog;
+    private Snackbar             snackbar;
+    private boolean              isRunning = false;
+    private ListView             listView;
+    private ArrayAdapter<String> listAdapter;
+
+    private static class CustomArrayAdapter extends ArrayAdapter<String> {
+        private MiscFilesActivity parentActivity = null;
+
+        public CustomArrayAdapter(MiscFilesActivity parent, @NonNull Context context, @LayoutRes int resource) {
+            super(context, resource);
+            this.parentActivity = parent;
+        }
+
+        @Override
+        public @NonNull View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView textView = (TextView)v;
+                    String fileToDownload = textView.getText().toString();
+                    parentActivity.downloadAndShowFile(fileToDownload);
+                }
+            });
+
+            return view;
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -46,78 +87,137 @@ public class MiscFilesActivity extends DrawerActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        this.setUpView();
+        this.isRunning = true;
+        this.requestAndShowFilesList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.isRunning = false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        this.isRunning = true;
+    }
+
+    private void setUpView() {
         setContentView(R.layout.activity_misc_files);
         changeToolbarTitle("Miscellaneous files");
-        this.textViewTitle = findViewById(R.id.misc_files_title);
-        textViewTitle.setText("Waiting for list from server...");
+        this.listView = findViewById(R.id.misc_files_listview);
+        this.listAdapter = new CustomArrayAdapter(this, this, R.layout.misc_files_textview);
+        this.listView.setAdapter(this.listAdapter);
+        this.listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 
-        this.requestAndShowFilesList();
     }
 
     private void requestAndShowFilesList() {
         Response.Listener<JSONObject> resListen = new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject result) {
-                ArrayList<String> allFiles = new ArrayList<>();
+                final ArrayList<String> allFiles = new ArrayList<>();
                 JSONArray names = result.names();
-                String fileToDownload = "";
-                StringBuffer msg = new StringBuffer();
                 try {
-                    msg.append("List of available files for download : " + "\n");
                     for (int i = 0; i < names.length(); i++) {
-                        if (!names.get(i).equals("nFiles"))
-                            msg.append(" - ").append(result.getString(names.get(i).toString())).append("\n");
+                        if (!names.get(i).equals("nFiles")){
+                            String filename = result.getString(names.get(i).toString());
+                            allFiles.add(filename);
+                        }
                     }
-                    fileToDownload = "eggs/file1.txt";
                 }
                 catch (JSONException e) {
-                    msg = new StringBuffer("Ooops!");
+                    allFiles.clear();
                 }
-                textViewTitle.setText(msg.toString());
-
-                SystemClock.sleep(1000);
-
-                Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void onResponse(RestHttpWrapper.FileAttachment result) {
-                        textViewTitle.setText("Downloaded file '" + result.filename + "' of type " +
-                                              "'" + result.mimeType + "' of size " + result.fileContent.length + " bytes.");
-
-                        File miscFilesFolder = new File(getFilesDir(), "miscFiles");
-                        if (!miscFilesFolder.exists()) {
-                            miscFilesFolder.mkdir();
-                        }
-                        File file = new File(getFilesDir() + File.separator + "miscFiles", result.filename);
-                        try {
-                            OutputStream outStrm = new FileOutputStream(file);
-                            outStrm.write(result.fileContent);
-                            outStrm.flush();
-                        } catch (IOException e) {
-                            return;
-                        }
-
-                        // Get URI of file.
-                        Context context = getApplicationContext();
-                        Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
-
-                        // Open file with user selected app.
-                        Intent intent = new Intent();
-                        intent.setDataAndType(uri, result.mimeType);
-                        intent.setDataAndType(uri, "text/plain");
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        PackageManager packageManager = getPackageManager();
-
-                        // Resolve implicit intent.
-                        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
-                                                                                            PackageManager.MATCH_DEFAULT_ONLY);
-                        boolean isIntentSafe = activities.size() > 0;
-                        if (isIntentSafe)
-                            startActivity(intent);
+                    public void run() {
+                        listAdapter.clear();
+                        listAdapter.addAll(allFiles);
+                        listAdapter.notifyDataSetChanged();
                     }
-                };
-                RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, null);
+                });
             }
         };
         RestHttpWrapper.getInstance().sendGetConfigMiscFiles(resListen, null);
+    }
+
+    private void downloadAndShowFile(String fileToDownload) {
+        final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
+            @Override
+            public void onResponse(RestHttpWrapper.FileAttachment result) {
+                File miscFilesFolder = new File(getFilesDir(), "miscFiles");
+                if (!miscFilesFolder.exists()) {
+                    miscFilesFolder.mkdir();
+                }
+                File file = new File(getFilesDir() + File.separator + "miscFiles", result.filename);
+                try {
+                    OutputStream outStrm = new FileOutputStream(file);
+                    outStrm.write(result.fileContent);
+                    outStrm.flush();
+                } catch (IOException e) {
+                    return;
+                }
+
+                // Get URI of file.
+                Context context = getApplicationContext();
+                Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
+
+                // Open file with user selected app.
+                Intent intent = new Intent();
+                intent.setDataAndType(uri, result.mimeType);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                PackageManager packageManager = getPackageManager();
+
+                // Resolve implicit intent.
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
+                                                                                    PackageManager.MATCH_DEFAULT_ONLY);
+                boolean isIntentSafe = activities.size() > 0;
+                dialog.dismiss();
+                if (isRunning || isIntentSafe)
+                    startActivity(intent);
+            }
+        };
+
+        final Response.ErrorListener errorListen = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dialog.setTitle("Error while downloading");
+                dialog.setMessage(error.toString());
+                dialog.show();
+            }
+        };
+
+        final Request<?> request = RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, errorListen);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        this.dialog = builder.create();
+        this.dialog.setCancelable(true);
+        this.dialog.setTitle("Downloading...");
+        this.dialog.setMessage("File : '" + fileToDownload + "'");
+        this.dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        this.dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                request.cancel();
+                dialog.dismiss();
+            }
+        });
+        this.dialog.show();
+
     }
 }

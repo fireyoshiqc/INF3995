@@ -34,6 +34,11 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1.0" />
 
+            <ListView
+                android:id="@+id/misc_files_listview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
         </RelativeLayout>
 
     </android.support.constraint.ConstraintLayout>

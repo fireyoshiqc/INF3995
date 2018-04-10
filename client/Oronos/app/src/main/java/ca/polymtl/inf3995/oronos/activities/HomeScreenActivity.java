@@ -513,7 +513,7 @@ public class HomeScreenActivity extends AppCompatActivity {
      *               serverAddress.
      * */
     private void sendLoginRequest(HomeScreenInputs inputs) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreenActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         this.dialog = builder.create();
         this.dialog.setCancelable(false);
         this.dialog.setTitle("Authentication and Configuration from Server");
