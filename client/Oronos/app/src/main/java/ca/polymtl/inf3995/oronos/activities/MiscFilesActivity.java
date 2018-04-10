@@ -8,16 +8,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -30,11 +27,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,15 +47,13 @@ import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
  */
 public class MiscFilesActivity extends DrawerActivity {
     private AlertDialog          dialog;
-    private Snackbar             snackbar;
     private boolean              isRunning = false;
-    private ListView             listView;
     private ArrayAdapter<String> listAdapter;
 
     private static class CustomArrayAdapter extends ArrayAdapter<String> {
-        private MiscFilesActivity parentActivity = null;
+        private MiscFilesActivity parentActivity;
 
-        public CustomArrayAdapter(MiscFilesActivity parent, @NonNull Context context, @LayoutRes int resource) {
+        CustomArrayAdapter(MiscFilesActivity parent, @NonNull Context context, @LayoutRes int resource) {
             super(context, resource);
             this.parentActivity = parent;
         }
@@ -73,7 +66,7 @@ public class MiscFilesActivity extends DrawerActivity {
                 public void onClick(View v) {
                     TextView textView = (TextView)v;
                     String fileToDownload = textView.getText().toString();
-                    parentActivity.downloadAndShowFile(fileToDownload);
+                    parentActivity.downloadAndOpenFile(fileToDownload);
                 }
             });
 
@@ -114,11 +107,10 @@ public class MiscFilesActivity extends DrawerActivity {
     private void setUpView() {
         setContentView(R.layout.activity_misc_files);
         changeToolbarTitle("Miscellaneous files");
-        this.listView = findViewById(R.id.misc_files_listview);
+        ListView listView = findViewById(R.id.misc_files_listview);
         this.listAdapter = new CustomArrayAdapter(this, this, R.layout.misc_files_textview);
-        this.listView.setAdapter(this.listAdapter);
-        this.listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-
+        listView.setAdapter(this.listAdapter);
+        listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
     }
 
     private void requestAndShowFilesList() {
@@ -138,20 +130,25 @@ public class MiscFilesActivity extends DrawerActivity {
                 catch (JSONException e) {
                     allFiles.clear();
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        listAdapter.clear();
-                        listAdapter.addAll(allFiles);
-                        listAdapter.notifyDataSetChanged();
-                    }
-                });
+
+                showFilesList(allFiles);
             }
         };
         RestHttpWrapper.getInstance().sendGetConfigMiscFiles(resListen, null);
     }
 
-    private void downloadAndShowFile(String fileToDownload) {
+    private void showFilesList(final ArrayList<String> allFiles) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listAdapter.clear();
+                listAdapter.addAll(allFiles);
+                listAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void downloadAndOpenFile(String fileToDownload) {
         final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
             @Override
             public void onResponse(RestHttpWrapper.FileAttachment result) {
