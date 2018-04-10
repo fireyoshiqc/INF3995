@@ -22,7 +22,7 @@ public class GlobalParameters {
     // SocketClient
     public static final String CLIENT_ADDRESS = "0.0.0.0";
 
-    public static boolean hasRetardedErrorMessages = false;
+    public static boolean hasRetardedErrorMessages = true;
     public static String serverAddress = null;
     public static int udpPort = 5005;
     public static Map<Integer, String> canSid;
