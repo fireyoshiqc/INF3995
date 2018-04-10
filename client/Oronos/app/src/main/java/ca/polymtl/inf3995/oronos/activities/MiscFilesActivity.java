@@ -114,6 +114,8 @@ public class MiscFilesActivity extends DrawerActivity {
     }
 
     private void requestAndShowFilesList() {
+        this.showMiscFilesRequestMessage();
+
         Response.Listener<JSONObject> resListen = new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject result) {
@@ -134,7 +136,24 @@ public class MiscFilesActivity extends DrawerActivity {
                 showFilesList(allFiles);
             }
         };
-        RestHttpWrapper.getInstance().sendGetConfigMiscFiles(resListen, null);
+        Response.ErrorListener errListen = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                showListErrorMsg(error);
+            }
+        };
+        RestHttpWrapper.getInstance().sendGetConfigMiscFiles(resListen, errListen);
+    }
+
+    private void showMiscFilesRequestMessage() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listAdapter.clear();
+                listAdapter.add("Downloading misc files list...");
+                listAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void showFilesList(final ArrayList<String> allFiles) {
@@ -146,6 +165,19 @@ public class MiscFilesActivity extends DrawerActivity {
                 listAdapter.notifyDataSetChanged();
             }
         });
+    }
+
+    private void showListErrorMsg(VolleyError error) {
+        final String errorMsg = error.toString();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listAdapter.clear();
+                listAdapter.add("Error while getting misc files list : " + errorMsg);
+                listAdapter.notifyDataSetChanged();
+            }
+        });
+
     }
 
     private void downloadAndOpenFile(String fileToDownload) {
