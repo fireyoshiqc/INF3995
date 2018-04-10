@@ -202,7 +202,9 @@ public class HomeScreenActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
+        if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty()) {
+            RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
+        }
         GlobalParameters.serverAddress = null;
 
         if (this.dialog != null && this.dialog.isShowing())
