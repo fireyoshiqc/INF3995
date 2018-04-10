@@ -301,11 +301,10 @@ class RestServer(object):
 	@staticmethod
 	def _find_all_files_in_dir(dir_path, add_n_files):
 		all_files = []
-		foo = os.walk(dir_path)
 		for root, subdirs, files in os.walk(dir_path):
 			for f in files:
 				filename = root + "/" + f
-				filename = filename.replace("\\", "/");
+				filename = filename.replace("\\", "/")
 				filename = filename.replace(dir_path, "")
 				if filename[0] == "/":
 					filename = filename[1:len(filename)]
