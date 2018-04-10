@@ -73,7 +73,7 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         //content.addView(mapView);
         coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         coordinator.addView(content);
-
+        addView(coordinator);
     }
 
     private void buildView() {
@@ -100,8 +100,6 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         register();
         //addView(mapView);
         content.addView(mapView);
-        addView(coordinator);
-        //buildView();
     }
 
     @Override
@@ -109,9 +107,10 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         super.onDetachedFromWindow();
         handler.removeCallbacks(run);
         unregister();
-        //removeView(mapView);
-        removeView(coordinator);
-        content.removeView(mapView);
+        if (mapView != null) {
+            content.removeView(mapView);
+        }
+
     }
 
     private void register() {

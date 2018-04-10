@@ -1,12 +1,14 @@
 package ca.polymtl.inf3995.oronos.activities;
 
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.transition.Fade;
 import android.transition.Slide;
 import android.transition.TransitionManager;
 import android.view.Menu;
@@ -210,6 +212,8 @@ public class MainActivity extends DrawerActivity {
         }
 
         recycler = new RecyclerView(this);
+        recycler.setBackgroundColor(Color.BLACK);
+        recycler.getBackground().setAlpha(128);
         GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recycler.setLayoutManager(staggeredGridLayoutManager);
@@ -335,30 +339,11 @@ public class MainActivity extends DrawerActivity {
      */
     public void changeStateOfDataLayout(int nextView) {
         if (nextView == MENU_VIEW_ID) {
+            Fade transition = new Fade();
+            TransitionManager.beginDelayedTransition(dataLayout, transition);
             if (isMenuActive) {
                 LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_out);
                 recycler.setLayoutAnimation(controller);
-                //TODO: Fix this if able to make the fade out animation appear
-                /*
-                recycler.setLayoutAnimationListener(new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        dataLayout.removeView(recycler);
-                        isMenuActive = false;
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
-
-                    }
-                });
-                Maybe use recycler.getItemAnimator().endAnimations()
-                */
                 recycler.scheduleLayoutAnimation();
                 dataLayout.removeView(recycler);
                 isMenuActive = false;
