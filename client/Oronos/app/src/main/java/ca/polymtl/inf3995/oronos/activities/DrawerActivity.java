@@ -62,7 +62,7 @@ public class DrawerActivity extends AppCompatActivity {
                         } else if (menuItem == navigationView.getMenu().getItem(themeIndex)) {
                             themeSelectionPopup();
                         } else if (menuItem == navigationView.getMenu().getItem(pdfIndex)) {
-                            switchToPdfActivity();
+                            switchToMiscFilesActivity();
                         } else {
                             //toolbar.setTitle("Disconnection");
                             disconnectionPopup();
@@ -217,7 +217,7 @@ public class DrawerActivity extends AppCompatActivity {
      * This method starts a fragment responsible of managing the available pdf list from the
      * server.
      */
-    private void switchToPdfActivity() { //This will have to be a fragment. 
+    private void switchToMiscFilesActivity() { //This will have to be a fragment.
         Intent intent = new Intent(this, MiscFilesActivity.class);
         this.startActivity(intent);
     }

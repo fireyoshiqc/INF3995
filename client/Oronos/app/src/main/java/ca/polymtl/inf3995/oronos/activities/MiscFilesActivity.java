@@ -161,7 +161,10 @@ public class MiscFilesActivity extends DrawerActivity {
             @Override
             public void run() {
                 listAdapter.clear();
-                listAdapter.addAll(allFiles);
+                if (!allFiles.isEmpty())
+                    listAdapter.addAll(allFiles);
+                else
+                    listAdapter.add("Nothing to show.");
                 listAdapter.notifyDataSetChanged();
             }
         });
