@@ -41,33 +41,8 @@ import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 
 public class MiscFilesFragment extends Fragment {
     private AlertDialog dialog;
-    private boolean              isRunning = false;
+    private boolean isRunning = false;
     private ArrayAdapter<String> listAdapter;
-
-    private static class CustomArrayAdapter extends ArrayAdapter<String> {
-        private MiscFilesFragment parentActivity;
-
-        CustomArrayAdapter(MiscFilesFragment parent, @NonNull Context context, @LayoutRes int resource) {
-            super(context, resource);
-            this.parentActivity = parent;
-        }
-
-        @Override
-        public @NonNull
-        View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            View view = super.getView(position, convertView, parent);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TextView textView = (TextView)v;
-                    String fileToDownload = textView.getText().toString();
-                    parentActivity.downloadAndOpenFile(fileToDownload);
-                }
-            });
-
-            return view;
-        }
-    }
 
     /**
      * {@inheritDoc}
@@ -101,7 +76,7 @@ public class MiscFilesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_misc_files, container, false);
-        ((OronosActivity)getActivity()).changeToolbarTitle("Miscellaneous files");
+        ((OronosActivity) getActivity()).changeToolbarTitle("Miscellaneous files");
         ListView listView = view.findViewById(R.id.misc_files_listview);
         this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
         listView.setAdapter(this.listAdapter);
@@ -109,7 +84,6 @@ public class MiscFilesFragment extends Fragment {
         this.requestAndShowFilesList();
         return view;
     }
-
 
     private void requestAndShowFilesList() {
         this.showMiscFilesRequestMessage();
@@ -121,13 +95,12 @@ public class MiscFilesFragment extends Fragment {
                 JSONArray names = result.names();
                 try {
                     for (int i = 0; i < names.length(); i++) {
-                        if (!names.get(i).equals("nFiles")){
+                        if (!names.get(i).equals("nFiles")) {
                             String filename = result.getString(names.get(i).toString());
                             allFiles.add(filename);
                         }
                     }
-                }
-                catch (JSONException e) {
+                } catch (JSONException e) {
                     allFiles.clear();
                 }
 
@@ -249,5 +222,30 @@ public class MiscFilesFragment extends Fragment {
         });
         this.dialog.show();
 
+    }
+
+    private static class CustomArrayAdapter extends ArrayAdapter<String> {
+        private MiscFilesFragment parentActivity;
+
+        CustomArrayAdapter(MiscFilesFragment parent, @NonNull Context context, @LayoutRes int resource) {
+            super(context, resource);
+            this.parentActivity = parent;
+        }
+
+        @Override
+        public @NonNull
+        View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView textView = (TextView) v;
+                    String fileToDownload = textView.getText().toString();
+                    parentActivity.downloadAndOpenFile(fileToDownload);
+                }
+            });
+
+            return view;
+        }
     }
 }

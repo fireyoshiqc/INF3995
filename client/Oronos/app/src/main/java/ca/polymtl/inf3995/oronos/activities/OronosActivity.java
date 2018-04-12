@@ -2,14 +2,11 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.Manifest;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,8 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.fragments.HomeScreenFragment;
@@ -33,24 +28,21 @@ import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.utils.LogTree;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
+import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import timber.log.Timber;
 
 public class OronosActivity extends AppCompatActivity {
 
+    static final private int STORAGE_PERMISSION_REQUEST = 42;
+    private static String lastFragmentTag = "";
     private final int dataIndex = 0;
     private final int themeIndex = 1;
     private final int pdfIndex = 2;
     private DrawerLayout drawerLayout;
     private boolean selectedThemeIsDark;
-
     private Toolbar toolbar;
     private NavigationView navigationView;
-
-    static final private int STORAGE_PERMISSION_REQUEST = 42;
     private Snackbar warningBar;
-    private FragmentManager fragmentManager;
-
-    private static String lastFragmentTag = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,11 +65,10 @@ public class OronosActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
-        fragmentManager = getSupportFragmentManager();
-        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
-                Fragment f = fragmentManager.findFragmentById(R.id.fragment_container);
+                Fragment f = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
                 if (f != null) {
                     setLastFragmentTag(f.getTag());
                 }
@@ -86,25 +77,24 @@ public class OronosActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             RestHttpWrapper.getInstance().setup(getApplicationContext());
-            fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
             setLastFragmentTag("home");
         } else {
-
-            switch(lastFragmentTag) {
+            switch (lastFragmentTag) {
                 case "home":
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
                     setLastFragmentTag("home");
                     break;
                 case "telemetry":
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
                     setLastFragmentTag("telemetry");
                     break;
                 case "misc":
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
                     setLastFragmentTag("misc");
                     break;
                 default:
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
                     setLastFragmentTag("home");
 
             }
@@ -133,6 +123,21 @@ public class OronosActivity extends AppCompatActivity {
                     grantPermissions();
                 } else {
                     warningBar.show();
+                }
+            }
+            case FindMe.GPS_PERMISSION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    for (FindMe findMe : FindMe.getInstances()) {
+                        findMe.grantPermissions();
+                    }
+
+
+                } else {
+                    for (FindMe findMe : FindMe.getInstances()) {
+                        findMe.showPermissionWarning();
+                    }
                 }
             }
         }
@@ -207,6 +212,20 @@ public class OronosActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        int count = getFragmentManager().getBackStackEntryCount();
+        if (lastFragmentTag.equals("home")) {
+            finish();
+        } else if (count == 0) {
+            super.onBackPressed();
+        } else {
+            getFragmentManager().popBackStack();
+        }
+
     }
 
     /**
@@ -303,17 +322,22 @@ public class OronosActivity extends AppCompatActivity {
      * This method destroys whatever activity is currently up and is starting the Main Activity.
      */
     private void switchToMainActivity() {
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
-        setLastFragmentTag("telemetry");
+        if (!lastFragmentTag.equals("telemetry")) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
+            setLastFragmentTag("telemetry");
+        }
+
     }
 
     /**
      * This method starts a fragment responsible of managing the available pdf list from the
      * server.
      */
-    private void switchToMiscFilesActivity() { //This will have to be a fragment.
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
-        setLastFragmentTag("misc");
+    private void switchToMiscFilesActivity() {
+        if (!lastFragmentTag.equals("misc")) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
+            setLastFragmentTag("misc");
+        }
     }
 
     /**
@@ -321,11 +345,10 @@ public class OronosActivity extends AppCompatActivity {
      * Activity.
      */
     private void switchToHomeScreenActivity() {
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
-        for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
-            fragmentManager.popBackStack();
+        if (!lastFragmentTag.equals("home")) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
+            setLastFragmentTag("home");
         }
-        setLastFragmentTag("");
     }
 
     /**

@@ -50,7 +50,6 @@ import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import timber.log.Timber;
 
 public class HomeScreenFragment extends Fragment {
-    static final private int STORAGE_PERMISSION_REQUEST = 42;
     private static String[] retardedMessages = {"Ooopsie doopsie!",
             "Oh no! Mama mia!",
             "We'we vewy sowwy, please twy again.",
@@ -176,7 +175,7 @@ public class HomeScreenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((OronosActivity)getActivity()).hideToolbar();
+        ((OronosActivity) getActivity()).hideToolbar();
 
         if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty())
             RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
@@ -312,7 +311,7 @@ public class HomeScreenFragment extends Fragment {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, new TelemetryFragment(), "telemetry");
-        ((OronosActivity)getActivity()).setLastFragmentTag("telemetry");
+        ((OronosActivity) getActivity()).setLastFragmentTag("telemetry");
         fragmentTransaction.addToBackStack(null).commit();
     }
 
