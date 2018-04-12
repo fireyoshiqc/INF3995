@@ -18,22 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
-            android:name=".activities.MainActivity"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity
-            android:name=".activities.DrawerActivity"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity
-            android:name=".activities.MiscFilesActivity"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity
-            android:name=".activities.HomeScreenActivity"
+            android:name=".activities.OronosActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>

@@ -22,19 +22,18 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
 
-        <RelativeLayout
-            android:id="@+id/data_layout"
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:gravity="top"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-        </RelativeLayout>
+        </FrameLayout>
 
-   </android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
 
 
     <android.support.design.widget.NavigationView

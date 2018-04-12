@@ -86,14 +86,16 @@ public class MainActivity extends DrawerActivity {
         setContentView(R.layout.activity_main);
 
         fillViewsContainer();
-        setUpToolbar();
+
         // Check if filling the viewsContainer worked;
-        dataLayout = findViewById(R.id.data_layout);
+        //dataLayout = findViewById(R.id.data_layout);
         if (viewsContainer != null && !viewsContainer.isEmpty()) {
             dataLayout.addView(viewsContainer.get(0), -1);
         } else {
             Timber.e("No view in viewsContainer, cannot display any data.");
         }
+
+        setupActionDisplayGrid();
 
         // Ready to start
         currentDataViewState = 0;
@@ -194,15 +196,6 @@ public class MainActivity extends DrawerActivity {
             }
         };
         this.heartbeatTimer.scheduleAtFixedRate(heartbeatTask, heartbeatPeriod, heartbeatPeriod);
-    }
-
-    /**
-     * This method declares the toolbar and its menu elements.
-     */
-    private void setUpToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        setupActionDisplayGrid();
     }
 
     private void setupActionDisplayGrid() {

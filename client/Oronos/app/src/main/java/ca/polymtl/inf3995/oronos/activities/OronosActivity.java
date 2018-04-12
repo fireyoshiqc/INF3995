@@ -1,12 +1,19 @@
 package ca.polymtl.inf3995.oronos.activities;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -14,22 +21,22 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import ca.polymtl.inf3995.oronos.R;
+import ca.polymtl.inf3995.oronos.fragments.HomeScreenFragment;
+import ca.polymtl.inf3995.oronos.fragments.MiscFilesFragment;
+import ca.polymtl.inf3995.oronos.fragments.TelemetryFragment;
+import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
+import ca.polymtl.inf3995.oronos.utils.LogTree;
+import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import timber.log.Timber;
 
-/**
- * <h1>Drawer Activity</h1>
- * The Drawer Activity is in charge of the hamburger menu that allows the user to switch between the
- * application themes, to choose a PDF for download, to disconnect itself and last but not least to
- * set the receiving rocket data mode.
- *
- * @author Fabrice Charbonneau, Félix Boulet
- * @version 0.0
- * @since 2018-04-12
- */
-public class DrawerActivity extends AppCompatActivity {
+public class OronosActivity extends AppCompatActivity {
+
     private final int dataIndex = 0;
     private final int themeIndex = 1;
     private final int pdfIndex = 2;
@@ -38,6 +45,98 @@ public class DrawerActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private NavigationView navigationView;
+
+    static final private int STORAGE_PERMISSION_REQUEST = 42;
+    private Snackbar warningBar;
+    private FragmentManager fragmentManager;
+
+    private static String lastFragmentTag = "";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ThemeUtil.getInstance().initialize(this);
+        selectedThemeIsDark = ThemeUtil.getInstance().isThemeSetToDark();
+        ThemeUtil.onActivityCreateSetTheme(this);
+        Timber.plant(new LogTree(getApplicationContext()));
+
+        if (!PermissionsUtil.hasPermissions(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            warningBar = Snackbar.make(findViewById(android.R.id.content), "Write to external memory permission is required for using this app.", Snackbar.LENGTH_INDEFINITE);
+            warningBar.setAction("ENABLE", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
+                }
+            }).show();
+        } else {
+            grantPermissions();
+        }
+
+        setContentView(R.layout.activity_main);
+        fragmentManager = getSupportFragmentManager();
+        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                Fragment f = fragmentManager.findFragmentById(R.id.fragment_container);
+                if (f != null) {
+                    setLastFragmentTag(f.getTag());
+                }
+            }
+        });
+
+        if (savedInstanceState == null) {
+            RestHttpWrapper.getInstance().setup(getApplicationContext());
+            fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+            setLastFragmentTag("home");
+        } else {
+
+            switch(lastFragmentTag) {
+                case "home":
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+                    setLastFragmentTag("home");
+                    break;
+                case "telemetry":
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").commit();
+                    setLastFragmentTag("telemetry");
+                    break;
+                case "misc":
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").commit();
+                    setLastFragmentTag("misc");
+                    break;
+                default:
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+                    setLastFragmentTag("home");
+
+            }
+        }
+    }
+
+    /**
+     * This method dismiss the permissions not granted warning bar once the permissions are granted.
+     */
+    public void grantPermissions() {
+        if (warningBar != null && warningBar.isShown()) {
+            warningBar.dismiss();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case STORAGE_PERMISSION_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    grantPermissions();
+                } else {
+                    warningBar.show();
+                }
+            }
+        }
+    }
 
     /**
      * This method sets up the hamburger menu and the callback responsible for the actions generated
@@ -81,16 +180,6 @@ public class DrawerActivity extends AppCompatActivity {
         }
 
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        selectedThemeIsDark = ThemeUtil.getInstance().isThemeSetToDark();
-        ThemeUtil.onActivityCreateSetTheme(this);
     }
 
     @Override
@@ -214,9 +303,8 @@ public class DrawerActivity extends AppCompatActivity {
      * This method destroys whatever activity is currently up and is starting the Main Activity.
      */
     private void switchToMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        finish();
-        this.startActivity(intent);
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
+        setLastFragmentTag("telemetry");
     }
 
     /**
@@ -224,9 +312,8 @@ public class DrawerActivity extends AppCompatActivity {
      * server.
      */
     private void switchToMiscFilesActivity() { //This will have to be a fragment.
-        Intent intent = new Intent(this, MiscFilesActivity.class);
-        //finish(); //the main activity runs heartbeat in background.
-        this.startActivity(intent);
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
+        setLastFragmentTag("misc");
     }
 
     /**
@@ -234,9 +321,11 @@ public class DrawerActivity extends AppCompatActivity {
      * Activity.
      */
     private void switchToHomeScreenActivity() {
-        Intent intent = new Intent(this, HomeScreenActivity.class);
-        finish();
-        this.startActivity(intent);
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").commit();
+        for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
+            fragmentManager.popBackStack();
+        }
+        setLastFragmentTag("");
     }
 
     /**
@@ -244,7 +333,7 @@ public class DrawerActivity extends AppCompatActivity {
      *
      * @param title The new title to display.
      */
-    protected void changeToolbarTitle(String title) {
+    public void changeToolbarTitle(String title) {
         toolbar.setTitle(title);
         toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
@@ -266,5 +355,17 @@ public class DrawerActivity extends AppCompatActivity {
         //TODO
         ThemeUtil.getInstance().switchToDarkTheme();
         recreate();
+    }
+
+    public void showToolbar() {
+        this.toolbar.setVisibility(View.VISIBLE);
+    }
+
+    public void hideToolbar() {
+        this.toolbar.setVisibility(View.GONE);
+    }
+
+    public void setLastFragmentTag(String tag) {
+        lastFragmentTag = tag;
     }
 }
