@@ -125,6 +125,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeUtil.getInstance().initialize(this);
         ThemeUtil.onActivityCreateSetTheme(this);
         setContentView(R.layout.activity_home_screen);
         Timber.plant(new LogTree(getApplicationContext()));
@@ -335,6 +336,7 @@ public class HomeScreenActivity extends AppCompatActivity {
      */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        finish();
         this.startActivity(intent);
     }
 

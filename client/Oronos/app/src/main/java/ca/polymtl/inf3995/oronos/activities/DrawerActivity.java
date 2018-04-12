@@ -34,7 +34,7 @@ public class DrawerActivity extends AppCompatActivity {
     private final int themeIndex = 1;
     private final int pdfIndex = 2;
     private DrawerLayout drawerLayout;
-    private boolean selectedThemeIsDark = ThemeUtil.isThemeSetToDark();
+    private boolean selectedThemeIsDark = ThemeUtil.getInstance().isThemeSetToDark();
 
     private Toolbar toolbar;
     private NavigationView navigationView;
@@ -90,6 +90,11 @@ public class DrawerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ThemeUtil.onActivityCreateSetTheme(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     /**
@@ -219,6 +224,7 @@ public class DrawerActivity extends AppCompatActivity {
      */
     private void switchToMiscFilesActivity() { //This will have to be a fragment.
         Intent intent = new Intent(this, MiscFilesActivity.class);
+        //finish(); //the main activity runs heartbeat in background.
         this.startActivity(intent);
     }
 
@@ -248,7 +254,7 @@ public class DrawerActivity extends AppCompatActivity {
      */
     private void setThemeToLight() {
         //TODO
-        ThemeUtil.switchToLightTheme();
+        ThemeUtil.getInstance().switchToLightTheme();
         recreate();
     }
 
@@ -257,7 +263,7 @@ public class DrawerActivity extends AppCompatActivity {
      */
     private void setThemeToDark() {
         //TODO
-        ThemeUtil.switchToDarkTheme();
+        ThemeUtil.getInstance().switchToDarkTheme();
         recreate();
     }
 }
