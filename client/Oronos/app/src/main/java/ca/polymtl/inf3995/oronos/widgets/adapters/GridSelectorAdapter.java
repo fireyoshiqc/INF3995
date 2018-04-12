@@ -109,6 +109,8 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
                 break;
             }
         }
+
+        holder.loadingSpinner.setVisibility(View.GONE);
     }
 
     /**

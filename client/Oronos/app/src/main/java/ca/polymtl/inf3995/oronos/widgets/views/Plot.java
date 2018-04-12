@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
@@ -55,7 +56,7 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
     private Context context;
 
     //variables
-    private Map<String, DataPlot> dataMap;
+    private ConcurrentHashMap<String, DataPlot> dataMap;
     private int seconds;
 
     private TextView titleView;
@@ -106,7 +107,7 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
      * This method instantiates a DataPlot object for each data set
      */
     private void initializeDataList() {
-        dataMap = new HashMap<>();
+        dataMap = new ConcurrentHashMap<>();
         for (CAN can : this.canList) {
             DataPlot dataPlot = new DataPlot(MAXIMUM_ENTRIES);
             String canID = can.getId();

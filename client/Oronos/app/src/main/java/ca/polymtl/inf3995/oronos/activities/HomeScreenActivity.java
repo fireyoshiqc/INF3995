@@ -2,6 +2,7 @@ package ca.polymtl.inf3995.oronos.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -125,6 +126,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeUtil.getInstance().initialize(this);
         ThemeUtil.onActivityCreateSetTheme(this);
         setContentView(R.layout.activity_home_screen);
         Timber.plant(new LogTree(getApplicationContext()));
@@ -167,8 +169,9 @@ public class HomeScreenActivity extends AppCompatActivity {
             }
         });
 
-        CookieHandler.setDefault(new CookieManager());
         RestHttpWrapper.getInstance().setup(this.getApplicationContext());
+        PostUsersLogoutListener listener = new PostUsersLogoutListener(this.getApplicationContext());
+        RestHttpWrapper.getInstance().sendPostUsersLogout(listener, listener);
 
         HomeScreenInputs cachedInputs = this.loadCachedInputs();
         this.setTextInputs(cachedInputs);
@@ -202,9 +205,8 @@ public class HomeScreenActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty()) {
+        if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty())
             RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
-        }
         GlobalParameters.serverAddress = null;
 
         if (this.dialog != null && this.dialog.isShowing())
@@ -335,6 +337,7 @@ public class HomeScreenActivity extends AppCompatActivity {
      */
     private void switchToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        finish();
         this.startActivity(intent);
     }
 
@@ -685,6 +688,30 @@ public class HomeScreenActivity extends AppCompatActivity {
             this.parent.dialog.setTitle("All Good!");
             this.parent.dialog.setMessage("Switching to main activity...");
             this.parent.switchToMainActivity();
+        }
+    }
+
+    private static class PostUsersLogoutListener implements Response.ErrorListener, Response.Listener<Void> {
+        Context context;
+
+        PostUsersLogoutListener(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onResponse(Void result) {
+            this.resetCookieHandler();
+        }
+
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            this.resetCookieHandler();
+        }
+
+        private void resetCookieHandler() {
+            GlobalParameters.serverAddress = null;
+            CookieHandler.setDefault(new CookieManager());
+            RestHttpWrapper.getInstance().setup(context);
         }
     }
 
