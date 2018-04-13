@@ -119,7 +119,7 @@ public class SocketClient {
                 }
             });
         } else {
-            Timber.e("SocketClient has already been set up, this method should only be called once.");
+            Timber.w("SocketClient has already been set up, this method should only be called once.");
         }
 
     }
