@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
-            android:name=".activities.OronosActivity"
+            android:name="ca.polymtl.inf3995.oronos.activities.OronosActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>

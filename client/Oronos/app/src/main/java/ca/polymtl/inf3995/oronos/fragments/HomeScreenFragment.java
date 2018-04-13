@@ -141,8 +141,7 @@ public class HomeScreenFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        HomeScreenFragment.PostUsersLogoutListener listener = new HomeScreenFragment.PostUsersLogoutListener(getActivity().getApplicationContext());
-        RestHttpWrapper.getInstance().sendPostUsersLogout(listener, listener);
+        this.logoutAndResetCookies();
     }
 
     /**
@@ -160,6 +159,7 @@ public class HomeScreenFragment extends Fragment {
         this.dialog.setMessage("Sending login request...");
         this.dialog.show();
 
+        CookieHandler.setDefault(new CookieManager());
         RestHttpWrapper restWrapper = RestHttpWrapper.getInstance();
         restWrapper.setLoginInfo(inputs.serverAddress, 80, inputs.username, inputs.password);
         HomeScreenFragment.PostUsersLoginListener listener = new HomeScreenFragment.PostUsersLoginListener(this);
@@ -174,12 +174,9 @@ public class HomeScreenFragment extends Fragment {
         super.onResume();
         ((OronosActivity) getActivity()).hideToolbar();
 
+        this.logoutAndResetCookies();
         HomeScreenFragment.HomeScreenInputs cachedInputs = this.loadCachedInputs();
         this.setTextInputs(cachedInputs);
-
-        if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty())
-            RestHttpWrapper.getInstance().sendPostUsersLogout(null, null);
-        GlobalParameters.serverAddress = null;
 
         if (this.dialog != null && this.dialog.isShowing())
             this.dialog.dismiss();
@@ -310,6 +307,13 @@ public class HomeScreenFragment extends Fragment {
     private void switchToTelemetryFragment() {
         ((OronosActivity) getActivity()).setTelemetryFragment(new TelemetryFragment());
         ((OronosActivity) getActivity()).switchToMainActivity();
+    }
+
+    private void logoutAndResetCookies() {
+        if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty()) {
+            HomeScreenFragment.PostUsersLogoutListener listener = new HomeScreenFragment.PostUsersLogoutListener(getActivity().getApplicationContext());
+            RestHttpWrapper.getInstance().sendPostUsersLogout(listener, listener);
+        }
     }
 
 

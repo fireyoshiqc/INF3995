@@ -8,17 +8,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -38,11 +35,12 @@ import java.util.List;
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.activities.OronosActivity;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
+import ca.polymtl.inf3995.oronos.widgets.adapters.MiscFilesAdapter;
 
 public class MiscFilesFragment extends Fragment {
-    private AlertDialog dialog;
-    private boolean isRunning = false;
-    private ArrayAdapter<String> listAdapter;
+    private AlertDialog                dialog;
+    private boolean                    isRunning = false;
+    private MiscFilesAdapter           adapter;
 
     /**
      * {@inheritDoc}
@@ -76,13 +74,72 @@ public class MiscFilesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_misc_files, container, false);
-        ((OronosActivity) getActivity()).changeToolbarTitle("Miscellaneous files");
-        ListView listView = view.findViewById(R.id.misc_files_listview);
-        this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
-        listView.setAdapter(this.listAdapter);
-        listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        OronosActivity activity = (OronosActivity)this.getActivity();
+        activity.changeToolbarTitle("Miscellaneous files");
+
+        //ListView listView = view.findViewById(R.id.misc_files_listview);
+        //this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
+        //listView.setAdapter(this.listAdapter);
+        //listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        //this.requestAndShowFilesList();
+
+        RecyclerView recyclerView = view.findViewById(R.id.misc_files_recview);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
+        recyclerView.setLayoutManager(layoutManager);
+        this.adapter = new MiscFilesAdapter(new ArrayList<String>(), this);
+        recyclerView.setAdapter(this.adapter);
+
         this.requestAndShowFilesList();
+
         return view;
+    }
+
+    public void downloadAndOpenFile(String fileToDownload) {
+        final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
+            @Override
+            public void onResponse(RestHttpWrapper.FileAttachment result) {
+                File file = writeDownloadedFile(result);
+                if (file == null)
+                    return;
+
+                Context context = getActivity().getApplicationContext();
+                Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
+
+                openFileWithAppChooser(uri, result.mimeType);
+            }
+        };
+
+        final Response.ErrorListener errorListen = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dialog.setTitle("Error while downloading");
+                dialog.setMessage(error.toString());
+                dialog.show();
+            }
+        };
+
+        final Request<?> request = RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, errorListen);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        this.dialog = builder.create();
+        this.dialog.setCancelable(true);
+        this.dialog.setTitle("Downloading...");
+        this.dialog.setMessage("File : '" + fileToDownload + "'");
+        this.dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        this.dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                request.cancel();
+                dialog.dismiss();
+            }
+        });
+        this.dialog.show();
+
     }
 
     private void requestAndShowFilesList() {
@@ -120,9 +177,9 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
-                listAdapter.add("Downloading misc files list...");
-                listAdapter.notifyDataSetChanged();
+                adapter.clear();
+                adapter.add("Downloading misc files list...");
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -131,12 +188,12 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
+                adapter.clear();
                 if (!allFiles.isEmpty())
-                    listAdapter.addAll(allFiles);
+                    adapter.addAll(allFiles);
                 else
-                    listAdapter.add("Nothing to show.");
-                listAdapter.notifyDataSetChanged();
+                    adapter.add("Nothing to show.");
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -146,106 +203,43 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
-                listAdapter.add("Error while getting misc files list : " + errorMsg);
-                listAdapter.notifyDataSetChanged();
+                adapter.clear();
+                adapter.add("Error while getting misc files list : " + errorMsg);
+                adapter.notifyDataSetChanged();
             }
         });
-
     }
 
-    private void downloadAndOpenFile(String fileToDownload) {
-        final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
-            @Override
-            public void onResponse(RestHttpWrapper.FileAttachment result) {
-                File miscFilesFolder = new File(getActivity().getFilesDir(), "miscFiles");
-                if (!miscFilesFolder.exists()) {
-                    miscFilesFolder.mkdir();
-                }
-                File file = new File(getActivity().getFilesDir() + File.separator + "miscFiles", result.filename);
-                try {
-                    OutputStream outStrm = new FileOutputStream(file);
-                    outStrm.write(result.fileContent);
-                    outStrm.flush();
-                } catch (IOException e) {
-                    return;
-                }
-
-                // Get URI of file.
-                Context context = getActivity().getApplicationContext();
-                Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
-
-                // Open file with user selected app.
-                Intent intent = new Intent();
-                intent.setDataAndType(uri, result.mimeType);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                PackageManager packageManager = getActivity().getPackageManager();
-
-                // Resolve implicit intent.
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
-                        PackageManager.MATCH_DEFAULT_ONLY);
-                boolean isIntentSafe = activities.size() > 0;
-                dialog.dismiss();
-                if (isRunning || isIntentSafe)
-                    startActivity(intent);
-            }
-        };
-
-        final Response.ErrorListener errorListen = new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                dialog.setTitle("Error while downloading");
-                dialog.setMessage(error.toString());
-                dialog.show();
-            }
-        };
-
-        final Request<?> request = RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, errorListen);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        this.dialog = builder.create();
-        this.dialog.setCancelable(true);
-        this.dialog.setTitle("Downloading...");
-        this.dialog.setMessage("File : '" + fileToDownload + "'");
-        this.dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        this.dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                request.cancel();
-                dialog.dismiss();
-            }
-        });
-        this.dialog.show();
-
+    private File writeDownloadedFile(RestHttpWrapper.FileAttachment result) {
+        File miscFilesFolder = new File(getActivity().getFilesDir(), "miscFiles");
+        if (!miscFilesFolder.exists()) {
+            miscFilesFolder.mkdir();
+        }
+        File file = new File(getActivity().getFilesDir() + File.separator + "miscFiles", result.filename);
+        try {
+            OutputStream outStrm = new FileOutputStream(file);
+            outStrm.write(result.fileContent);
+            outStrm.flush();
+            return file;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
-    private static class CustomArrayAdapter extends ArrayAdapter<String> {
-        private MiscFilesFragment parentActivity;
+    private void openFileWithAppChooser(Uri uri, String mimeType) {
+        // Open file with user selected app.
+        Intent intent = new Intent();
+        intent.setDataAndType(uri, mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        PackageManager packageManager = getActivity().getPackageManager();
 
-        CustomArrayAdapter(MiscFilesFragment parent, @NonNull Context context, @LayoutRes int resource) {
-            super(context, resource);
-            this.parentActivity = parent;
+        // Resolve implicit intent.
+        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        boolean isIntentSafe = activities.size() > 0;
+        if (isRunning || isIntentSafe) {
+            startActivity(intent);
         }
-
-        @Override
-        public @NonNull
-        View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            View view = super.getView(position, convertView, parent);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TextView textView = (TextView) v;
-                    String fileToDownload = textView.getText().toString();
-                    parentActivity.downloadAndOpenFile(fileToDownload);
-                }
-            });
-
-            return view;
-        }
+        dialog.dismiss();
     }
 }
