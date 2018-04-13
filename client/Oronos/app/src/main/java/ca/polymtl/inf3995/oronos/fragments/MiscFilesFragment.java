@@ -8,17 +8,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -38,11 +35,12 @@ import java.util.List;
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.activities.OronosActivity;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
+import ca.polymtl.inf3995.oronos.widgets.adapters.MiscFilesAdapter;
 
 public class MiscFilesFragment extends Fragment {
-    private AlertDialog dialog;
-    private boolean isRunning = false;
-    private ArrayAdapter<String> listAdapter;
+    private AlertDialog                dialog;
+    private boolean                    isRunning = false;
+    private MiscFilesAdapter           adapter;
 
     /**
      * {@inheritDoc}
@@ -76,12 +74,23 @@ public class MiscFilesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_misc_files, container, false);
-        ((OronosActivity) getActivity()).changeToolbarTitle("Miscellaneous files");
-        ListView listView = view.findViewById(R.id.misc_files_listview);
-        this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
-        listView.setAdapter(this.listAdapter);
-        listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        OronosActivity activity = (OronosActivity)this.getActivity();
+        activity.changeToolbarTitle("Miscellaneous files");
+
+        //ListView listView = view.findViewById(R.id.misc_files_listview);
+        //this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
+        //listView.setAdapter(this.listAdapter);
+        //listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        //this.requestAndShowFilesList();
+
+        RecyclerView recyclerView = view.findViewById(R.id.misc_files_recview);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
+        recyclerView.setLayoutManager(layoutManager);
+        this.adapter = new MiscFilesAdapter(new ArrayList<String>(), this);
+        recyclerView.setAdapter(this.adapter);
+
         this.requestAndShowFilesList();
+
         return view;
     }
 
@@ -168,9 +177,9 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
-                listAdapter.add("Downloading misc files list...");
-                listAdapter.notifyDataSetChanged();
+                adapter.clear();
+                adapter.add("Downloading misc files list...");
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -179,12 +188,12 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
+                adapter.clear();
                 if (!allFiles.isEmpty())
-                    listAdapter.addAll(allFiles);
+                    adapter.addAll(allFiles);
                 else
-                    listAdapter.add("Nothing to show.");
-                listAdapter.notifyDataSetChanged();
+                    adapter.add("Nothing to show.");
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -194,9 +203,9 @@ public class MiscFilesFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listAdapter.clear();
-                listAdapter.add("Error while getting misc files list : " + errorMsg);
-                listAdapter.notifyDataSetChanged();
+                adapter.clear();
+                adapter.add("Error while getting misc files list : " + errorMsg);
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -231,30 +240,5 @@ public class MiscFilesFragment extends Fragment {
         dialog.dismiss();
         if (isRunning || isIntentSafe)
             startActivity(intent);
-    }
-
-    private static class CustomArrayAdapter extends ArrayAdapter<String> {
-        private MiscFilesFragment parentActivity;
-
-        CustomArrayAdapter(MiscFilesFragment parent, @NonNull Context context, @LayoutRes int resource) {
-            super(context, resource);
-            this.parentActivity = parent;
-        }
-
-        @Override
-        public @NonNull
-        View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            View view = super.getView(position, convertView, parent);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TextView textView = (TextView) v;
-                    String fileToDownload = textView.getText().toString();
-                    parentActivity.downloadAndOpenFile(fileToDownload);
-                }
-            });
-
-            return view;
-        }
     }
 }
