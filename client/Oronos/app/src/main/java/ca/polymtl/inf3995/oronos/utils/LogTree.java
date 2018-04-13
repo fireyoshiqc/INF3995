@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.SyncFailedException;
 import java.util.Calendar;
 
 import timber.log.Timber;
@@ -121,33 +122,15 @@ public class LogTree extends Timber.DebugTree {
     }
 
     private void writeToFile(String message) {
-        FileOutputStream fileOutput = null;
         try {
-            fileOutput = new FileOutputStream(this.logFile);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutput);
-        try {
-            outputStreamWriter.write(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
+            FileOutputStream fileOutput = new FileOutputStream(this.logFile, true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutput);
+            outputStreamWriter.write(message+"\n");
             outputStreamWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             fileOutput.getFD().sync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             outputStreamWriter.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Timber.e(e);
         }
     }
-
 }
