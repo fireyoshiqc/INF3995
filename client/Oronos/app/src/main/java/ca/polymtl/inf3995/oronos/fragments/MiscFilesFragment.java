@@ -237,8 +237,9 @@ public class MiscFilesFragment extends Fragment {
         List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
                 PackageManager.MATCH_DEFAULT_ONLY);
         boolean isIntentSafe = activities.size() > 0;
-        dialog.dismiss();
-        if (isRunning || isIntentSafe)
+        if (isRunning || isIntentSafe) {
             startActivity(intent);
+        }
+        dialog.dismiss();
     }
 }
