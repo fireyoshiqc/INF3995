@@ -60,18 +60,26 @@ public class TelemetryFragment extends Fragment {
     private List<OronosView> viewsContainer;
     private RelativeLayout dataLayout;
     private RecyclerView recycler;
+    private View fragmentView;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((OronosActivity) getActivity()).showToolbar();
-        View view = inflater.inflate(R.layout.activity_telemetry, container, false);
         setHasOptionsMenu(true);
+        this.isRunning = true;
+
+        if (fragmentView != null) {
+            Timber.v("Telemetry fragment rendered using saved view.");
+            return fragmentView;
+        }
+
+        fragmentView = inflater.inflate(R.layout.activity_telemetry, container, false);
 
         fillViewsContainer();
 
         // Check if filling the viewsContainer worked;
-        dataLayout = view.findViewById(R.id.data_layout);
+        dataLayout = fragmentView.findViewById(R.id.data_layout);
         if (viewsContainer != null && !viewsContainer.isEmpty()) {
             dataLayout.addView(viewsContainer.get(0), -1);
         } else {
@@ -80,12 +88,13 @@ public class TelemetryFragment extends Fragment {
 
         setupActionDisplayGrid();
 
-        // Ready to start
         currentDataViewState = 0;
         isMenuActive = false;
-        Timber.v("Main Activity : Creation Done.");
-        this.isRunning = true;
-        return view;
+
+        // Ready to start
+        Timber.v("Telemetry fragment rendered using new inflated view.");
+
+        return fragmentView;
     }
 
     /**

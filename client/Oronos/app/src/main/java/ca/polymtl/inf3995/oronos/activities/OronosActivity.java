@@ -43,6 +43,9 @@ public class OronosActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private NavigationView navigationView;
     private Snackbar warningBar;
+    private TelemetryFragment telemetryFragment;
+    private HomeScreenFragment homeScreenFragment;
+    private MiscFilesFragment miscFilesFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +67,10 @@ public class OronosActivity extends AppCompatActivity {
             grantPermissions();
         }
 
+        homeScreenFragment = new HomeScreenFragment();
+        telemetryFragment = new TelemetryFragment();
+        miscFilesFragment = new MiscFilesFragment();
+
         setContentView(R.layout.activity_main);
         getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
@@ -77,24 +84,24 @@ public class OronosActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             RestHttpWrapper.getInstance().setup(getApplicationContext());
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, homeScreenFragment, "home").addToBackStack("home").commit();
             setLastFragmentTag("home");
         } else {
             switch (lastFragmentTag) {
                 case "home":
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, homeScreenFragment, "home").addToBackStack("home").commit();
                     setLastFragmentTag("home");
                     break;
                 case "telemetry":
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, telemetryFragment, "telemetry").addToBackStack("telemetry").commit();
                     setLastFragmentTag("telemetry");
                     break;
                 case "misc":
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, miscFilesFragment, "misc").addToBackStack("misc").commit();
                     setLastFragmentTag("misc");
                     break;
                 default:
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, homeScreenFragment, "home").addToBackStack("home").commit();
                     setLastFragmentTag("home");
 
             }
@@ -223,7 +230,7 @@ public class OronosActivity extends AppCompatActivity {
         } else if (count == 0) {
             super.onBackPressed();
         } else {
-            getFragmentManager().popBackStack();
+            getSupportFragmentManager().popBackStack();
         }
 
     }
@@ -321,9 +328,9 @@ public class OronosActivity extends AppCompatActivity {
     /**
      * This method destroys whatever activity is currently up and is starting the Main Activity.
      */
-    private void switchToMainActivity() {
+    public void switchToMainActivity() {
         if (!lastFragmentTag.equals("telemetry")) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new TelemetryFragment(), "telemetry").addToBackStack(null).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, telemetryFragment, "telemetry").addToBackStack("telemetry").commit();
             setLastFragmentTag("telemetry");
         }
 
@@ -335,7 +342,7 @@ public class OronosActivity extends AppCompatActivity {
      */
     private void switchToMiscFilesActivity() {
         if (!lastFragmentTag.equals("misc")) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MiscFilesFragment(), "misc").addToBackStack(null).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, miscFilesFragment, "misc").addToBackStack("misc").commit();
             setLastFragmentTag("misc");
         }
     }
@@ -346,7 +353,7 @@ public class OronosActivity extends AppCompatActivity {
      */
     private void switchToHomeScreenActivity() {
         if (!lastFragmentTag.equals("home")) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeScreenFragment(), "home").addToBackStack(null).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, homeScreenFragment, "home").addToBackStack("home").commit();
             setLastFragmentTag("home");
         }
     }
@@ -391,4 +398,9 @@ public class OronosActivity extends AppCompatActivity {
     public void setLastFragmentTag(String tag) {
         lastFragmentTag = tag;
     }
+
+    public void setTelemetryFragment(TelemetryFragment telemetryFragment) {
+        this.telemetryFragment = telemetryFragment;
+    }
+
 }
