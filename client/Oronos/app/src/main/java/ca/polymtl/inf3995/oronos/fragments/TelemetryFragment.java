@@ -62,14 +62,11 @@ public class TelemetryFragment extends Fragment {
     private RelativeLayout dataLayout;
     private RecyclerView recycler;
     private View fragmentView;
+    private String toolbarTitle = "";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((OronosActivity) getActivity()).showToolbar();
-        setHasOptionsMenu(true);
-        this.isRunning = true;
-
         if (fragmentView != null) {
             Timber.v("Telemetry fragment rendered using saved view.");
             return fragmentView;
@@ -137,7 +134,10 @@ public class TelemetryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
+        ((OronosActivity) getActivity()).showToolbar();
+        ((OronosActivity) getActivity()).changeToolbarTitle(toolbarTitle);
+        setHasOptionsMenu(true);
+        this.isRunning = true;
         this.isRunning = true;
     }
 
@@ -273,11 +273,13 @@ public class TelemetryFragment extends Fragment {
             InputStream fis = new FileInputStream(new File(getActivity().getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
             if (rocket != null) {
-                ((OronosActivity) getActivity()).changeToolbarTitle(rocket.getName() + " (#" + rocket.getRocketId() + ")");
+                toolbarTitle = rocket.getName() + " (#" + rocket.getRocketId() + ")";
                 viewsContainer.addAll(rocket.getList());
             } else {
-                ((OronosActivity) getActivity()).changeToolbarTitle("NO ROCKET");
+                toolbarTitle = "NO ROCKET";
             }
+
+            ((OronosActivity) getActivity()).changeToolbarTitle(toolbarTitle);
 
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +

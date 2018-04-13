@@ -76,13 +76,6 @@ public class MiscFilesFragment extends Fragment {
         View view = inflater.inflate(R.layout.activity_misc_files, container, false);
         OronosActivity activity = (OronosActivity)this.getActivity();
         activity.changeToolbarTitle("Miscellaneous files");
-
-        //ListView listView = view.findViewById(R.id.misc_files_listview);
-        //this.listAdapter = new MiscFilesFragment.CustomArrayAdapter(this, getActivity(), R.layout.misc_files_textview);
-        //listView.setAdapter(this.listAdapter);
-        //listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-        //this.requestAndShowFilesList();
-
         RecyclerView recyclerView = view.findViewById(R.id.misc_files_recview);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
         recyclerView.setLayoutManager(layoutManager);

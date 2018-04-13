@@ -163,8 +163,6 @@ public class OronosActivity extends AppCompatActivity {
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        menuItem.setChecked(true);
                         // close drawer when item is tapped
                         drawerLayout.closeDrawers();
 
@@ -175,7 +173,6 @@ public class OronosActivity extends AppCompatActivity {
                         } else if (menuItem == navigationView.getMenu().getItem(pdfIndex)) {
                             switchToMiscFilesActivity();
                         } else {
-                            //toolbar.setTitle("Disconnection");
                             disconnectionPopup();
                         }
                         return true;
