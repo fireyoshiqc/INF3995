@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import ca.polymtl.inf3995.oronos.R;
-import ca.polymtl.inf3995.oronos.activities.MainActivity;
+import ca.polymtl.inf3995.oronos.fragments.TelemetryFragment;
 
 /**
  * <h1>Grid Selector Adapter</h1>
@@ -39,6 +39,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
     private Context mContext;
     private List<OronosViewCardContents> gridNames;
     private final HashMap<String, Integer> imageAssociations;
+    private final TelemetryFragment parent;
 
     /**
      * Constructor requesting the activity context and the names of the tags the menu will have to
@@ -47,7 +48,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
      * @param c         context of the activity.
      * @param gridNames a list of all the names of the tags.
      */
-    public GridSelectorAdapter(Context c, List<OronosViewCardContents> gridNames) {
+    public GridSelectorAdapter(Context c, List<OronosViewCardContents> gridNames, TelemetryFragment parent) {
         mContext = c;
         this.gridNames = gridNames;
         imageAssociations = new HashMap<>();
@@ -58,6 +59,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
         imageAssociations.put("log", R.drawable.data_preview);
         imageAssociations.put("gps", R.drawable.gps_preview);
         imageAssociations.put("plot", R.drawable.plot_preview);
+        this.parent = parent;
 
     }
 
@@ -156,7 +158,7 @@ public class GridSelectorAdapter extends RecyclerView.Adapter<GridSelectorAdapte
             viewButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ((MainActivity) mContext).changeStateOfDataLayout(getAdapterPosition());
+                    parent.changeStateOfDataLayout(getAdapterPosition());
                 }
             });
         }

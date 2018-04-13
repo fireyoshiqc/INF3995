@@ -4,6 +4,7 @@ import com.github.mikephil.charting.data.Entry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * <h1>Data Plot</h1>
@@ -24,7 +25,7 @@ public class DataPlot {
 
     public DataPlot(int maxEntries) {
         this.maxEntries = maxEntries;
-        entriesList = new ArrayList<>();
+        entriesList = new CopyOnWriteArrayList<>();
     }
 
     public void addEntry(double value) {

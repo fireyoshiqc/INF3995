@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.LinearLayout;
 
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.services.ModuleMessage;
@@ -14,7 +15,7 @@ public class ModuleStatus extends OronosView implements DataDispatcher.ModuleDat
 
     public ModuleStatus(Context context, int nGrid, int nColumns) {
         super(context);
-
+        setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         recycler = new RecyclerView(context);
         ModuleStatusAdapter adapter = new ModuleStatusAdapter(context, nGrid, nColumns);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, nGrid / nColumns);

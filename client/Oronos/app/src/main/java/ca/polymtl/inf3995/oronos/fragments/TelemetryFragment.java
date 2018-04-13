@@ -1,17 +1,18 @@
-package ca.polymtl.inf3995.oronos.activities;
+package ca.polymtl.inf3995.oronos.fragments;
 
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.Toolbar;
 import android.transition.Fade;
 import android.transition.Slide;
 import android.transition.TransitionManager;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,12 +28,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import ca.polymtl.inf3995.oronos.R;
+import ca.polymtl.inf3995.oronos.activities.OronosActivity;
 import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.services.OronosXmlParser;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
@@ -42,25 +45,12 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.GridSelectorAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import ca.polymtl.inf3995.oronos.widgets.containers.Rocket;
 import ca.polymtl.inf3995.oronos.widgets.containers.Tab;
-import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
 import timber.log.Timber;
 
-/**
- * <h1>Main Activity</h1>
- * The Main Activity is in charge of switching between the views containing the rocket data.
- * It is also responsible of the menu view that allows such navigation.
- * <p>
- * While being created, Main Activity will open a Socket Client to receive the rocket data, and will
- * parse the xml file obtained through a REST request to the server to create the layout of the
- * views containing the rocket data.
- *
- * @author Félix Boulet, Fabrice Charbonneau, Justine Pepin, Patrick Richer St-Onge
- * @version 0.0
- * @since 2018-04-12
- */
-public class MainActivity extends DrawerActivity {
+public class TelemetryFragment extends Fragment {
+
     private final int MENU_VIEW_ID = -1;
     private int currentDataViewState;
     private boolean isMenuActive;
@@ -68,45 +58,58 @@ public class MainActivity extends DrawerActivity {
     private long lastServerAnswer = System.nanoTime();
     private Toast warningToast = null;
     private boolean isRunning = false;
-
     private List<OronosView> viewsContainer;
     private RelativeLayout dataLayout;
-
     private RecyclerView recycler;
+    private View fragmentView;
+    private String toolbarTitle = "";
 
-    /**
-     * {@inheritDoc}
-     */
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (fragmentView != null) {
+            Timber.v("Telemetry fragment rendered using saved view.");
+            return fragmentView;
+        }
 
-        setUpHeartbeatTask();
-        setUpUtilities();
-        setContentView(R.layout.activity_main);
+        fragmentView = inflater.inflate(R.layout.activity_telemetry, container, false);
 
         fillViewsContainer();
-        setUpToolbar();
+
         // Check if filling the viewsContainer worked;
-        dataLayout = findViewById(R.id.data_layout);
+        dataLayout = fragmentView.findViewById(R.id.data_layout);
         if (viewsContainer != null && !viewsContainer.isEmpty()) {
             dataLayout.addView(viewsContainer.get(0), -1);
         } else {
             Timber.e("No view in viewsContainer, cannot display any data.");
         }
 
-        // Ready to start
+        setupActionDisplayGrid();
+
         currentDataViewState = 0;
         isMenuActive = false;
-        Timber.v("Main Activity : Creation Done.");
-        this.isRunning = true;
+
+        // Ready to start
+        Timber.v("Telemetry fragment rendered using new inflated view.");
+
+        return fragmentView;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void onDestroy() {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setUpHeartbeatTask();
+        setUpUtilities();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onDestroy() {
         super.onDestroy();
         if (this.warningToast != null)
             this.warningToast.cancel();
@@ -119,7 +122,7 @@ public class MainActivity extends DrawerActivity {
      * {@inheritDoc}
      */
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
 
         this.isRunning = false;
@@ -129,9 +132,12 @@ public class MainActivity extends DrawerActivity {
      * {@inheritDoc}
      */
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
-
+        ((OronosActivity) getActivity()).showToolbar();
+        ((OronosActivity) getActivity()).changeToolbarTitle(toolbarTitle);
+        setHasOptionsMenu(true);
+        this.isRunning = true;
         this.isRunning = true;
     }
 
@@ -140,7 +146,6 @@ public class MainActivity extends DrawerActivity {
      */
     private void setUpUtilities() {
         SocketClient.getInstance().connect(GlobalParameters.CLIENT_ADDRESS, GlobalParameters.udpPort);
-
     }
 
     /**
@@ -153,13 +158,13 @@ public class MainActivity extends DrawerActivity {
         }
 
         // At least one hearbeat per minute.
-        long heartbeatPeriod = Math.min((long)GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
+        long heartbeatPeriod = Math.min((long) GlobalParameters.serverTimeout * 1000 / 4, 60 * 1000);
 
         this.heartbeatTimer = new Timer(true);
         TimerTask heartbeatTask = new TimerTask() {
             @Override
             public void run() {
-                if ( GlobalParameters.serverAddress == null )
+                if (GlobalParameters.serverAddress == null)
                     return;
 
                 RestHttpWrapper.getInstance().sendPostUsersHeartbeat(new Response.Listener<Void>() {
@@ -170,22 +175,22 @@ public class MainActivity extends DrawerActivity {
                 }, null);
 
                 // We send the request if app is in background, but we do not check for timeouts
-                if ( !isRunning )
+                if (!isRunning)
                     return;
 
-                long serverTimeoutNs = (long)(GlobalParameters.serverTimeout * 1.0e9);
+                long serverTimeoutNs = (long) (GlobalParameters.serverTimeout * 1.0e9);
                 long timeSinceLastAnswer = System.nanoTime() - lastServerAnswer;
                 boolean toastIsShown = warningToast != null && warningToast.getView() != null &&
                         warningToast.getView().isShown();
                 if (timeSinceLastAnswer > serverTimeoutNs && !toastIsShown) {
-                    Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
+                    Handler mainHandler = new Handler(getActivity().getApplicationContext().getMainLooper());
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             String msg = (GlobalParameters.hasRetardedErrorMessages) ?
                                     "henlo fren, server not know da wae" :
                                     "WARNING : Server has not answered to heartbeats for a while";
-                            warningToast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                            warningToast = Toast.makeText(getActivity().getApplicationContext(), msg, Toast.LENGTH_LONG);
                             warningToast.show();
                         }
                     });
@@ -194,15 +199,6 @@ public class MainActivity extends DrawerActivity {
             }
         };
         this.heartbeatTimer.scheduleAtFixedRate(heartbeatTask, heartbeatPeriod, heartbeatPeriod);
-    }
-
-    /**
-     * This method declares the toolbar and its menu elements.
-     */
-    private void setUpToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        setupActionDisplayGrid();
     }
 
     private void setupActionDisplayGrid() {
@@ -229,10 +225,10 @@ public class MainActivity extends DrawerActivity {
             Timber.e("View container is empty, cannot create menu properly.");
         }
 
-        recycler = new RecyclerView(this);
+        recycler = new RecyclerView(getActivity());
         recycler.setBackgroundColor(Color.BLACK);
         recycler.getBackground().setAlpha(128);
-        GridSelectorAdapter adapter = new GridSelectorAdapter(this, names);
+        GridSelectorAdapter adapter = new GridSelectorAdapter(getActivity(), names, this);
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recycler.setLayoutManager(staggeredGridLayoutManager);
         recycler.setAdapter(adapter);
@@ -271,17 +267,19 @@ public class MainActivity extends DrawerActivity {
      * to be displayed in the dataLayout).
      */
     private void fillViewsContainer() {
-        OronosXmlParser parser = new OronosXmlParser(this);
+        OronosXmlParser parser = new OronosXmlParser(getActivity());
         viewsContainer = new ArrayList<>();
         try {
-            InputStream fis = new FileInputStream(new File(getCacheDir(), GlobalParameters.layoutName));
+            InputStream fis = new FileInputStream(new File(getActivity().getCacheDir(), GlobalParameters.layoutName));
             Rocket rocket = parser.parse(fis);
             if (rocket != null) {
-                changeToolbarTitle(rocket.getName() + " (#" + rocket.getRocketId() + ")");
+                toolbarTitle = rocket.getName() + " (#" + rocket.getRocketId() + ")";
                 viewsContainer.addAll(rocket.getList());
             } else {
-                changeToolbarTitle("NO ROCKET");
+                toolbarTitle = "NO ROCKET";
             }
+
+            ((OronosActivity) getActivity()).changeToolbarTitle(toolbarTitle);
 
         } catch (IOException e) {
             Timber.e("There was an issue while reading the XML file. Exception message :\n" +
@@ -297,10 +295,10 @@ public class MainActivity extends DrawerActivity {
      * @return true
      */
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        inflater.inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     /**
@@ -326,30 +324,6 @@ public class MainActivity extends DrawerActivity {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case FindMe.GPS_PERMISSION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    for (FindMe findMe : FindMe.getInstances()) {
-                        findMe.grantPermissions();
-                    }
-
-
-                } else {
-                    for (FindMe findMe : FindMe.getInstances()) {
-                        findMe.showPermissionWarning();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * State machine for the dataLayout.
      *
      * @param nextView The int representing the nextView the client will display in its
@@ -360,18 +334,18 @@ public class MainActivity extends DrawerActivity {
             Fade transition = new Fade();
             TransitionManager.beginDelayedTransition(dataLayout, transition);
             if (isMenuActive) {
-                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_out);
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_scale_out);
                 recycler.setLayoutAnimation(controller);
                 recycler.scheduleLayoutAnimation();
                 dataLayout.removeView(recycler);
                 isMenuActive = false;
 
             } else {
-                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_scale_in);
+                LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(getActivity(), R.anim.layout_scale_in);
                 recycler.setLayoutAnimation(controller);
                 recycler.scheduleLayoutAnimation();
                 if (recycler.getParent() != null) {
-                    ((ViewGroup)recycler.getParent()).removeView(recycler);
+                    ((ViewGroup) recycler.getParent()).removeView(recycler);
                 }
                 dataLayout.addView(recycler);
                 isMenuActive = true;
