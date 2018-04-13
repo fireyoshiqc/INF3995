@@ -85,6 +85,54 @@ public class MiscFilesFragment extends Fragment {
         return view;
     }
 
+    public void downloadAndOpenFile(String fileToDownload) {
+        final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
+            @Override
+            public void onResponse(RestHttpWrapper.FileAttachment result) {
+                File file = writeDownloadedFile(result);
+                if (file == null)
+                    return;
+
+                Context context = getActivity().getApplicationContext();
+                Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
+
+                openFileWithAppChooser(uri, result.mimeType);
+            }
+        };
+
+        final Response.ErrorListener errorListen = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dialog.setTitle("Error while downloading");
+                dialog.setMessage(error.toString());
+                dialog.show();
+            }
+        };
+
+        final Request<?> request = RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, errorListen);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        this.dialog = builder.create();
+        this.dialog.setCancelable(true);
+        this.dialog.setTitle("Downloading...");
+        this.dialog.setMessage("File : '" + fileToDownload + "'");
+        this.dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        this.dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                request.cancel();
+                dialog.dismiss();
+            }
+        });
+        this.dialog.show();
+
+    }
+
     private void requestAndShowFilesList() {
         this.showMiscFilesRequestMessage();
 
@@ -151,77 +199,38 @@ public class MiscFilesFragment extends Fragment {
                 listAdapter.notifyDataSetChanged();
             }
         });
-
     }
 
-    private void downloadAndOpenFile(String fileToDownload) {
-        final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
-            @Override
-            public void onResponse(RestHttpWrapper.FileAttachment result) {
-                File miscFilesFolder = new File(getActivity().getFilesDir(), "miscFiles");
-                if (!miscFilesFolder.exists()) {
-                    miscFilesFolder.mkdir();
-                }
-                File file = new File(getActivity().getFilesDir() + File.separator + "miscFiles", result.filename);
-                try {
-                    OutputStream outStrm = new FileOutputStream(file);
-                    outStrm.write(result.fileContent);
-                    outStrm.flush();
-                } catch (IOException e) {
-                    return;
-                }
+    private File writeDownloadedFile(RestHttpWrapper.FileAttachment result) {
+        File miscFilesFolder = new File(getActivity().getFilesDir(), "miscFiles");
+        if (!miscFilesFolder.exists()) {
+            miscFilesFolder.mkdir();
+        }
+        File file = new File(getActivity().getFilesDir() + File.separator + "miscFiles", result.filename);
+        try {
+            OutputStream outStrm = new FileOutputStream(file);
+            outStrm.write(result.fileContent);
+            outStrm.flush();
+            return file;
+        } catch (IOException e) {
+            return null;
+        }
+    }
 
-                // Get URI of file.
-                Context context = getActivity().getApplicationContext();
-                Uri uri = FileProvider.getUriForFile(context, "ca.polymtl.inf3995.oronos.fileprovider", file);
+    private void openFileWithAppChooser(Uri uri, String mimeType) {
+        // Open file with user selected app.
+        Intent intent = new Intent();
+        intent.setDataAndType(uri, mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        PackageManager packageManager = getActivity().getPackageManager();
 
-                // Open file with user selected app.
-                Intent intent = new Intent();
-                intent.setDataAndType(uri, result.mimeType);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                PackageManager packageManager = getActivity().getPackageManager();
-
-                // Resolve implicit intent.
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
-                        PackageManager.MATCH_DEFAULT_ONLY);
-                boolean isIntentSafe = activities.size() > 0;
-                dialog.dismiss();
-                if (isRunning || isIntentSafe)
-                    startActivity(intent);
-            }
-        };
-
-        final Response.ErrorListener errorListen = new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                dialog.setTitle("Error while downloading");
-                dialog.setMessage(error.toString());
-                dialog.show();
-            }
-        };
-
-        final Request<?> request = RestHttpWrapper.getInstance().sendGetConfigMiscFiles(fileToDownload, downloadListen, errorListen);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        this.dialog = builder.create();
-        this.dialog.setCancelable(true);
-        this.dialog.setTitle("Downloading...");
-        this.dialog.setMessage("File : '" + fileToDownload + "'");
-        this.dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        this.dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                request.cancel();
-                dialog.dismiss();
-            }
-        });
-        this.dialog.show();
-
+        // Resolve implicit intent.
+        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        boolean isIntentSafe = activities.size() > 0;
+        dialog.dismiss();
+        if (isRunning || isIntentSafe)
+            startActivity(intent);
     }
 
     private static class CustomArrayAdapter extends ArrayAdapter<String> {
