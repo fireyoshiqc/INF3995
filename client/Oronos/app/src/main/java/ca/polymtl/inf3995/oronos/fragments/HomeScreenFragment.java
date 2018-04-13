@@ -8,8 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,6 +65,7 @@ public class HomeScreenFragment extends Fragment {
     private AlertDialog dialog;
     private Snackbar snackbar;
     private Random rng = new Random();
+    private View fragmentView;
 
     /**
      * This method is responsible of parsing and verifying the user input in the fields of the log in
@@ -106,19 +105,21 @@ public class HomeScreenFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((OronosActivity) getActivity()).showToolbar();
-        View view = inflater.inflate(R.layout.activity_home_screen, container, false);
-        this.editAddr = view.findViewById(R.id.editAddr);
-        this.editUser = view.findViewById(R.id.editUser);
-        this.editPassword = view.findViewById(R.id.editPassword);
-        this.saveUserAddr = view.findViewById(R.id.userAddrCheckbox);
-        this.savePassword = view.findViewById(R.id.passwordCheckbox);
+        if (fragmentView != null) {
+            return fragmentView;
+        }
+        fragmentView = inflater.inflate(R.layout.activity_home_screen, container, false);
+        this.editAddr = fragmentView.findViewById(R.id.editAddr);
+        this.editUser = fragmentView.findViewById(R.id.editUser);
+        this.editPassword = fragmentView.findViewById(R.id.editPassword);
+        this.saveUserAddr = fragmentView.findViewById(R.id.userAddrCheckbox);
+        this.savePassword = fragmentView.findViewById(R.id.passwordCheckbox);
 
         if (GlobalParameters.hasRetardedErrorMessages) {
-            ((ImageView) view.findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
+            ((ImageView) fragmentView.findViewById(R.id.imgOronosLogo)).setImageResource(R.drawable.oronos);
         }
 
-        Button btnStart = view.findViewById(R.id.btnStart);
+        Button btnStart = fragmentView.findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new HomeScreenFragment.StartBtnListener(this));
 
         saveUserAddr.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -131,11 +132,7 @@ public class HomeScreenFragment extends Fragment {
             }
         });
 
-
-        HomeScreenFragment.HomeScreenInputs cachedInputs = this.loadCachedInputs();
-        this.setTextInputs(cachedInputs);
-
-        return view;
+        return fragmentView;
     }
 
     /**
@@ -178,6 +175,8 @@ public class HomeScreenFragment extends Fragment {
         ((OronosActivity) getActivity()).hideToolbar();
 
         this.logoutAndResetCookies();
+        HomeScreenFragment.HomeScreenInputs cachedInputs = this.loadCachedInputs();
+        this.setTextInputs(cachedInputs);
 
         if (this.dialog != null && this.dialog.isShowing())
             this.dialog.dismiss();
@@ -306,11 +305,8 @@ public class HomeScreenFragment extends Fragment {
      * This method starts the Main Activity.
      */
     private void switchToTelemetryFragment() {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, new TelemetryFragment(), "telemetry");
-        ((OronosActivity) getActivity()).setLastFragmentTag("telemetry");
-        fragmentTransaction.addToBackStack(null).commit();
+        ((OronosActivity) getActivity()).setTelemetryFragment(new TelemetryFragment());
+        ((OronosActivity) getActivity()).switchToMainActivity();
     }
 
     private void logoutAndResetCookies() {
