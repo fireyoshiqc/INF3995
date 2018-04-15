@@ -31,6 +31,16 @@ import ca.polymtl.inf3995.oronos.utils.ThemeUtil;
 import ca.polymtl.inf3995.oronos.widgets.views.FindMe;
 import timber.log.Timber;
 
+/**
+ * <h1>Oronos Activity</h1>
+ * This Oronos activity is the main activity of the application. It is responsible of handling the
+ * three fragments (Home Screen Fragment, Misc Files Fragment, Telemetry Fragment)between which the
+ * user can navigate. It also takes care of the theme switch.
+ *
+ * @author Félix Boulet, Fabrice Charbonneau
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class OronosActivity extends AppCompatActivity {
 
     static final private int STORAGE_PERMISSION_REQUEST = 42;
@@ -47,6 +57,9 @@ public class OronosActivity extends AppCompatActivity {
     private HomeScreenFragment homeScreenFragment;
     private MiscFilesFragment miscFilesFragment;
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,6 +204,9 @@ public class OronosActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -218,6 +234,9 @@ public class OronosActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onBackPressed() {
 
@@ -384,18 +403,35 @@ public class OronosActivity extends AppCompatActivity {
         recreate();
     }
 
+    /**
+     * This method allows the app to display its toolbar.
+     * */
     public void showToolbar() {
         this.toolbar.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * This method allows the app to hide its toolbar.
+     * */
     public void hideToolbar() {
         this.toolbar.setVisibility(View.GONE);
     }
 
+    /**
+     * Set method for the last fragment tag.
+     *
+     * @param tag a string representing a fragment tag, either telemetry, home or misc. If something
+     *            else is set, the app will redirect itself towards the home screen fragment.
+     * */
     public void setLastFragmentTag(String tag) {
         lastFragmentTag = tag;
     }
 
+    /**
+     * Set method for the telemetry fragment.
+     *
+     * @param telemetryFragment a telemetry fragment.
+     * */
     public void setTelemetryFragment(TelemetryFragment telemetryFragment) {
         this.telemetryFragment = telemetryFragment;
     }

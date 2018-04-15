@@ -55,7 +55,7 @@ import timber.log.Timber;
  * many views contained in this fragment by the viewsContainer. A navigation menu is available to
  * switch between the views.
  *
- * @author Félix Boulet, Justine Pepin
+ * @author Félix Boulet, Fabrice Charbonneau, Charles Hosson, Justine Pepin
  * @version 0.0
  * @since 2018-04-12
  */
