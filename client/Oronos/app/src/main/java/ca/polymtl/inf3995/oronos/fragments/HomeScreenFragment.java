@@ -47,6 +47,17 @@ import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
 import ca.polymtl.inf3995.oronos.utils.JsonHelper;
 import timber.log.Timber;
 
+/**
+ * <h1>Home Screen Fragment</h1>
+ * This fragment is responsible of the Home Screen. It allows the user to enter its credentials
+ * (username, password, IP address of the server). Then, on a button click, it validates the
+ * information entered by the user; if the server response is positive, this fragment is letting its
+ * place in favor of the telemetry fragment.
+ *
+ * @author Félix Boulet, Charles Hosson
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class HomeScreenFragment extends Fragment {
     private static String[] retardedMessages = {"Ooopsie doopsie!",
             "Oh no! Mama mia!",
@@ -70,7 +81,7 @@ public class HomeScreenFragment extends Fragment {
     /**
      * This method is responsible of parsing and verifying the user input in the fields of the log in
      * questionnaire. If something is missing or the IP address format is invalid, a error message
-     * will be displayed so the user can correct is input. Else, the login request will be send to
+     * will be displayed so the user can correct its input. Else, the login request will be sent to
      * the server by calling the sendLoginRequest(inputs) private method.
      */
     public void handleLogin() {
@@ -102,6 +113,9 @@ public class HomeScreenFragment extends Fragment {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -302,13 +316,17 @@ public class HomeScreenFragment extends Fragment {
     }
 
     /**
-     * This method starts the Main Activity.
+     * This method starts the Telemetry Fragment.
      */
     private void switchToTelemetryFragment() {
         ((OronosActivity) getActivity()).setTelemetryFragment(new TelemetryFragment());
         ((OronosActivity) getActivity()).switchToMainActivity();
     }
 
+    /**
+     * This method log out the user only if a first contact has been made with the server or at least
+     * cookies have been memorized by the global parameters.
+     */
     private void logoutAndResetCookies() {
         if (GlobalParameters.serverAddress != null && !GlobalParameters.serverAddress.isEmpty()) {
             HomeScreenFragment.PostUsersLogoutListener listener = new HomeScreenFragment.PostUsersLogoutListener(getActivity().getApplicationContext());
@@ -600,7 +618,7 @@ public class HomeScreenFragment extends Fragment {
 
     /**
      * Listener for the response to a get module types request. If the get succeeds, the
-     * response of the server will trigger the switch to the main activity.
+     * response of the server will trigger the switch to the Telemetry Fragment.
      */
     private static class GetConfigTimeoutListener extends HomeScreenFragment.BasicErrorListener implements Response.Listener<JSONObject> {
         GetConfigTimeoutListener(HomeScreenFragment parent) {
@@ -630,6 +648,11 @@ public class HomeScreenFragment extends Fragment {
         }
     }
 
+    /**
+     * Listener for the response to a post users logout request. If the post succeeds, on the
+     * response of the server the user cookies will be cleared. If the post does not succeed, the
+     * cookies will be cleared as well.
+     */
     private static class PostUsersLogoutListener implements Response.ErrorListener, Response.Listener<Void> {
         Context context;
 

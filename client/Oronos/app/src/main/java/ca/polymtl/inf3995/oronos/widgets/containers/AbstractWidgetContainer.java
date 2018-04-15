@@ -30,6 +30,9 @@ public abstract class AbstractWidgetContainer<T extends ContainableWidget> exten
         this.list = list;
     }
 
+    /**
+     * Get accessor of the list.
+     * */
     public List<T> getList() {
         return list;
     }

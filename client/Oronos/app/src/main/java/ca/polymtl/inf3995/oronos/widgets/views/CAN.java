@@ -13,9 +13,13 @@ import ca.polymtl.inf3995.oronos.utils.CANCustomUpdate;
 import timber.log.Timber;
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>CAN</h1>
+ * This class represents the content of a CAN message as received from the server.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class CAN implements ContainableWidget, DataDispatcher.CANDataListener {
     private final String id;
     private final String name;
@@ -34,6 +38,20 @@ public class CAN implements ContainableWidget, DataDispatcher.CANDataListener {
     private DisplayState state;
     private boolean hasChanged = false;
 
+    /**
+     * Constructor that needs any field that can be found in the CAN message as a
+     * string given as an argument.
+     *
+     * @param id the id of the can message.
+     * @param name the name of the can message.
+     * @param display display of the message.
+     * @param minAcceptable the minimal value the CAN message can have before turning red.
+     * @param maxAcceptable the maximal value the CAN message can have before turning green.
+     * @param chiffresSign the number of decimal number the value of the CAN message is going
+     *                     to be displayed.
+     * @param specificSource the specific source name of the emitting pcb.
+     * @param serialNb the serial number of the pcb emitting the value.
+     * */
     public CAN(String id, @Nullable String name, @Nullable String display,
                @Nullable String minAcceptable, @Nullable String maxAcceptable,
                @Nullable String chiffresSign, @Nullable String specificSource,
@@ -68,34 +86,65 @@ public class CAN implements ContainableWidget, DataDispatcher.CANDataListener {
         DataDispatcher.registerCANDataListener(this);
     }
 
+    /**
+     * Accessor for the CAN id.
+     * */
     public String getId() {
         return id;
     }
 
+    /**
+     * Accessor for the CAN name.
+     * */
     public String getName() {
         return name;
     }
 
+    /**
+     * Accessor for the CAN data.
+     * */
     public String getDataToDisplay() {
         return dataToDisplay;
     }
 
+    /**
+     * Accessor for the CAN data unit.
+     * */
     public String getUnit() {
         return unit;
     }
 
+    /**
+     * Accessor for the CAN state (RED if under min value or over max value,
+     * GREEN if between those two and NULL --> grey if no value have been received
+     * yet).
+     * */
     public DisplayState getState() {
         return state;
     }
 
+    /**
+     * This method return true if the value of the CAN data has changed compared to the
+     * last displayed value.
+     * */
     public boolean isChanged() {
         return hasChanged;
     }
 
+    /**
+     * This method is called when the displayed value has been replaced with the new value to
+     * notify that the change has been made.
+     * */
     public void notifyReset() {
         this.hasChanged = false;
     }
 
+    /**
+     * This method is taking care of the reception of a broadcast message. It ensures the
+     * data is valid and it chooses a display state for it.
+     *
+     * @param msg the broadcast message to display.
+     * */
     @SuppressLint("DefaultLocale")
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
@@ -165,21 +214,36 @@ public class CAN implements ContainableWidget, DataDispatcher.CANDataListener {
         }
     }
 
+    /**
+     * Accessor for the CAN sid list.
+     * */
     @Override
     public List<String> getCANSidList() {
         return new ArrayList<>(Arrays.asList(id));
     }
 
+    /**
+     * Accessor for the emitting pcb name.
+     * */
     @Override
     public String getSourceModule() {
         return specificSource;
     }
 
+    /**
+     * Accessor for the emitting pcb serial number.
+     * */
     @Override
     public String getSerialNumber() {
         return serialNb;
     }
 
+    /**
+     * Enum that is all the possible display states a CAN message can have.
+     * RED : data value is not between the permitted range.
+     * GREEN : data value is between the permitted range.
+     * NONE : no data value received yet. Default state.
+     * */
     public enum DisplayState {
         NONE, GREEN, RED
     }

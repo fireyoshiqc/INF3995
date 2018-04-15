@@ -15,14 +15,25 @@ import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.UnsupportedWidget;
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>Tab Container</h1>
+ * This class represent a Tab Container (child to any sort of container and parent to tab children).
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class TabContainer extends AbstractWidgetContainer<Tab> implements CleanableWidget {
 
     private TabLayout tabLayout;
     private LinearLayout containerLayout;
 
+    /**
+     * Constructor that needs the activity context and a list of something relevant to this container
+     * (like tabs for s tab container). It sets the layout in which the tabs are going to be displayed.
+     *
+     * @param context the context of the activity.
+     * @param list the list of tabs in the tab container.
+     * */
     public TabContainer(Context context, List<Tab> list) {
         super(context, list);
         setOrientation(LinearLayout.VERTICAL);
@@ -41,6 +52,10 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
         addView(containerLayout);
     }
 
+    /**
+     * This method adds every tab in the tab list into the tab container and register the actions on
+     * tab selected/unselected/reselected to only display the selected tab in the tab container view.
+     * */
     private void buildTabs() {
         for (Tab tab : list) {
             TabLayout.Tab vTab = tabLayout.newTab();
@@ -72,6 +87,9 @@ public class TabContainer extends AbstractWidgetContainer<Tab> implements Cleana
         });
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     public OronosView cleanup() {
         List<Tab> toRemove = new ArrayList<>();

@@ -37,6 +37,15 @@ import ca.polymtl.inf3995.oronos.activities.OronosActivity;
 import ca.polymtl.inf3995.oronos.services.RestHttpWrapper;
 import ca.polymtl.inf3995.oronos.widgets.adapters.MiscFilesAdapter;
 
+/**
+ * <h1>Misc Files Fragment</h1>
+ * This fragment allows the user to visualize a list of pdf names that are
+ * available for download from the server, and to click on one of them to do so.
+ *
+ * @author Félix Boulet, Charles Hosson
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class MiscFilesFragment extends Fragment {
     private AlertDialog                dialog;
     private boolean                    isRunning = false;
@@ -70,6 +79,9 @@ public class MiscFilesFragment extends Fragment {
         this.isRunning = true;
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -87,6 +99,11 @@ public class MiscFilesFragment extends Fragment {
         return view;
     }
 
+    /**
+     * When the list of this fragment's list adapter is triggered by the click of an element,
+     * this method will be called to download a pdf from the server. The listener created by this
+     * method is responsible of opening the file with the application chooser.
+     * */
     public void downloadAndOpenFile(String fileToDownload) {
         final Response.Listener<RestHttpWrapper.FileAttachment> downloadListen = new Response.Listener<RestHttpWrapper.FileAttachment>() {
             @Override
@@ -135,6 +152,11 @@ public class MiscFilesFragment extends Fragment {
 
     }
 
+    /**
+     * This method is asking the list of pdf names to the server. A listener is responsible of
+     * extracting the pdf names from the server and displaying them by calling the appropriate
+     * adapter method.
+     * */
     private void requestAndShowFilesList() {
         this.showMiscFilesRequestMessage();
 
@@ -166,6 +188,9 @@ public class MiscFilesFragment extends Fragment {
         RestHttpWrapper.getInstance().sendGetConfigMiscFiles(resListen, errListen);
     }
 
+    /**
+     * This method displays a small wait while charging message.
+     * */
     private void showMiscFilesRequestMessage() {
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -177,6 +202,11 @@ public class MiscFilesFragment extends Fragment {
         });
     }
 
+    /**
+     * This method displays all the available pdf.
+     *
+     * @param allFiles a string list of all available files.
+     */
     private void showFilesList(final ArrayList<String> allFiles) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -191,6 +221,9 @@ public class MiscFilesFragment extends Fragment {
         });
     }
 
+    /**
+     * This method displays a small error while charging message.
+     * */
     private void showListErrorMsg(VolleyError error) {
         final String errorMsg = error.toString();
         getActivity().runOnUiThread(new Runnable() {
@@ -203,6 +236,9 @@ public class MiscFilesFragment extends Fragment {
         });
     }
 
+    /**
+     * This method converts the http response into a file stream.
+     * */
     private File writeDownloadedFile(RestHttpWrapper.FileAttachment result) {
         File miscFilesFolder = new File(getActivity().getFilesDir(), "miscFiles");
         if (!miscFilesFolder.exists()) {
@@ -219,6 +255,13 @@ public class MiscFilesFragment extends Fragment {
         }
     }
 
+
+    /**
+     * This methods checks if it has the user permission to open a file with another pdf reader app.
+     *
+     * @param uri uri from where the pdf is available.
+     * @param mimeType string representing the mime data type.
+     * */
     private void openFileWithAppChooser(Uri uri, String mimeType) {
         // Open file with user selected app.
         Intent intent = new Intent();

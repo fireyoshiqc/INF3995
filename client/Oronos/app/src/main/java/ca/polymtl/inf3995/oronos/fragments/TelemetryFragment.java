@@ -49,6 +49,16 @@ import ca.polymtl.inf3995.oronos.widgets.views.OronosView;
 import ca.polymtl.inf3995.oronos.widgets.views.Plot;
 import timber.log.Timber;
 
+/**
+ * <h1>Telemetry Fragment</h1>
+ * This fragment allows the user to visualize telemetry data. The telemetry data is shared between
+ * many views contained in this fragment by the viewsContainer. A navigation menu is available to
+ * switch between the views.
+ *
+ * @author Félix Boulet, Justine Pepin
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class TelemetryFragment extends Fragment {
 
     private final int MENU_VIEW_ID = -1;
@@ -64,6 +74,9 @@ public class TelemetryFragment extends Fragment {
     private View fragmentView;
     private String toolbarTitle = "";
 
+    /**
+     * {@inheritDoc}
+     * */
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -201,6 +214,11 @@ public class TelemetryFragment extends Fragment {
         this.heartbeatTimer.scheduleAtFixedRate(heartbeatTask, heartbeatPeriod, heartbeatPeriod);
     }
 
+    /**
+     * This method is responsible of creating the layout of the navigation menu - the menu that
+     * is allowing to navigate between the different views containing each one or more telemetry
+     * widgets.
+     * */
     private void setupActionDisplayGrid() {
         ArrayList<GridSelectorAdapter.OronosViewCardContents> names = new ArrayList<>();
         if (viewsContainer != null) {

@@ -23,6 +23,19 @@ import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 import timber.log.Timber;
 
+
+/**
+ * <h1>Display Log Widget</h1>
+ * This class is a log console type of widget responsible of stacking every CAN message the client
+ * is receiving (if no list of CAN messages provided) or stacking received CAN messages only if
+ * they figure in the list of CAN messages to display.
+ *
+ * The constant MAX_LINES limits the number of CAN messages kept in memory.
+ *
+ * @author Félix Boulet, Justine Pepin
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget, DataDispatcher.CANDataListener {
     private final int MAX_LINES = 5000;
     private final int DATA_UPDATE_PERIOD = 1000;
@@ -33,6 +46,13 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     private LinkedBlockingQueue<String> msgQueue;
     private ArrayAdapter<String> listAdapter;
 
+    /**
+     * This constructor needs the context of the activity and a list of CAN messages to be displayed.
+     *
+     * @param context the activity context.
+     * @param list a list of CAN messages to be displayed. If list is empty, all CAN messages must
+     *             be displayed.
+     * */
     public DisplayLogWidget(Context context, List<CAN> list) {
         super(context, list);
         setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -60,6 +80,10 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     }
 
 
+    /**
+     * This method is handling a broadcast CAN message and is responsible to adding it to the stack
+     * of log messages.
+     * */
     public void receiveMsgToLog(BroadcastMessage msg) {
         final String canSID = msg.getCanSid();
         final String newData1 = Double.toString(msg.getData1().doubleValue());
@@ -77,12 +101,18 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         startUpdateTask();
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -117,6 +147,13 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         }
     }
 
+    /**
+     * This method is taking care of the reception of a broadcast message. It ensures the
+     * CAN type is in the list of CAN messages to be displayed (or that the list is empty)
+     * and it ensures this message have not been already displayed.
+     *
+     * @param msg the broadcast message to display.
+     * */
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         String canSID = msg.getCanSid();
@@ -131,6 +168,9 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         }
     }
 
+    /**
+     * Accessor for the CAN sid list.
+     * */
     @Override
     public List<String> getCANSidList() {
         if (list.isEmpty()) {
@@ -143,11 +183,17 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         return sidList;
     }
 
+    /**
+     * Accessor for the emitting pcb name.
+     * */
     @Override
     public String getSourceModule() {
         return null;
     }
 
+    /**
+     * Accessor for the emitting pcb serial number.
+     * */
     @Override
     public String getSerialNumber() {
         return null;

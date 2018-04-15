@@ -14,9 +14,13 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.DataDisplayerAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>Data Displayer</h1>
+ * This class is in charge of displaying a set of CAN messages in a legible way.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class DataDisplayer extends AbstractWidgetContainer<CAN> implements ContainableWidget {
 
     private final int TARGET_SCREEN_SIZE = 9;
@@ -28,6 +32,15 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
     private RecyclerView recycler;
     private Timer listUpdater;
 
+    /**
+     * This Data Displayer Constructor needs the context of the activity, a list of CAN message
+     * types that are going to have a spot in the Data Displayer and a layout to arrange
+     * the disposition of the data.
+     *
+     * @param context the activity context.
+     * @param list a list of CAN message types that are the ones to display.
+     * @param layout either VERTICAL, HORIZONTAL or FULL.
+     * */
     public DataDisplayer(Context context, List<CAN> list, DataLayout layout) {
         super(context, list);
         recycler = new RecyclerView(context);
@@ -64,18 +77,28 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
 
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         startUpdateTask();
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         stopUpdateTask();
     }
 
+    /**
+     * This method is called when the Data Displayer view is on to start the updates
+     * on the CAN message types of the Data Displayer.
+     * */
     private void startUpdateTask() {
         listUpdater = new Timer(true);
         TimerTask sensorTask = new TimerTask() {
@@ -108,6 +131,9 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         }
     }
 
+    /**
+     * This enum represents every possible layout the Data Displayer can have.
+     * */
     public enum DataLayout {
         HORIZONTAL, VERTICAL, FULL
     }
