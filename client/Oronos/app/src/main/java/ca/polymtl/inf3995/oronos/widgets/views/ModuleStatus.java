@@ -10,9 +10,25 @@ import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.services.ModuleMessage;
 import ca.polymtl.inf3995.oronos.widgets.adapters.ModuleStatusAdapter;
 
+/**
+ * <h1>Module Status</h1>
+ * Displays the module status in a grid layout.
+ *
+ * @author Félix Boulet, Justine Pepin
+ * @version 0.0
+ * @since 2018-04-12
+ */
 public class ModuleStatus extends OronosView implements DataDispatcher.ModuleDataListener {
     private RecyclerView recycler;
 
+    /**
+     * This Module Status constructor is prepping a grid layout and an Module Status Adapter to take
+     * care of the updates.
+     *
+     * @param context the activity context.
+     * @param nGrid the number of lines in the grid.
+     * @param nColumns the number of columns in the grid.
+     * */
     public ModuleStatus(Context context, int nGrid, int nColumns) {
         super(context);
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
@@ -29,6 +45,11 @@ public class ModuleStatus extends OronosView implements DataDispatcher.ModuleDat
         DataDispatcher.registerModuleDataListener(this);
     }
 
+    /**
+     * This method takes care of every module data broadcast message the client receives by
+     * extracting the info from the message and passing it to the adapter (that makes everything
+     * pretty and ergonomic).
+     * */
     @Override
     public void onModuleDataReceived(ModuleMessage msg) {
         final String module = msg.getSourceModule();
@@ -44,6 +65,9 @@ public class ModuleStatus extends OronosView implements DataDispatcher.ModuleDat
 
     }
 
+    /**
+     * Accessor for this view, which is recycled.
+     * */
     public RecyclerView getGlobalView() {
         return this.recycler;
     }

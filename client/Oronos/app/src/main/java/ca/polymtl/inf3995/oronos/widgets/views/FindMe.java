@@ -39,7 +39,13 @@ import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
 /**
- * FindMe class for the FindMe tag.
+ * <h1>Find Me</h1>
+ * This class is responsible of displaying a 3D arrow that is pointing towards the rocket
+ * considering its GPS position.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
 public class FindMe extends OronosView implements SensorEventListener, LocationListener, DataDispatcher.CANDataListener {
 
@@ -87,10 +93,16 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         buildView();
     }
 
+    /**
+     * Accessor for the find me instance.
+     * */
     public static Set<FindMe> getInstances() {
         return instances;
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
@@ -189,6 +201,9 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         flushWebGLRenderer();
     }
 
+    /**
+     * This method is called when the find me view is reactivated.
+     * */
     private void startLocationTask() {
         locationUpdater = new Timer(true);
         TimerTask locationTask = new TimerTask() {
@@ -470,6 +485,12 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         return rotationMatrix[i];
     }
 
+    /**
+     * This method is taking care of the reception of a broadcast message. It updates the rocket
+     * information based on the CAN sid.
+     *
+     * @param msg the broadcast message (either GPS latitude, longitude or altitude info).
+     * */
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         switch (msg.getCanSid()) {
@@ -485,16 +506,25 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         }
     }
 
+    /**
+     * Accessor for the CAN sid list.
+     * */
     @Override
     public List<String> getCANSidList() {
         return new ArrayList<>(Arrays.asList("GPS1_LATITUDE", "GPS1_LONGITUDE", "GPS1_ALT_MSL"));
     }
 
+    /**
+     * Accessor for the emitting pcb name.
+     * */
     @Override
     public String getSourceModule() {
         return null;
     }
 
+    /**
+     * Accessor for the emitting pcb serial number.
+     * */
     @Override
     public String getSerialNumber() {
         return null;

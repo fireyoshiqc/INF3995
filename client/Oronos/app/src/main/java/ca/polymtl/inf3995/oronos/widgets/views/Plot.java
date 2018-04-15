@@ -35,11 +35,10 @@ import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
  * The Plot class is a View that displays a single plot.
  * Using the MPChart library to create the plot.
  *
- * @author Fabrice Charbonneau, Félix Boulet
+ * @author Félix Boulet, Fabrice Charbonneau
  * @version 0.0
  * @since 2018-04-12
  */
-
 public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher.CANDataListener {
 
     //consts
@@ -65,6 +64,15 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
     private LineChart chart;
     private SeekBar slider;
 
+    /**
+     * Plot Constructor
+     *
+     * @param context the activity context.
+     * @param name the name of the plot.
+     * @param unit the unit in which to display the data.
+     * @param axis the axis of the plot.
+     * @param list a list of useful CAN messages.
+     * */
     public Plot(Context context, String name, String unit, String axis, List<CAN> list) {
 
         super(context, list);
@@ -293,14 +301,23 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         return Math.round(pixels);
     }
 
+    /**
+     * Accessor for the plot name.
+     * */
     public String getName() {
         return name;
     }
 
+    /**
+     * Accessor for the unit in which the data are displayed.
+     * */
     public String getUnit() {
         return unit;
     }
 
+    /**
+     * Accessor for the axis name.
+     * */
     public String getAxis() {
         return axis;
     }
@@ -328,11 +345,17 @@ public class Plot extends AbstractWidgetContainer<CAN> implements DataDispatcher
         return sidList;
     }
 
+    /**
+     * Accessor for the serial number of the source module. Useless in this case; return null.
+     * */
     @Override
     public String getSourceModule() {
         return null;
     }
 
+    /**
+     * Accessor for the serial number of the source module. Useless in this case; return null.
+     * */
     @Override
     public String getSerialNumber() {
         return null;

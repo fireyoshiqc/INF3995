@@ -32,11 +32,10 @@ import timber.log.Timber;
  * <h1>Map Tag</h1>
  * Displays map using osmdroid
  *
- * @author Patrick Richer St-Onge, Fabrice Charbonneau
+ * @author Fabrice Charbonneau, Patrick Richer St-Onge
  * @version 0.0
  * @since 2018-04-12
  */
-
 public class MapTag extends OronosView implements DataDispatcher.CANDataListener {
 
     private static final int REFRESH_DELAY = 1000; // milliseconds
@@ -57,6 +56,10 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         }
     };
 
+    /**
+     * This constructor is requesting the activity context and prepares the layout that will be
+     * parent to the map View.
+     * */
     public MapTag(Context context) {
         super(context);
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context));
@@ -66,30 +69,17 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         content = new LinearLayout(getContext());
         mapView = new MapView(context);
 
-        //buildView();
         setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         content.setOrientation(LinearLayout.VERTICAL);
         content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        //content.addView(mapView);
         coordinator.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         coordinator.addView(content);
         addView(coordinator);
     }
 
-    private void buildView() {
-        //setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-
-//        setupRocketMarker();
-//        setupMapView();
-//
-//        content.setOrientation(LinearLayout.VERTICAL);
-//        content.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//
-//        content.addView(mapView);
-
-
-    }
-
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -98,10 +88,12 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         setupRocketMarker();
         setupMapView();
         register();
-        //addView(mapView);
         content.addView(mapView);
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -113,14 +105,24 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
     }
 
+    /**
+     * This method register this class to receive CAN broadcast data.
+     * */
     private void register() {
         DataDispatcher.registerCANDataListener(this);
     }
 
+    /**
+     * This method unregister this class to not receive CAN broadcast data.
+     * */
     private void unregister() {
         DataDispatcher.unregisterCANDataListener(this);
     }
 
+    /**
+     * This method set up the map view by choosing the most appropriate map and placing the server
+     * and rocket markers on.
+     * */
     private void setupMapView() {
         mapView.setUseDataConnection(false);
         mapView.setBuiltInZoomControls(false);
@@ -185,6 +187,9 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
 
     }
 
+    /**
+     * This method is updating the position of the rocket marker as it is moving.
+     * */
     private void updateMarker() {
         rocketMarker.setPosition(rocketLocation);
 
@@ -198,6 +203,9 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         mapView.invalidate();
     }
 
+    /**
+     * This method is responsible of setting the rocket marker.
+     * */
     private void setupRocketMarker() {
         rocketLocation = new GeoPoint(0.0, 0.0, 0.0);
         rocketMarker = new Marker(mapView);
@@ -208,6 +216,12 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         mapView.getOverlays().add(rocketMarker);
     }
 
+    /**
+     * This method is taking care of the reception of a broadcast message. It updates the rocket
+     * information based on the CAN sid.
+     *
+     * @param msg the broadcast message (either GPS latitude, longitude or altitude info).
+     * */
     @Override
     public void onCANDataReceived(BroadcastMessage msg) {
         switch (msg.getCanSid()) {
@@ -223,16 +237,25 @@ public class MapTag extends OronosView implements DataDispatcher.CANDataListener
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<String> getCANSidList() {
         return new ArrayList<>(Arrays.asList("GPS1_LATITUDE", "GPS1_LONGITUDE", "GPS1_ALT_MSL"));
     }
 
+    /**
+     * Accessor for the serial number of the source module. Useless in this case; return null.
+     * */
     @Override
     public String getSourceModule() {
         return null;
     }
 
+    /**
+     * Accessor for the serial number of the source module. Useless in this case; return null.
+     * */
     @Override
     public String getSerialNumber() {
         return null;
