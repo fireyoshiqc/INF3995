@@ -1,15 +1,11 @@
 package ca.polymtl.inf3995.oronos.utils;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
 import ca.polymtl.inf3995.oronos.R;
-
-import static android.content.Context.MODE_PRIVATE;
 
 /**
  * <h1>Theme Util</h1>
@@ -28,39 +24,69 @@ public class ThemeUtil {
 
     private SharedPreferences myPreferences;
 
+    /**
+     * Get the instance of the ThemeUtil (singleton)
+     *
+     * @return the shared instance
+     */
     public static ThemeUtil getInstance() {
         if (instance == null) instance = new ThemeUtil();
         return instance;
     }
 
-    public void initialize(Context ctxt){
-        context = ctxt;
+    /**
+     * Initialize ThemeUtil with the Application Context
+     *
+     * @param ctxt application context
+     */
+    public void initialize(Context ctxt) {
+        context = ctxt.getApplicationContext();
         myPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    private void writePreference(String key, boolean value){
+    /**
+     * Add a pair to the SharedPreference
+     *
+     * @param key   key to identify the pair
+     * @param value value of the pair
+     */
+    private void writePreference(String key, boolean value) {
         SharedPreferences.Editor e = myPreferences.edit();
         e.putBoolean(key, value);
         e.commit();
     }
 
+    /**
+     * Store in SharedPreference that we are using Dark Theme
+     */
     public void switchToDarkTheme() {
         writePreference(THEME, true);
     }
 
+    /**
+     * Store in SharedPreference that we are using Light Theme
+     */
     public void switchToLightTheme() {
         writePreference(THEME, false);
     }
 
+    /**
+     * Check if theme is SharedPreference is Dark Theme
+     *
+     * @return true or false
+     */
     public boolean isThemeSetToDark() {
-        if(!myPreferences.contains(THEME)){
+        if (!myPreferences.contains(THEME)) {
             return GlobalParameters.DEFAULT_THEME_IS_DARK;
         }
         return myPreferences.getBoolean(THEME, false);
     }
 
-
-
+    /**
+     * Sets the theme on the Activity
+     *
+     * @param activity Activity to set theme on
+     */
     public static void onActivityCreateSetTheme(Activity activity) {
         if (getInstance().isThemeSetToDark()) {
             activity.setTheme(R.style.Dark);

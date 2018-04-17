@@ -6,11 +6,9 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.SyncFailedException;
 import java.util.Calendar;
 
 import timber.log.Timber;
@@ -39,6 +37,11 @@ public class LogTree extends Timber.DebugTree {
     private Context appContext;
     private File logFile;
 
+    /**
+     * Creates a new instance of the LogTree to create log file on disk
+     *
+     * @param context
+     */
     public LogTree(Context context) {
         super();
         this.appContext = context;
@@ -46,6 +49,10 @@ public class LogTree extends Timber.DebugTree {
         createLogFile();
     }
 
+    /**
+     * Log messages according to specs
+     * {@inheritDoc}
+     */
     @Override
     protected void log(int priority, String tag, @NonNull String message, Throwable t) {
 
@@ -77,18 +84,25 @@ public class LogTree extends Timber.DebugTree {
 
     }
 
-    /* Checks if external storage is available for read and write */
+    /**
+     * Checks if external storage is available for read and write
+     */
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
-    /* Checks if external storage is available to at least read */
+    /**
+     * Checks if external storage is available to at least read
+     */
     private boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 
+    /**
+     * Creates log file on external storage
+     */
     private void createLogFile() {
         String currentTime = Calendar.getInstance().getTime().toString();
         File file = new File(getPrivateLogStorageDir(), currentTime + ".txt");
@@ -105,6 +119,11 @@ public class LogTree extends Timber.DebugTree {
         Log.println(Log.ERROR, "Timber", "this is what file looks like: " + file.getName());
     }
 
+    /**
+     * Get the path to the application storage location on external storage
+     *
+     * @return The path of the Application data
+     */
     private File getPrivateLogStorageDir() {
         // Get the directory OronosLogs from the app's private document directory.
 
@@ -121,11 +140,16 @@ public class LogTree extends Timber.DebugTree {
         return file;
     }
 
+    /**
+     * Write a new line to file
+     *
+     * @param message The line to write
+     */
     private void writeToFile(String message) {
         try {
             FileOutputStream fileOutput = new FileOutputStream(this.logFile, true);
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutput);
-            outputStreamWriter.write(message+"\n");
+            outputStreamWriter.write(message + "\n");
             outputStreamWriter.flush();
             fileOutput.getFD().sync();
             outputStreamWriter.close();

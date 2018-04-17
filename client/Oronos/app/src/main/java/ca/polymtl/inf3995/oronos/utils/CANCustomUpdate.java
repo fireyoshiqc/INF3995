@@ -28,7 +28,13 @@ public class CANCustomUpdate {
     private static HashMap<String, Double> lastRampAlt = new HashMap<>();
 
 
-    // REFLECTION WOOOOOO
+    /**
+     * This method is used to call one of the CustomUpdate methods to do a conversion using reflection
+     *
+     * @param customUpdate Name of the method to call
+     * @param msg          CAN data
+     * @return Result of the called method
+     */
     public static String update(String customUpdate, BroadcastMessage msg) {
 
         try {
@@ -40,6 +46,13 @@ public class CANCustomUpdate {
         }
     }
 
+    /**
+     * This method is used to call one of the CustomUpdate method to verify the value is acceptable using reflection
+     *
+     * @param customAcceptable Name of the method to call
+     * @param msg              CAN data
+     * @return Result of the called method
+     */
     public static boolean acceptable(String customAcceptable, BroadcastMessage msg) {
         try {
             Method method = CANCustomUpdate.class.getDeclaredMethod(customAcceptable, BroadcastMessage.class);
@@ -50,6 +63,13 @@ public class CANCustomUpdate {
         }
     }
 
+    /**
+     * This method is used to call one of the CustomUpdate methods to do a conversion with extra parameters using reflection
+     *
+     * @param customUpdate Name of the method to call
+     * @param msg          CAN data
+     * @return Result of the called method
+     */
     public static String updateWithParam(String customUpdate, String param, BroadcastMessage msg) {
         try {
             Method method = CANCustomUpdate.class.getDeclaredMethod(customUpdate, BroadcastMessage.class, String.class);

@@ -23,11 +23,21 @@ public class DataPlot {
     private List<Double> entriesList;
     private long lastEntryTime = 0;
 
+    /**
+     * Creates a new DataPlot with a maximum number of entries
+     *
+     * @param maxEntries
+     */
     public DataPlot(int maxEntries) {
         this.maxEntries = maxEntries;
         entriesList = new CopyOnWriteArrayList<>();
     }
 
+    /**
+     * Add an entry to the internal list
+     *
+     * @param value The entry to add
+     */
     public void addEntry(double value) {
         long newEntryTime = System.currentTimeMillis();
         if (newEntryTime < lastEntryTime + ONE_SECOND_IN_MILLIS) {
@@ -45,6 +55,11 @@ public class DataPlot {
         nEntries = Math.min(nEntries + 1, maxEntries);
     }
 
+    /**
+     * Duplicate the last entry
+     *
+     * @param newEntryTime Time of the new entry
+     */
     private void fillNoData(long newEntryTime) {
         /*
          * We want to always have a value corresponding to a second
@@ -67,6 +82,12 @@ public class DataPlot {
         }
     }
 
+    /**
+     * Get the last entries in the internal list
+     *
+     * @param amount The amount of entries to return
+     * @return List containing the entries
+     */
     public List<Entry> retrieveEntries(int amount) {
         List<Entry> formattedEntries = new ArrayList<>();
         if (amount > maxEntries) {

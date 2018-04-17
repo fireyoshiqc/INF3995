@@ -15,6 +15,13 @@ import android.support.v4.app.ActivityCompat;
  */
 
 public class PermissionsUtil {
+    /**
+     * Verify if application has persmission granted
+     *
+     * @param context             The context of the application
+     * @param allPermissionNeeded One or more permissions
+     * @return If allowed to use permission
+     */
     public static boolean hasPermissions(Context context, String... allPermissionNeeded) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && context != null && allPermissionNeeded != null)

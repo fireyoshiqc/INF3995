@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class GlobalParameters {
 
-    //Theme
+    // Theme
     public final static boolean DEFAULT_THEME_IS_DARK = false;
 
     // LogTree
@@ -22,6 +22,7 @@ public class GlobalParameters {
     // SocketClient
     public static final String CLIENT_ADDRESS = "0.0.0.0";
 
+    // Settings
     public static boolean hasRetardedErrorMessages = false;
     public static String serverAddress = null;
     public static int udpPort = 5005;
