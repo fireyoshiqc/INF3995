@@ -145,6 +145,7 @@ public class OronosActivity extends AppCompatActivity {
                     warningBar.show();
                 }
             }
+            break;
             case FindMe.GPS_PERMISSION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
@@ -160,6 +161,7 @@ public class OronosActivity extends AppCompatActivity {
                     }
                 }
             }
+            break;
         }
     }
 
