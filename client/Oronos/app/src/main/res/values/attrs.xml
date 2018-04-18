@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="customColors">
-        <attr name="redCanTag" format="color" />
-        <attr name="greenCanTag" format="color" />
-    </declare-styleable>
-
-</resources>
