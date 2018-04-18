@@ -7,6 +7,7 @@ import sys
 import keyboard
 import unittest
 from enum import Enum
+from PyQt5.QtWidgets import QApplication
 
 import inf3995.rest as rest
 import inf3995.data_rx as data_rx
@@ -21,6 +22,7 @@ from inf3995.logging.DataLoggerTask import *
 from inf3995.logging.EventLoggerTask import *
 from inf3995.view.EventLogViewerTask import *
 from inf3995.view.UsersViewerTask import *
+from inf3995.view.StartScreen import *
 
 class _ConnectorType(Enum):
 	SERIAL = 1  # Start at 1 because 0 is False in a boolean sense
@@ -51,9 +53,14 @@ class ApplicationManager(object):
 		
 		ProgramOptions.configure_and_parse(argv)
 		
+		self.__started_with_gui = False
 		if len(argv) == 1:
-			# TODO: Show GUI to enter the options visually
 			print("And God said, Let there be a GUI: and there was a GUI (someday maybe)." "\n")
+			# Show GUI to enter the options visually
+			start_screen_app = QApplication(sys.argv)
+			self.__gui = StartScreen()
+			self.__started_with_gui = True
+			start_screen_app.exec_()
 			sys.stdout.flush()
 		
 		self.__quit = False
@@ -130,6 +137,14 @@ class ApplicationManager(object):
 		log_viewer_node = EventLogViewerTask()
 		event_logger_node = EventLoggerTask()
 
+		if self.__started_with_gui:
+			# Get arguments entered in GUI
+			ProgramOptions.set_value('rocket', self.__gui.program_options.rocket)
+			ProgramOptions.set_value('map', self.__gui.program_options.map)
+			ProgramOptions.set_value('baudrate', self.__gui.program_options.baudrate)
+			ProgramOptions.set_value('connector-type', self.__gui.program_options.connector_type.upper())
+			ProgramOptions.set_value('connector-file', self.__gui.program_options.connector_file)
+		
 		baudrate = ProgramOptions.get_value('baudrate')
 		connector_type = ProgramOptions.get_value('connector-type').upper()
 		connector_file = ProgramOptions.get_value('connector-file')
@@ -166,16 +181,16 @@ class ApplicationManager(object):
 		event_logger_node.connect_to_source(log_viewer_node)
 
 		# TODO: Build the worker threads
-		self.__build_thread([dummy_node], 0.5)
-		self.__build_thread([rest_node])
-		self.__build_thread([rx_node])
-		self.__build_thread([tx_node], 20.0)
-		self.__build_thread([data_logger_node])
-		self.__build_thread([log_viewer_node, users_viewer_node], 15.0)
-		self.__build_thread([event_logger_node])
+		self.__build_thread("Dummy",     [dummy_node], 0.5)
+		self.__build_thread("REST",      [rest_node], 1.0)
+		self.__build_thread("Data Rx",   [rx_node])
+		self.__build_thread("Data Tx",   [tx_node], 20.0)
+		self.__build_thread("Data Log",  [data_logger_node])
+		self.__build_thread("View",      [log_viewer_node, users_viewer_node], 15.0)
+		self.__build_thread("Event Log", [event_logger_node])
 	
-	def __build_thread(self, task_nodes, max_freq = None):
-		worker = WorkerThread(max_freq)
+	def __build_thread(self, name, task_nodes, max_freq = None):
+		worker = WorkerThread(name, max_freq)
 		for node in task_nodes:
 			worker.add_task_node(node)
 		self.__worker_threads.append(worker)

@@ -8,12 +8,13 @@ import inf3995.utils as utils
 
 
 class WorkerThread(object):
-	def __init__(self, max_run_frequency):
+	def __init__(self, name, max_run_frequency):
 		self.__task_nodes = []
 		self.__thread = None
 		self.__is_running = False
 		self.__is_finishing = False
 		self.__is_paused = False
+		self.__name = name
 		period = 0.0
 		if max_run_frequency is not None:
 			period = max(0.0, 1.0 / max_run_frequency)
@@ -34,7 +35,8 @@ class WorkerThread(object):
 	def start(self):
 		if not self.__is_running:
 			self.__is_paused = False
-			self.__thread = threading.Thread(target=self.__run_thread)
+			self.__thread = threading.Thread(target=self.__run_thread,
+			                                 name=self.__name)
 			self.__thread.start()
 	
 	def start_paused(self):
@@ -87,7 +89,7 @@ class WorkerThread(object):
 	def __run_thread(self):
 		self.__is_finishing = False
 		self.__is_running = True
-		
+
 		while self.__is_running:
 			if self.__is_paused:
 				time.sleep(0)

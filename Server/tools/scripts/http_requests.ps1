@@ -69,6 +69,22 @@ function send_post_users_logout ( [string] $user )
 }
 
 
+function send_post_users_heartbeat ( [string] $user )
+{
+	$uri = "http://" + $server_addr + "/users/heartbeat"
+	
+	$response = $null
+	if ( $sessions.Contains($user) ) {
+		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body "{}" -WebSession $sessions[$user] -UseBasicParsing
+	}
+	else {
+		$response = curl -Method POST -ContentType "application/json" -Uri $uri -Body "{}" -UseBasicParsing
+	}
+	
+	return $response
+}
+
+
 function send_get_config_basic ( [string] $user )
 {
 	$uri = "http://" + $server_addr + "/config/basic"
