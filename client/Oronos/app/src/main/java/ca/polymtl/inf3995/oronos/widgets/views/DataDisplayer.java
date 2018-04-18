@@ -14,9 +14,13 @@ import ca.polymtl.inf3995.oronos.widgets.adapters.DataDisplayerAdapter;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
 
 /**
- * Created by Felix on 15/févr./2018.
+ * <h1>Data Displayer</h1>
+ * This class is in charge of displaying a set of CAN messages in a legible way.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-
 public class DataDisplayer extends AbstractWidgetContainer<CAN> implements ContainableWidget {
 
     private final int TARGET_SCREEN_SIZE = 9;
@@ -24,10 +28,19 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
     private final int FULL_SPAN = 4;
     private final int MAX_LARGE_DATA = 32;
     private final int UI_CHANGE_ANIM_DURATION = 100;
-    private final int DATA_UPDATE_PERIOD = 500;
+    private final int DATA_UPDATE_PERIOD = 200;
     private RecyclerView recycler;
     private Timer listUpdater;
 
+    /**
+     * This Data Displayer Constructor needs the context of the activity, a list of CAN message
+     * types that are going to have a spot in the Data Displayer and a layout to arrange
+     * the disposition of the data.
+     *
+     * @param context the activity context.
+     * @param list a list of CAN message types that are the ones to display.
+     * @param layout either VERTICAL, HORIZONTAL or FULL.
+     * */
     public DataDisplayer(Context context, List<CAN> list, DataLayout layout) {
         super(context, list);
         recycler = new RecyclerView(context);
@@ -64,50 +77,45 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
 
     }
 
-    private void enableCANUpdates() {
-        for (CAN can : list) {
-            if (!can.updatesAreEnabled()) {
-                can.enableDataDisplayerUpdates(getContext());
-            }
-        }
-    }
-
-    private void disableCANUpdates() {
-        for (CAN can : list) {
-            can.disableDataDisplayerUpdates(getContext());
-        }
-    }
-
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        enableCANUpdates();
         startUpdateTask();
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        disableCANUpdates();
         stopUpdateTask();
     }
 
+    /**
+     * This method is called when the Data Displayer view is on to start the updates
+     * on the CAN message types of the Data Displayer.
+     * */
     private void startUpdateTask() {
         listUpdater = new Timer(true);
         TimerTask sensorTask = new TimerTask() {
             @Override
             public void run() {
-                ((Activity) getContext()).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (int i = 0; i < list.size(); i++) {
-                            if (list.get(i).isChanged()) {
-                                recycler.getAdapter().notifyItemChanged(i);
-                                list.get(i).notifyReset();
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).isChanged()) {
+                        final int position = i;
+                        ((Activity) getContext()).runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                recycler.getAdapter().notifyItemChanged(position);
                             }
-                        }
+                        });
+                        list.get(i).notifyReset();
                     }
-                });
+                }
             }
         };
         listUpdater.scheduleAtFixedRate(sensorTask, 0, DATA_UPDATE_PERIOD);
@@ -123,6 +131,9 @@ public class DataDisplayer extends AbstractWidgetContainer<CAN> implements Conta
         }
     }
 
+    /**
+     * This enum represents every possible layout the Data Displayer can have.
+     * */
     public enum DataLayout {
         HORIZONTAL, VERTICAL, FULL
     }

@@ -3,10 +3,7 @@ package ca.polymtl.inf3995.oronos.widgets.views;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,11 +12,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,9 +24,8 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.parceler.Parcels;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -40,20 +34,24 @@ import java.util.TimerTask;
 import java.util.WeakHashMap;
 
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.utils.PermissionsUtil;
 import timber.log.Timber;
 
 /**
- * FindMe class for the FindMe tag.
+ * <h1>Find Me</h1>
+ * This class is responsible of displaying a 3D arrow that is pointing towards the rocket
+ * considering its GPS position.
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
-public class FindMe extends OronosView implements SensorEventListener, LocationListener {
-
-    //TODO: Refactor this horrible pattern... even though a WeakHashMap shouldn't cause a memory leak.
-    private static Set<FindMe> instances = Collections.newSetFromMap(new WeakHashMap<FindMe, Boolean>());
-    //private static List<FindMe> instances = new ArrayList<>();
+public class FindMe extends OronosView implements SensorEventListener, LocationListener, DataDispatcher.CANDataListener {
 
     public static final int GPS_PERMISSION = 1;
+    //TODO: Refactor this horrible pattern... even though a WeakHashMap shouldn't cause a memory leak.
+    private static Set<FindMe> instances = Collections.newSetFromMap(new WeakHashMap<FindMe, Boolean>());
     private final SensorManager sensorManager;
     private final Sensor accelerometer;
     private final Sensor magnetometer;
@@ -74,10 +72,8 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
     private LocationManager locationManager;
     private Snackbar warningBar;
 
-    private long lastLocationTime = 0;
     private Location rocketLocation = new Location("");
     private Location deviceLocation = new Location("");
-    private BroadcastReceiver locationReceiver;
 
     /**
      * FindMe widget constructor. Initializes fields then calls the view builder method.
@@ -97,10 +93,16 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         buildView();
     }
 
+    /**
+     * Accessor for the find me instance.
+     * */
     public static Set<FindMe> getInstances() {
         return instances;
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
@@ -199,6 +201,9 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         flushWebGLRenderer();
     }
 
+    /**
+     * This method is called when the find me view is reactivated.
+     * */
     private void startLocationTask() {
         locationUpdater = new Timer(true);
         TimerTask locationTask = new TimerTask() {
@@ -322,25 +327,7 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
                     updateLocation();
                 }
 
-                locationReceiver = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-                        switch (msg.getCanSid()) {
-                            case "GPS1_LATITUDE":
-                                rocketLocation.setLatitude(msg.getData1().doubleValue());
-                                break;
-                            case "GPS1_LONGITUDE":
-                                rocketLocation.setLongitude(msg.getData1().doubleValue());
-                                break;
-                            case "GPS1_ALT_MSL":
-                                rocketLocation.setAltitude(msg.getData1().doubleValue());
-                                break;
-                        }
-                    }
-                };
-
-                enableLocationReceiver();
+                register();
                 startLocationTask();
 
             } catch (SecurityException e) {
@@ -356,46 +343,16 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         if (locationManager != null) {
             locationManager.removeUpdates(this);
         }
-        if (locationReceiver != null) {
-            disableLocationReceiver();
-        }
+        unregister();
         stopLocationTask();
     }
 
-    private void enableLocationReceiver() {
-
-        if (GlobalParameters.canModuleTypes != null) {
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction("GPS1_LATITUDE");
-            intentFilter.addAction("GPS1_LONGITUDE");
-            intentFilter.addAction("GPS1_ALT_MSL");
-
-            // Listen for all categories, since it depends on the rocket
-
-            for (String key : GlobalParameters.canModuleTypes.keySet()) {
-                intentFilter.addCategory(key);
-            }
-
-            for (int i = 0; i < 16; i++) {
-                intentFilter.addCategory(String.format("%d", i));
-            }
-
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(locationReceiver, intentFilter);
-        } else {
-            final Handler handler = new Handler();
-
-            // Retry enabling updates
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    enableLocationReceiver();
-                }
-            }, 1000);
-        }
+    private void register() {
+        DataDispatcher.registerCANDataListener(this);
     }
 
-    private void disableLocationReceiver() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(locationReceiver);
-        locationReceiver = null;
+    private void unregister() {
+        DataDispatcher.unregisterCANDataListener(this);
     }
 
     /**
@@ -463,21 +420,12 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
 
     /**
      * This method is called when the device's location has changed.
-     * It tries to evaluate the accuracy of the new location, then calls updateLocation
-     * if it is deemed sufficient. Accuracy criterion are the following (one or more must be true) :
-     * - The location comes from the GPS.
-     * - The location comes from the network, it has been more than 10 seconds since the last update,
-     * and the accuracy is better than two times the last location's accuracy (i.e. if the last
-     * location's accuracy was 20 meters, it would need to be 40 meters or less).
-     * - The location has not been updated in 60 seconds or more.
      *
      * @param location The new location provided by the GPS or network.
      */
     @Override
     public void onLocationChanged(Location location) {
-        // Try to find better criteria for evaluating accuracy
         deviceLocation = location;
-        lastLocationTime = System.currentTimeMillis();
     }
 
     /**
@@ -537,4 +485,48 @@ public class FindMe extends OronosView implements SensorEventListener, LocationL
         return rotationMatrix[i];
     }
 
+    /**
+     * This method is taking care of the reception of a broadcast message. It updates the rocket
+     * information based on the CAN sid.
+     *
+     * @param msg the broadcast message (either GPS latitude, longitude or altitude info).
+     * */
+    @Override
+    public void onCANDataReceived(BroadcastMessage msg) {
+        switch (msg.getCanSid()) {
+            case "GPS1_LATITUDE":
+                rocketLocation.setLatitude(msg.getData1().doubleValue());
+                break;
+            case "GPS1_LONGITUDE":
+                rocketLocation.setLongitude(msg.getData1().doubleValue());
+                break;
+            case "GPS1_ALT_MSL":
+                rocketLocation.setAltitude(msg.getData1().doubleValue());
+                break;
+        }
+    }
+
+    /**
+     * Accessor for the CAN sid list.
+     * */
+    @Override
+    public List<String> getCANSidList() {
+        return new ArrayList<>(Arrays.asList("GPS1_LATITUDE", "GPS1_LONGITUDE", "GPS1_ALT_MSL"));
+    }
+
+    /**
+     * Accessor for the emitting pcb name.
+     * */
+    @Override
+    public String getSourceModule() {
+        return null;
+    }
+
+    /**
+     * Accessor for the emitting pcb serial number.
+     * */
+    @Override
+    public String getSerialNumber() {
+        return null;
+    }
 }

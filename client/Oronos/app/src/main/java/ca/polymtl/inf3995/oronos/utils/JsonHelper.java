@@ -11,11 +11,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * From github https://gist.github.com/codebutler/2339666
+ * <h1>JSON Helper</h1>
+ * Convert JSON objects to Java objects
+ *
+ * @author Eric Butler, Patrick Richer St-Onge
+ * @see "https://gist.github.com/codebutler/2339666"
  */
 
 public class JsonHelper {
 
+    /**
+     * Converts Java Object to JSON
+     *
+     * @param object The Java object
+     * @return The JSON object
+     * @throws JSONException
+     */
     public static Object toJSON(Object object) throws JSONException {
         if (object instanceof Map) {
             JSONObject json = new JSONObject();
@@ -53,6 +64,13 @@ public class JsonHelper {
         return map;
     }
 
+    /**
+     * Convert JSON array to Java List
+     *
+     * @param array JSON array
+     * @return Java List
+     * @throws JSONException
+     */
     public static List toList(JSONArray array) throws JSONException {
         List list = new ArrayList();
         for (int i = 0; i < array.length(); i++) {
@@ -61,6 +79,13 @@ public class JsonHelper {
         return list;
     }
 
+    /**
+     * Convert JSON to Java object
+     *
+     * @param json JSON object
+     * @return Java Object
+     * @throws JSONException
+     */
     private static Object fromJson(Object json) throws JSONException {
         if (json == JSONObject.NULL) {
             return null;

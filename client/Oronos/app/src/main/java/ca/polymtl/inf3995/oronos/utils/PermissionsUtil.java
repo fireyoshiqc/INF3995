@@ -6,10 +6,22 @@ import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 
 /**
- * Created by Felix on 10/mars/2018.
+ * <h1>Permissions Util</h1>
+ * Permissions related methods
+ *
+ * @author Félix Boulet
+ * @version 0.0
+ * @since 2018-04-12
  */
 
 public class PermissionsUtil {
+    /**
+     * Verify if application has persmission granted
+     *
+     * @param context             The context of the application
+     * @param allPermissionNeeded One or more permissions
+     * @return If allowed to use permission
+     */
     public static boolean hasPermissions(Context context, String... allPermissionNeeded) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && context != null && allPermissionNeeded != null)

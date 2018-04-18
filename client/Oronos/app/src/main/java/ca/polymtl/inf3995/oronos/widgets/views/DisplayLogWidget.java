@@ -1,123 +1,118 @@
 package ca.polymtl.inf3995.oronos.widgets.views;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ScrollView;
-import android.widget.TextView;
-
-import org.parceler.Parcels;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import ca.polymtl.inf3995.oronos.R;
 import ca.polymtl.inf3995.oronos.services.BroadcastMessage;
-import ca.polymtl.inf3995.oronos.utils.GlobalParameters;
+import ca.polymtl.inf3995.oronos.services.DataDispatcher;
 import ca.polymtl.inf3995.oronos.widgets.containers.AbstractWidgetContainer;
+import timber.log.Timber;
 
-public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget {
+
+/**
+ * <h1>Display Log Widget</h1>
+ * This class is a log console type of widget responsible of stacking every CAN message the client
+ * is receiving (if no list of CAN messages provided) or stacking received CAN messages only if
+ * they figure in the list of CAN messages to display.
+ *
+ * The constant MAX_LINES limits the number of CAN messages kept in memory.
+ *
+ * @author Félix Boulet, Justine Pepin
+ * @version 0.0
+ * @since 2018-04-12
+ */
+public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements ContainableWidget, DataDispatcher.CANDataListener {
+    private final int MAX_LINES = 5000;
+    private final int DATA_UPDATE_PERIOD = 1000;
+    private final ConcurrentHashMap<String, Integer> lastMsgsReceived;
     private Timer listUpdater;
-    private List<MSGPair> lastMsgsReceived;
-    private Context context;
-    private Queue<String> msgQueue;
-    private TextView textView;
-    private ScrollView scrollView;
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BroadcastMessage msg = Parcels.unwrap(intent.getParcelableExtra("data"));
-            String canSID = msg.getCanSid();
-            String module = msg.getSourceModule();
-            Integer noSerie = msg.getSerialNb();
-            Integer counter = msg.getCounter();
-            boolean isDesiredCanMsg = false;
 
-            for (CAN can : list) {
-                if (canSID.equals(can.getId())) {
-                    isDesiredCanMsg = true;
-                    break;
-                }
-            }
+    private ListView listView;
+    private LinkedBlockingQueue<String> msgQueue;
+    private ArrayAdapter<String> listAdapter;
 
-            if (list.isEmpty() || isDesiredCanMsg) {
-                boolean isNewMsgToLog = true;
-                boolean isNewMsgReceived = true;
-
-                for (MSGPair msgPair : lastMsgsReceived) {
-                    if (canSID.equals(msgPair.getCansid())
-                            && module.equals(msgPair.getModuleType())
-                            && noSerie.equals(msgPair.getNoSerial())) {
-                        isNewMsgReceived = false;
-                        if (counter != msgPair.getLastNoMsg()) {
-                            msgPair.setLastNoMsg(counter);
-                            break;
-                        } else {
-                            isNewMsgToLog = false;
-                            break;
-                        }
-                    }
-                }
-                if (isNewMsgReceived) {
-                    lastMsgsReceived.add(new MSGPair(canSID, module, noSerie, counter));
-                }
-                if (isNewMsgToLog) {
-                    receiveMsgToLog(msg);
-                }
-            }
-        }
-    };
-
+    /**
+     * This constructor needs the context of the activity and a list of CAN messages to be displayed.
+     *
+     * @param context the activity context.
+     * @param list a list of CAN messages to be displayed. If list is empty, all CAN messages must
+     *             be displayed.
+     * */
     public DisplayLogWidget(Context context, List<CAN> list) {
         super(context, list);
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        CoordinatorLayout coordinatorLayout = new CoordinatorLayout(getContext());
+        coordinatorLayout.setLayoutParams(new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        lastMsgsReceived = new ConcurrentHashMap<>();
+        msgQueue = new LinkedBlockingQueue<>(MAX_LINES);
+        listView = new ListView(getContext());
+        listAdapter = new ArrayAdapter<>(getContext(), R.layout.display_log_textview);
+        listView.setAdapter(listAdapter);
+        listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        listView.setLayoutParams(new ListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        coordinatorLayout.addView(listView);
 
-        this.context = context;
-        lastMsgsReceived = new ArrayList<>();
-        msgQueue = new LinkedBlockingQueue<>(GlobalParameters.LIMIT_OF_N_MSG);
-        textView = new TextView(context);
-        scrollView = new ScrollView(context);
-        scrollView.addView(textView);
-        this.addView(scrollView);
-        setUpBroadcast();
+        LayoutInflater.from(getContext()).inflate(R.layout.scroll_down_fab, coordinatorLayout, true);
+        coordinatorLayout.findViewById(R.id.scroll_fab).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listView.setSelection(listAdapter.getCount() - 1);
+            }
+        });
+
+        addView(coordinatorLayout);
+        DataDispatcher.registerCANDataListener(this);
     }
 
-    private void setUpBroadcast() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(GlobalParameters.CATEGORY_FOR_DISPATCH);
-        intentFilter.addCategory(GlobalParameters.CATEGORY_FOR_DISPATCH);
-        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
-    }
 
+    /**
+     * This method is handling a broadcast CAN message and is responsible to adding it to the stack
+     * of log messages.
+     * */
     public void receiveMsgToLog(BroadcastMessage msg) {
-        String canSID = msg.getCanSid();
-        String newData1 = Double.toString(msg.getData1().doubleValue());
-        String newData2 = Double.toString(msg.getData2().doubleValue());
-        String module = msg.getSourceModule();
-        String noSerie = Integer.toString(msg.getSerialNb());
-
-        if (GlobalParameters.LIMIT_OF_N_MSG - msgQueue.size() == 0) {
+        final String canSID = msg.getCanSid();
+        final String newData1 = Double.toString(msg.getData1().doubleValue());
+        final String newData2 = Double.toString(msg.getData2().doubleValue());
+        final String module = msg.getSourceModule();
+        final String noSerie = Integer.toString(msg.getSerialNb());
+        final String currentTime = Calendar.getInstance().getTime().toString();
+        if (msgQueue.remainingCapacity() == 0) {
             msgQueue.poll();
         }
-        String currentTime = Calendar.getInstance().getTime().toString();
-        msgQueue.add(String.format("%s;%s;%s;%s;%s;%s;",currentTime, module, noSerie, canSID, newData1, newData2));
+        try {
+            msgQueue.put(String.format("%s\n%s;%s;%s;%s;%s;", currentTime, module, noSerie, canSID, newData1, newData2));
+        } catch (InterruptedException e) {
+            Timber.e("Message queue was interrupted in DisplayLogWidget");
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         startUpdateTask();
-        autoscroll();
     }
 
+    /**
+     * {@inheritDoc}
+     * */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -129,32 +124,17 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
         TimerTask sensorTask = new TimerTask() {
             @Override
             public void run() {
-                final StringBuilder display = new StringBuilder();
-                for (String msg : msgQueue) {
-                    display.append(msg).append("\n");
-                }
                 ((Activity) getContext()).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (getVisibility() == View.VISIBLE) {
-                            textView.setText(display);
-                            if (textView.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()) <= 50) {
-                                autoscroll();
-                            }
-                        }
+                        listAdapter.clear();
+                        listAdapter.addAll(msgQueue);
+                        listAdapter.notifyDataSetChanged();
                     }
                 });
             }
         };
-        listUpdater.scheduleAtFixedRate(sensorTask, 0, GlobalParameters.DATA_UPDATE_PERIOD);
-    }
-
-    private void autoscroll() {
-        scrollView.post(new Runnable() {
-            public void run() {
-                scrollView.smoothScrollTo(0, textView.getBottom());
-            }
-        });
+        listUpdater.scheduleAtFixedRate(sensorTask, 0, DATA_UPDATE_PERIOD);
     }
 
     /**
@@ -168,39 +148,54 @@ public class DisplayLogWidget extends AbstractWidgetContainer<CAN> implements Co
     }
 
     /**
-     * MSGPair stocks all necessary data to distinguish 2 logs and register the newest.
-     */
-    private class MSGPair {
-        private final String cansid;
-        private final String moduleType;
-        private final Integer noSerial;
-        private int lastNoMsg;
+     * This method is taking care of the reception of a broadcast message. It ensures the
+     * CAN type is in the list of CAN messages to be displayed (or that the list is empty)
+     * and it ensures this message have not been already displayed.
+     *
+     * @param msg the broadcast message to display.
+     * */
+    @Override
+    public void onCANDataReceived(BroadcastMessage msg) {
+        String canSID = msg.getCanSid();
+        String module = msg.getSourceModule();
+        Integer noSerie = msg.getSerialNb();
+        Integer counter = msg.getCounter();
 
-        private MSGPair(String acansid, String amodule, Integer aNoSerial, int aNoMsg) {
-            cansid = acansid;
-            moduleType = amodule;
-            noSerial = aNoSerial;
-            lastNoMsg = aNoMsg;
+        Integer oldCounter = lastMsgsReceived.get(canSID + module + noSerie);
+        if (oldCounter == null || !oldCounter.equals(counter)) {
+            receiveMsgToLog(msg);
+            lastMsgsReceived.put(canSID + module + noSerie, counter);
         }
+    }
 
-        private String getCansid() {
-            return cansid;
+    /**
+     * Accessor for the CAN sid list.
+     * */
+    @Override
+    public List<String> getCANSidList() {
+        if (list.isEmpty()) {
+            return null;
         }
+        ArrayList<String> sidList = new ArrayList<>();
+        for (CAN can : list) {
+            sidList.add(can.getId());
+        }
+        return sidList;
+    }
 
-        private String getModuleType() {
-            return moduleType;
-        }
+    /**
+     * Accessor for the emitting pcb name.
+     * */
+    @Override
+    public String getSourceModule() {
+        return null;
+    }
 
-        private Integer getNoSerial() {
-            return noSerial;
-        }
-
-        private int getLastNoMsg() {
-            return lastNoMsg;
-        }
-
-        private void setLastNoMsg(int newNoMsg) {
-            lastNoMsg = newNoMsg;
-        }
+    /**
+     * Accessor for the emitting pcb serial number.
+     * */
+    @Override
+    public String getSerialNumber() {
+        return null;
     }
 }

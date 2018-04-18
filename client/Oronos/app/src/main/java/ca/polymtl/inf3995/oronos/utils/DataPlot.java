@@ -4,66 +4,96 @@ import com.github.mikephil.charting.data.Entry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Created by Fabri on 2018-03-17.
+ * <h1>Data Plot</h1>
+ * Class to be used by Plot view
+ *
+ * @author Fabrice Charbonneau
+ * @version 0.0
+ * @see ca.polymtl.inf3995.oronos.widgets.views.Plot
+ * @since 2018-04-12
  */
 
-//Class to be used in Plot.java
 public class DataPlot {
-    private final int ONE_SECOND_IN_MILLIS = 1000;
-
+    private static final int ONE_SECOND_IN_MILLIS = 1000;
+    private final int maxEntries;
     private int nEntries;
     private List<Double> entriesList;
-    private int MAX_ENTRIES;
     private long lastEntryTime = 0;
 
+    /**
+     * Creates a new DataPlot with a maximum number of entries
+     *
+     * @param maxEntries
+     */
     public DataPlot(int maxEntries) {
-        this.MAX_ENTRIES = maxEntries;
-        entriesList = new ArrayList<Double>();
+        this.maxEntries = maxEntries;
+        entriesList = new CopyOnWriteArrayList<>();
     }
 
+    /**
+     * Add an entry to the internal list
+     *
+     * @param value The entry to add
+     */
     public void addEntry(double value) {
         long newEntryTime = System.currentTimeMillis();
-        if(newEntryTime < lastEntryTime + ONE_SECOND_IN_MILLIS){
-            return; //We don't add the value if not enough time has gone by
+        if (newEntryTime < lastEntryTime + ONE_SECOND_IN_MILLIS) {
+            // We don't add the value if not enough time has gone by
+            return;
         }
 
         fillNoData(newEntryTime);
         lastEntryTime = newEntryTime;
 
-        if (nEntries == MAX_ENTRIES){
+        if (nEntries == maxEntries) {
             entriesList.remove(0);
         }
         entriesList.add(value);
-        nEntries = Math.min(nEntries + 1, MAX_ENTRIES);
+        nEntries = Math.min(nEntries + 1, maxEntries);
     }
 
-    private void fillNoData(long newEntryTime){ //We want to always have a value corresponding to a second
-        //if a second or more has gone by since the last received value, duplicate the last value for
-        //the number of seconds that has gone by
-        if(entriesList.isEmpty()){
+    /**
+     * Duplicate the last entry
+     *
+     * @param newEntryTime Time of the new entry
+     */
+    private void fillNoData(long newEntryTime) {
+        /*
+         * We want to always have a value corresponding to a second
+         * if a second or more has gone by since the last received value, duplicate the last value for
+         * the number of seconds that has gone by
+         */
+        if (entriesList.isEmpty()) {
             return;
         }
 
-        if(newEntryTime > lastEntryTime + ONE_SECOND_IN_MILLIS){
+        if (newEntryTime > lastEntryTime + ONE_SECOND_IN_MILLIS) {
             long rest = lastEntryTime;
-            while(rest > newEntryTime){
+            while (rest > newEntryTime) {
                 rest += ONE_SECOND_IN_MILLIS;
                 entriesList.add(entriesList.get(0));
-                if (nEntries == MAX_ENTRIES){
+                if (nEntries == maxEntries) {
                     entriesList.remove(0);
                 }
             }
         }
     }
 
-    public List<Entry> retrieveEntries(int amount){
+    /**
+     * Get the last entries in the internal list
+     *
+     * @param amount The amount of entries to return
+     * @return List containing the entries
+     */
+    public List<Entry> retrieveEntries(int amount) {
         List<Entry> formattedEntries = new ArrayList<>();
-        if (amount > MAX_ENTRIES){
+        if (amount > maxEntries) {
             return formattedEntries;
         }
-        if (entriesList.isEmpty()){
+        if (entriesList.isEmpty()) {
             return formattedEntries;
         }
 
@@ -71,14 +101,15 @@ public class DataPlot {
 
         int actualAmount = amount;
 
-        if(amount > nEntries){
+        if (amount > nEntries) {
             actualAmount = nEntries;
         }
 
-        for (int i = nEntries - actualAmount; i < nEntries; i++){
+        for (int i = nEntries - actualAmount; i < nEntries; i++) {
             double entryd = entriesList.get(i);
-            float entryf = (float)entryd;
+            float entryf = (float) entryd;
 
+            //TODO: Remplacer ceci?
             // GROS HACK SALE DE LA MORT QUI TUE. JE RÉCITE 20 'JE VOUS SALUE MARIE' AVANT D'ALLER
             // ME COUCHER À TOUS LES SOIRS TANT QUE CE BOUT DE CODE EXISTE!!!
             if (Math.abs(entryf) < 1.0e-20)

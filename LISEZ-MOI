@@ -1,2 +1,6 @@
-Premier fichier de votre entrepot... Vous pouvez le supprimer.
-_____________________________________________________________
+DOCUMENTATION DU CLIENT
+
+Si vous naviguez dans le projet sous les répertoires client\Documentation, 
+vous pourrez accéder à la version web de la documentation de notre projet 
+android simplement en tapant : overview-summary.html dans la console. La 
+documentation sera alors affichée dans votre navigateur web préféré.
